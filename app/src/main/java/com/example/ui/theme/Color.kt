@@ -5,77 +5,79 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 // =========================================================================
-// TDlxHT Strict Two-Color Design System
-// CYPRUS — #004643 (Primary brand / Deep surface)
-// SAND   — #F0EDE5 (Complementary light surface)
-// All glass layers, borders, and shadows are pure alpha variants of these 2 colors.
+// TDlxHT Strict Two-Color Design System: DARK GREY & WHITE ONLY
+// DARK GREY — #252525 (Canvas and component surfaces)
+// WHITE     — #FFFFFF (Text, icons, borders, dividers, controls, and outlines)
 // =========================================================================
 
-val BrandCyprus = Color(0xFF004643)
-val BrandSand = Color(0xFFF0EDE5)
+val BrandDarkGrey = Color(0xFF252525)
+val BrandWhite = Color(0xFFFFFFFF)
+
+val BrandCyprus = BrandDarkGrey
+val BrandSand = BrandWhite
 
 // Backward compatible aliases
-val PaletteLilacAsh = BrandSand.copy(alpha = 0.70f)
-val PaletteAntiqueWhite = BrandSand
-val PaletteVintageGrape = BrandCyprus
-val PaletteBerryCrush = BrandCyprus
-val PaletteMintLeaf = BrandSand
+val PaletteLilacAsh = BrandWhite
+val PaletteAntiqueWhite = BrandWhite
+val PaletteVintageGrape = BrandDarkGrey
+val PaletteBerryCrush = BrandDarkGrey
+val PaletteMintLeaf = BrandWhite
 
-// --- Dark Mode Tokens (Cyprus Canvas & Sand Glass) ---
-val GrapeCanvasDark = BrandCyprus
-val GrapeSurfaceSoft = BrandCyprus.copy(alpha = 0.88f)
-val GrapeSurfaceCard = BrandSand.copy(alpha = 0.08f)
-val GrapeSurfaceElevated = BrandSand.copy(alpha = 0.12f)
-val GrapeHairline = BrandSand.copy(alpha = 0.18f)
-val GrapeHairlineStrong = BrandSand.copy(alpha = 0.28f)
+// --- Dark Mode Tokens (Dark Grey Canvas & White Highlights) ---
+val GrapeCanvasDark = BrandDarkGrey
+val GrapeSurfaceSoft = BrandDarkGrey
+val GrapeSurfaceCard = BrandDarkGrey
+val GrapeSurfaceElevated = BrandDarkGrey
+val GrapeHairline = BrandWhite
+val GrapeHairlineStrong = BrandWhite
 
-val PrimaryDarkCanvas = BrandCyprus
-val PrimaryAccentLime = BrandSand
+val PrimaryDarkCanvas = BrandDarkGrey
+val PrimaryAccentLime = BrandWhite
 
-val BugattiCanvas = BrandCyprus
+val BugattiCanvas = BrandDarkGrey
 val BugattiSurfaceSoft = GrapeSurfaceSoft
 val BugattiSurfaceCard = GrapeSurfaceCard
 val BugattiSurfaceElevated = GrapeSurfaceElevated
 val BugattiHairline = GrapeHairline
 val BugattiHairlineStrong = GrapeHairlineStrong
 
-val BugattiInk = BrandSand
-val BugattiBody = BrandSand.copy(alpha = 0.78f)
-val BugattiBodyStrong = BrandSand
-val BugattiMuted = BrandSand.copy(alpha = 0.45f)
-val BugattiMutedSoft = BrandSand.copy(alpha = 0.30f)
+val BugattiInk = BrandWhite
+val BugattiBody = BrandWhite
+val BugattiBodyStrong = BrandWhite
+val BugattiMuted = BrandWhite
+val BugattiMutedSoft = BrandWhite
 
-val BugattiLink = BrandSand
-val BugattiWarning = BrandSand.copy(alpha = 0.90f)
-val BugattiSuccess = BrandSand
-val BugattiDanger = BrandSand.copy(alpha = 0.65f)
+val BugattiLink = BrandWhite
+val BugattiWarning = BrandWhite
+val BugattiSuccess = BrandWhite
+val BugattiDanger = BrandWhite
 
-// --- Light Mode Tokens (Sand Canvas & Cyprus Glass) ---
-val LightCanvas = BrandSand
-val LightCanvasSoft = BrandCyprus.copy(alpha = 0.05f)
-val LightSurfaceCard = BrandSand
-val LightHairline = BrandCyprus.copy(alpha = 0.16f)
-val LightHairlineStrong = BrandCyprus.copy(alpha = 0.25f)
+// --- Light Mode Tokens (White Canvas & Dark Grey Text) ---
+val LightCanvas = BrandWhite
+val LightCanvasSoft = BrandWhite
+val LightSurfaceCard = BrandWhite
+val LightHairline = BrandDarkGrey
+val LightHairlineStrong = BrandDarkGrey
 
-val LightInkPrimary = BrandCyprus
-val LightInkSecondary = BrandCyprus.copy(alpha = 0.72f)
-val LightInkMuted = BrandCyprus.copy(alpha = 0.45f)
+val LightInkPrimary = BrandDarkGrey
+val LightInkSecondary = BrandDarkGrey
+val LightInkMuted = BrandDarkGrey
 
-val MobbinCanvas = BrandSand
+val MobbinCanvas = BrandWhite
 val MobbinCanvasSoft = LightCanvasSoft
-val MobbinField = BrandCyprus.copy(alpha = 0.06f)
+val MobbinField = BrandWhite
 val MobbinHairline = LightHairline
-val MobbinHairlineSoft = BrandCyprus.copy(alpha = 0.10f)
+val MobbinHairlineSoft = BrandDarkGrey
 
-val MobbinInk = BrandCyprus
+val MobbinInk = BrandDarkGrey
 val MobbinInkSoft = LightInkSecondary
 val MobbinTextMuted = LightInkMuted
-val MobbinTextFaint = BrandCyprus.copy(alpha = 0.30f)
-val MobbinAccent = BrandCyprus
+val MobbinTextFaint = BrandDarkGrey
+val MobbinAccent = BrandDarkGrey
 
-val MobbinSuccess = BrandCyprus
-val MobbinWarning = BrandCyprus.copy(alpha = 0.85f)
-val MobbinDanger = BrandCyprus.copy(alpha = 0.60f)
+val MobbinSuccess = BrandDarkGrey
+val MobbinWarning = BrandDarkGrey
+val MobbinDanger = BrandDarkGrey
 
 data class AppColors(
   val paperBackground: Color,
@@ -99,48 +101,48 @@ data class AppColors(
 )
 
 val LightColors = AppColors(
-  paperBackground = BrandSand,
+  paperBackground = BrandWhite,
   paperDotColor = Color.Transparent,
-  inkPrimary = BrandCyprus,
-  inkSecondary = BrandCyprus.copy(alpha = 0.72f),
-  inkMuted = BrandCyprus.copy(alpha = 0.45f),
-  cardBackground = BrandSand,
-  cardBorder = BrandCyprus.copy(alpha = 0.16f),
-  pillBackgroundDark = BrandCyprus,
-  pillTextDark = BrandSand,
-  progressBarTrack = BrandCyprus.copy(alpha = 0.12f),
-  progressBarFilled = BrandCyprus,
-  accentTerracotta = BrandCyprus,
-  accentOrange = BrandCyprus.copy(alpha = 0.85f),
-  accentYellowHighlight = BrandCyprus.copy(alpha = 0.15f),
-  accentRed = BrandCyprus,
-  chipBorder = BrandCyprus.copy(alpha = 0.20f),
-  chipUnselected = BrandCyprus.copy(alpha = 0.08f),
+  inkPrimary = BrandDarkGrey,
+  inkSecondary = BrandDarkGrey,
+  inkMuted = BrandDarkGrey,
+  cardBackground = BrandWhite,
+  cardBorder = BrandDarkGrey,
+  pillBackgroundDark = BrandDarkGrey,
+  pillTextDark = BrandWhite,
+  progressBarTrack = BrandWhite,
+  progressBarFilled = BrandDarkGrey,
+  accentTerracotta = BrandDarkGrey,
+  accentOrange = BrandDarkGrey,
+  accentYellowHighlight = BrandDarkGrey,
+  accentRed = BrandDarkGrey,
+  chipBorder = BrandDarkGrey,
+  chipUnselected = BrandWhite,
   isDark = false
 )
 
 val DarkColors = AppColors(
-  paperBackground = BrandCyprus,
+  paperBackground = BrandDarkGrey,
   paperDotColor = Color.Transparent,
-  inkPrimary = BrandSand,
-  inkSecondary = BrandSand.copy(alpha = 0.78f),
-  inkMuted = BrandSand.copy(alpha = 0.48f),
-  cardBackground = BrandCyprus,
-  cardBorder = BrandSand.copy(alpha = 0.22f),
-  pillBackgroundDark = BrandSand,
-  pillTextDark = BrandCyprus,
-  progressBarTrack = BrandSand.copy(alpha = 0.16f),
-  progressBarFilled = BrandSand,
-  accentTerracotta = BrandSand,
-  accentOrange = BrandSand.copy(alpha = 0.85f),
-  accentYellowHighlight = BrandSand.copy(alpha = 0.20f),
-  accentRed = BrandSand,
-  chipBorder = BrandSand.copy(alpha = 0.24f),
-  chipUnselected = BrandSand.copy(alpha = 0.10f),
+  inkPrimary = BrandWhite,
+  inkSecondary = BrandWhite,
+  inkMuted = BrandWhite,
+  cardBackground = BrandDarkGrey,
+  cardBorder = BrandWhite,
+  pillBackgroundDark = BrandWhite,
+  pillTextDark = BrandDarkGrey,
+  progressBarTrack = BrandDarkGrey,
+  progressBarFilled = BrandWhite,
+  accentTerracotta = BrandWhite,
+  accentOrange = BrandWhite,
+  accentYellowHighlight = BrandWhite,
+  accentRed = BrandWhite,
+  chipBorder = BrandWhite,
+  chipUnselected = BrandDarkGrey,
   isDark = true
 )
 
-val LocalAppColors = staticCompositionLocalOf { LightColors }
+val LocalAppColors = staticCompositionLocalOf { DarkColors }
 
 // Composable accessors allowing 100% backward compatibility across all screens
 val PaperBackground: Color
@@ -201,7 +203,7 @@ val AppleGreen: Color
   @Composable get() = PaletteMintLeaf
 
 val AppleOrange: Color
-  @Composable get() = if (LocalAppColors.current.isDark) Color(0xFFDCA452) else Color(0xFFCC8538)
+  @Composable get() = if (LocalAppColors.current.isDark) BrandWhite else BrandDarkGrey
 
 val PrimaryAccent: Color
   @Composable get() = PaletteMintLeaf

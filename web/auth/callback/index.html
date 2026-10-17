@@ -1,31 +1,40 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Confirmation & Authentication Gateway — TDlxHT</title>
   <meta name="description" content="TDlxHT Authentication Gateway and Deep Link Forwarder for Supabase Email Verification.">
-  <meta name="theme-color" content="#004643">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23004643'/><path d='M30 52 L42 64 L70 36' stroke='%23F0EDE5' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-  <!-- Minimal Header -->
-  <header class="navbar">
-    <div class="container nav-container">
-      <a href="/" class="brand-logo">
-        <div class="brand-mark">✓</div>
+  <!-- Top Header (Wireframe: Compact, Quiet Architectural Frame) -->
+  <header class="page-container" style="padding-top: 0;">
+    <div class="header-frame">
+      <a href="/" class="header-brand" aria-label="TDlxHT Home">
+        <div class="header-brand-icon">
+          <img src="/app-icon.png" alt="TDlxHT Logo" width="28" height="28">
+        </div>
         <span>TDlxHT</span>
-        <span class="brand-badge">Android</span>
       </a>
 
-      <div class="nav-actions">
-        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <div class="header-actions">
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="header-link" target="_blank" rel="noopener">GitHub</a>
+        <a href="/" class="header-link">Home</a>
+        <div class="header-separator"></div>
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
+          <span>Theme</span>
         </button>
-        <a href="/" class="btn btn-outline btn-sm">Home</a>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Download APK</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk" data-apk-download="true" class="btn btn-primary btn-sm">
+          Download APK
+        </a>
       </div>
     </div>
   </header>
@@ -69,8 +78,8 @@
             <span>Account Portal</span>
           </a>
 
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" class="btn btn-soft btn-sm" target="_blank" rel="noopener">
-            <span>Download Android APK (v2.3.9)</span>
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk" class="btn btn-soft btn-sm" target="_blank" rel="noopener">
+            <span>Download Android APK (v2.4.0)</span>
           </a>
         </div>
 
@@ -172,6 +181,29 @@
       });
     });
   </script>
+
+  <!-- Fixed Bottom Navigation (Wireframe Authority) -->
+  <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
+    <nav class="bottom-dock">
+      <a href="/#dashboard" class="dock-tab" data-tab="dashboard">
+        <div class="dock-tab-icon">▤</div>
+        <span>Dashboard</span>
+      </a>
+      <a href="/#features" class="dock-tab" data-tab="features">
+        <div class="dock-tab-icon">✓</div>
+        <span>Features</span>
+      </a>
+      <a href="/#calculators" class="dock-tab" data-tab="calculators">
+        <div class="dock-tab-icon">⊞</div>
+        <span>Calculators</span>
+      </a>
+      <a href="/#download" class="dock-tab" data-tab="download">
+        <div class="dock-tab-icon">↓</div>
+        <span>Download</span>
+      </a>
+    </nav>
+  </aside>
+
   <script type="module" src="/js/callback.js"></script>
 </body>
 </html>

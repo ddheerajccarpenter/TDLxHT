@@ -217,18 +217,18 @@ class NapkinVisualService(
         val canvas = Canvas(bitmap)
 
         // Background
-        canvas.drawColor(Color.parseColor("#004643"))
+        canvas.drawColor(Color.parseColor("#252525"))
 
         // Card border & background
         val cardPaint = Paint().apply {
-            color = Color.parseColor("#073D3A")
+            color = Color.parseColor("#252525")
             style = Paint.Style.FILL
             isAntiAlias = true
         }
         val borderPaint = Paint().apply {
-            color = Color.parseColor("#26615E")
+            color = Color.parseColor("#FFFFFF")
             style = Paint.Style.STROKE
-            strokeWidth = 3f
+            strokeWidth = 2f
             isAntiAlias = true
         }
         val cardRect = RectF(20f, 20f, width - 20f, height - 20f)
@@ -237,7 +237,7 @@ class NapkinVisualService(
 
         // Title
         val titlePaint = Paint().apply {
-            color = Color.parseColor("#F0EDE5")
+            color = Color.parseColor("#FFFFFF")
             textSize = 28f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
@@ -247,7 +247,7 @@ class NapkinVisualService(
 
         // Subtitle
         val subPaint = Paint().apply {
-            color = Color.parseColor("#B3D4D2")
+            color = Color.parseColor("#FFFFFF")
             textSize = 16f
             isAntiAlias = true
         }
@@ -256,7 +256,7 @@ class NapkinVisualService(
 
         // Divider
         val divPaint = Paint().apply {
-            color = Color.parseColor("#195855")
+            color = Color.parseColor("#FFFFFF")
             strokeWidth = 2f
         }
         canvas.drawLine(50f, 125f, width - 50f, 125f, divPaint)
@@ -278,7 +278,7 @@ class NapkinVisualService(
             boxHeight = 160f,
             title = "TASKS DONE",
             value = "$taskDone / $taskTotal",
-            accentColor = Color.parseColor("#F0EDE5"),
+            accentColor = Color.parseColor("#FFFFFF"),
             sub = "${(compRate * 100).toInt()}% completed"
         )
 
@@ -291,7 +291,7 @@ class NapkinVisualService(
             boxHeight = 160f,
             title = "LONGEST STREAK",
             value = "$streak Days",
-            accentColor = Color.parseColor("#DEDBD3"),
+            accentColor = Color.parseColor("#FFFFFF"),
             sub = "Consistency record"
         )
 
@@ -304,18 +304,19 @@ class NapkinVisualService(
             boxHeight = 160f,
             title = "HABIT SESSIONS",
             value = "$habitDone completions",
-            accentColor = Color.parseColor("#CCC9C1"),
+            accentColor = Color.parseColor("#FFFFFF"),
             sub = "Active momentum"
         )
 
         // Bottom Progress Bar
         val barBgPaint = Paint().apply {
-            color = Color.parseColor("#003330")
-            style = Paint.Style.FILL
+            color = Color.parseColor("#252525")
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
             isAntiAlias = true
         }
         val barFillPaint = Paint().apply {
-            color = Color.parseColor("#F0EDE5")
+            color = Color.parseColor("#FFFFFF")
             style = Paint.Style.FILL
             isAntiAlias = true
         }
@@ -330,7 +331,7 @@ class NapkinVisualService(
 
         // Footer note
         val footerPaint = Paint().apply {
-            color = Color.parseColor("#8FAFA0")
+            color = Color.parseColor("#FFFFFF")
             textSize = 14f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
             isAntiAlias = true
@@ -353,12 +354,12 @@ class NapkinVisualService(
     ) {
         val rect = RectF(left, top, left + boxWidth, top + boxHeight)
         val fill = Paint().apply {
-            color = Color.parseColor("#003B38")
+            color = Color.parseColor("#252525")
             style = Paint.Style.FILL
             isAntiAlias = true
         }
         val border = Paint().apply {
-            color = Color.parseColor("#26615E")
+            color = Color.parseColor("#FFFFFF")
             style = Paint.Style.STROKE
             strokeWidth = 2f
             isAntiAlias = true
@@ -375,7 +376,7 @@ class NapkinVisualService(
         canvas.drawRoundRect(RectF(left + 16f, top + 16f, left + 40f, top + 22f), 3f, 3f, pillPaint)
 
         val titlePaint = Paint().apply {
-            color = Color.parseColor("#A6C7C5")
+            color = Color.parseColor("#FFFFFF")
             textSize = 13f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
@@ -383,7 +384,7 @@ class NapkinVisualService(
         canvas.drawText(title, left + 16f, top + 45f, titlePaint)
 
         val valPaint = Paint().apply {
-            color = Color.parseColor("#F0EDE5")
+            color = Color.parseColor("#FFFFFF")
             textSize = 24f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
@@ -391,7 +392,7 @@ class NapkinVisualService(
         canvas.drawText(value, left + 16f, top + 88f, valPaint)
 
         val subPaint = Paint().apply {
-            color = Color.parseColor("#8FAFA0")
+            color = Color.parseColor("#FFFFFF")
             textSize = 13f
             isAntiAlias = true
         }

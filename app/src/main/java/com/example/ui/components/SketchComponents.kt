@@ -53,6 +53,7 @@ import com.example.ui.theme.MobbinInk
 import com.example.ui.theme.MobbinField
 import com.example.ui.theme.MobbinCanvasSoft
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material3.Icon
@@ -213,6 +214,20 @@ object PhysicalMotionSpecs {
   val DialogPopEntrance = spring<Float>(
     dampingRatio = 0.68f,
     stiffness = 440f
+  )
+  // Kern Society kinetic elastic curves (Priority 2)
+  val KernKineticOvershoot = spring<Float>(
+    dampingRatio = 0.54f,
+    stiffness = 450f
+  )
+  val KernSquashSnap = spring<Float>(
+    dampingRatio = 0.48f,
+    stiffness = 480f
+  )
+  // Dheeraj Carpenter tactile tilt spring (Priority 1)
+  val DheerajTiltSpring = spring<Float>(
+    dampingRatio = 0.68f,
+    stiffness = 380f
   )
 }
 
@@ -488,6 +503,197 @@ fun Modifier.bounceClick(
   }
 }
 
+/**
+ * Kern Society Kinetic Elastic Stretch & Squash press modifier (Priority 2).
+ * Simulates variable font elasticity & volume conservation on touch down:
+ * expands along the horizontal axis (X) while compressing vertically (Y),
+ * then snaps back with a high-tension spring overshoot on release.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+fun Modifier.elasticStretchPress(
+  horizontalStretch: Float = 1.05f,
+  verticalSquash: Float = 0.93f,
+  enabled: Boolean = true,
+  onLongClick: (() -> Unit)? = null,
+  onClick: (() -> Unit)? = null
+): Modifier {
+  if (!enabled || (onClick == null && onLongClick == null)) return this
+  return composed {
+    val context = LocalContext.current
+    val isReduced = remember { isReducedMotionEnabled(context) }
+    val targetScaleX = if (isReduced) 1.0f else horizontalStretch
+    val targetScaleY = if (isReduced) 1.0f else verticalSquash
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scaleX by animateFloatAsState(
+      targetValue = if (isPressed) targetScaleX else 1f,
+      animationSpec = spring(
+        dampingRatio = 0.54f,
+        stiffness = 450f
+      ),
+      label = "kernScaleX"
+    )
+    val scaleY by animateFloatAsState(
+      targetValue = if (isPressed) targetScaleY else 1f,
+      animationSpec = spring(
+        dampingRatio = 0.54f,
+        stiffness = 450f
+      ),
+      label = "kernScaleY"
+    )
+    val alpha by animateFloatAsState(
+      targetValue = if (isPressed) 0.88f else 1f,
+      animationSpec = spring(dampingRatio = 0.70f, stiffness = 450f),
+      label = "kernAlpha"
+    )
+
+    this
+      .graphicsLayer {
+        this.scaleX = scaleX
+        this.scaleY = scaleY
+        this.alpha = alpha
+      }
+      .combinedClickable(
+        interactionSource = interactionSource,
+        indication = null,
+        enabled = enabled,
+        onLongClick = if (onLongClick != null) {
+          {
+            VibrationHelper.tick(context)
+            onLongClick()
+          }
+        } else null,
+        onClick = {
+          VibrationHelper.click(context)
+          onClick?.invoke()
+        }
+      )
+  }
+}
+
+/**
+ * Dheeraj Carpenter Tactile 3D Perspective Depth Modifier (Priority 1).
+ * Applies 3D perspective camera distance, subtle rotation on interaction,
+ * multi-layer ambient shadow depth, and a crisp specular edge highlight.
+ */
+fun Modifier.tactile3DDepth(
+  cornerRadius: Dp = 16.dp,
+  elevation: Dp = 6.dp,
+  tiltDegrees: Float = 3.5f,
+  isDark: Boolean = true
+): Modifier = composed {
+  val interactionSource = remember { MutableInteractionSource() }
+  val isPressed by interactionSource.collectIsPressedAsState()
+
+  val currentElevation by animateDpAsState(
+    targetValue = if (isPressed) 2.dp else elevation,
+    animationSpec = spring(dampingRatio = 0.72f, stiffness = 400f),
+    label = "tactileElevation"
+  )
+  val rotationX by animateFloatAsState(
+    targetValue = if (isPressed) tiltDegrees else 0f,
+    animationSpec = spring(dampingRatio = 0.65f, stiffness = 380f),
+    label = "tactileRotX"
+  )
+  val scale by animateFloatAsState(
+    targetValue = if (isPressed) 0.98f else 1f,
+    animationSpec = spring(dampingRatio = 0.65f, stiffness = 420f),
+    label = "tactileScale"
+  )
+
+  this
+    .graphicsLayer {
+      this.rotationX = rotationX
+      this.scaleX = scale
+      this.scaleY = scale
+      cameraDistance = 16f * density
+    }
+    .shadow(
+      elevation = currentElevation,
+      shape = RoundedCornerShape(cornerRadius),
+      ambientColor = if (isDark) Color(0x65000000) else Color(0x18000000),
+      spotColor = if (isDark) Color(0x45000000) else Color(0x10000000)
+    )
+    .border(
+      width = 1.dp,
+      brush = Brush.verticalGradient(
+        colors = if (isDark) {
+          listOf(Color(0x35FFFFFF), Color(0x0EFFFFFF))
+        } else {
+          listOf(Color(0x40FFFFFF), Color(0x15000000))
+        }
+      ),
+      shape = RoundedCornerShape(cornerRadius)
+    )
+}
+
+/**
+ * Dheeraj Carpenter Icon Nudge micro-interaction (Priority 1).
+ * Causes trailing icons to dynamically nudge forward with physical snap on press.
+ */
+@Composable
+fun Modifier.iconNudgePress(
+  isTriggered: Boolean = false,
+  nudgeDp: Dp = 4.dp
+): Modifier {
+  val context = LocalContext.current
+  val isReduced = remember { isReducedMotionEnabled(context) }
+  if (isReduced) return this
+
+  val density = LocalDensity.current
+  val nudgePx = with(density) { nudgeDp.toPx() }
+
+  val translationX by animateFloatAsState(
+    targetValue = if (isTriggered) nudgePx else 0f,
+    animationSpec = spring(dampingRatio = 0.52f, stiffness = 450f),
+    label = "iconNudge"
+  )
+
+  return this.graphicsLayer {
+    this.translationX = translationX
+  }
+}
+
+/**
+ * Kern Society kinetic number squash & stretch counter animation (Priority 2).
+ * Triggers an elastic squash and vertical snap whenever the provided counter value changes.
+ */
+@Composable
+fun Modifier.kernSquashCounter(
+  key: Any?
+): Modifier {
+  val context = LocalContext.current
+  val isReduced = remember { isReducedMotionEnabled(context) }
+  if (isReduced) return this
+
+  val scaleXAnim = remember { Animatable(1f) }
+  val scaleYAnim = remember { Animatable(1f) }
+
+  LaunchedEffect(key) {
+    if (key != null) {
+      scaleXAnim.snapTo(1.15f)
+      scaleYAnim.snapTo(0.85f)
+      kotlinx.coroutines.launch {
+        scaleXAnim.animateTo(
+          targetValue = 1f,
+          animationSpec = spring(dampingRatio = 0.50f, stiffness = 420f)
+        )
+      }
+      scaleYAnim.animateTo(
+        targetValue = 1f,
+        animationSpec = spring(dampingRatio = 0.50f, stiffness = 420f)
+      )
+    }
+  }
+
+  return this.graphicsLayer {
+    this.scaleX = scaleXAnim.value
+    this.scaleY = scaleYAnim.value
+  }
+}
+
 @Composable
 fun SketchCard(
   modifier: Modifier = Modifier,
@@ -495,15 +701,42 @@ fun SketchCard(
   backgroundColor: Color = CardBackground,
   borderColor: Color = CardBorder,
   borderWidth: Dp = 1.dp,
+  elevation: Dp = 4.dp,
   onClick: (() -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
+  val isDark = LocalAppColors.current.isDark
   val resolvedBg = if (backgroundColor == Color.Unspecified) CardBackground else backgroundColor
+
   Box(
     modifier = modifier
-      .then(if (onClick != null) Modifier.bounceClick(scaleDown = 0.96f) { onClick() } else Modifier)
+      .shadow(
+        elevation = elevation,
+        shape = RoundedCornerShape(cornerRadius),
+        ambientColor = if (isDark) Color(0x60000000) else Color(0x14000000),
+        spotColor = if (isDark) Color(0x40000000) else Color(0x0E000000)
+      )
+      .then(
+        if (onClick != null) {
+          Modifier.elasticStretchPress(
+            horizontalStretch = 1.02f,
+            verticalSquash = 0.97f,
+            onClick = onClick
+          )
+        } else Modifier
+      )
       .background(resolvedBg, RoundedCornerShape(cornerRadius))
-      .border(borderWidth, borderColor, RoundedCornerShape(cornerRadius))
+      .border(
+        width = borderWidth,
+        brush = Brush.verticalGradient(
+          colors = if (isDark) {
+            listOf(Color(0x35FFFFFF), Color(0x0EFFFFFF))
+          } else {
+            listOf(Color(0x20000000), Color(0x10000000))
+          }
+        ),
+        shape = RoundedCornerShape(cornerRadius)
+      )
       .clip(RoundedCornerShape(cornerRadius))
   ) {
     content()
@@ -632,7 +865,12 @@ fun SketchCircularIconButton(
       .border(1.dp, borderColor, CircleShape)
       .clip(CircleShape)
       .background(backgroundColor)
-      .bounceClick(enabled = enabled) { onClick() }
+      .elasticStretchPress(
+        horizontalStretch = 1.08f,
+        verticalSquash = 0.91f,
+        enabled = enabled,
+        onClick = onClick
+      )
       .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
     contentAlignment = Alignment.Center
   ) {
@@ -676,7 +914,11 @@ fun SketchFilterChip(
       .border(1.dp, borderCol, RoundedCornerShape(10.dp))
       .clip(RoundedCornerShape(10.dp))
       .background(bg)
-      .bounceClick { onClick() }
+      .elasticStretchPress(
+        horizontalStretch = 1.06f,
+        verticalSquash = 0.93f,
+        onClick = onClick
+      )
       .padding(horizontal = 14.dp)
       .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
     contentAlignment = Alignment.Center
@@ -792,21 +1034,27 @@ fun SketchCheckbox(
   val isDark = LocalAppColors.current.isDark
   val isReduced = remember { isReducedMotionEnabled(context) }
 
-  // Tactile elastic pop on check completion (overshoots and settles smoothly)
-  val popScale = remember { Animatable(1f) }
+  // Kern Society kinetic elastic squash & stretch on check completion (Priority 2)
+  val squashX = remember { Animatable(1f) }
+  val squashY = remember { Animatable(1f) }
 
   LaunchedEffect(checked) {
     if (checked && !isReduced) {
-      popScale.snapTo(0.82f)
-      popScale.animateTo(
-        targetValue = 1f,
-        animationSpec = spring(
-          dampingRatio = 0.48f, // elastic tactile rebound
-          stiffness = 450f
+      squashX.snapTo(1.16f)
+      squashY.snapTo(0.84f)
+      kotlinx.coroutines.launch {
+        squashX.animateTo(
+          targetValue = 1f,
+          animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
         )
+      }
+      squashY.animateTo(
+        targetValue = 1f,
+        animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
       )
     } else {
-      popScale.snapTo(1f)
+      squashX.snapTo(1f)
+      squashY.snapTo(1f)
     }
   }
 
@@ -837,7 +1085,10 @@ fun SketchCheckbox(
   Box(
     modifier = modifier
       .size(size = 46.dp)
-      .bounceClick(level = InteractionLevel.SMALL, scaleDown = 0.90f) {
+      .elasticStretchPress(
+        horizontalStretch = 1.10f,
+        verticalSquash = 0.90f
+      ) {
         val next = !checked
         if (next) {
           VibrationHelper.success(context)
@@ -852,7 +1103,10 @@ fun SketchCheckbox(
     Box(
       modifier = Modifier
         .size(sizeDp)
-        .scale(popScale.value)
+        .graphicsLayer {
+          scaleX = squashX.value
+          scaleY = squashY.value
+        }
         .background(bgColor, RoundedCornerShape(7.dp))
         .border(1.6.dp, borderColor, RoundedCornerShape(7.dp)),
       contentAlignment = Alignment.Center

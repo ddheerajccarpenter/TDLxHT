@@ -629,10 +629,10 @@ private fun MessageBanner(
         exit = fadeOut(tween(150)) + slideOutVertically(tween(150)) { -it }
     ) {
         val isError = error != null
-        val bgColor = if (isError) Color(0xFFFFEDED) else Color(0xFFEDFFED)
-        val borderColor = if (isError) Color(0xFFE57373) else Color(0xFF81C784)
-        val titleColor = if (isError) Color(0xFFB00020) else Color(0xFF1B5E20)
-        val descColor = if (isError) Color(0xFF5A1A1A) else Color(0xFF1B5E20)
+        val bgColor = Color(0xFF252525)
+        val borderColor = Color(0xFFFFFFFF)
+        val titleColor = Color(0xFFFFFFFF)
+        val descColor = Color(0xFFFFFFFF)
 
         Box(
             modifier = Modifier

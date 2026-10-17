@@ -68,6 +68,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.runtime.mutableFloatStateOf
 import com.example.ui.theme.MobbinInk
@@ -129,6 +130,7 @@ import com.example.data.model.Task
 import com.example.ui.components.AnimatedDialogContent
 import com.example.ui.components.SketchCard
 import com.example.ui.components.bounceClick
+import com.example.ui.components.elasticStretchPress
 import com.example.ui.screens.auth.AuthenticationScreen
 import com.example.ui.screens.calendar.CalendarScreen
 import com.example.ui.screens.habits.HabitDetailEditScreen
@@ -1298,94 +1300,66 @@ fun SketchBottomNavigationBar(
       .padding(horizontal = 16.dp, vertical = 8.dp),
     contentAlignment = Alignment.Center
   ) {
-    // 1. Floating Stadium Pill Navigation Dock (Mobbin / Bugatti MD System matching Image 2)
+    // Liquid Glass Floating Stadium Pill Navigation Dock (APK Exclusive)
     Box(
       modifier = Modifier
         .fillMaxWidth()
-        .height(62.dp)
+        .height(64.dp)
         .shadow(
-          elevation = if (isDark) 14.dp else 10.dp,
+          elevation = if (isDark) 18.dp else 12.dp,
           shape = CircleShape,
-          ambientColor = if (isDark) Color(0x90000000) else Color(0x18000000),
-          spotColor = if (isDark) Color(0x70000000) else Color(0x12000000)
+          ambientColor = if (isDark) Color(0x99000000) else Color(0x22000000),
+          spotColor = if (isDark) Color(0x75000000) else Color(0x18000000)
         )
         .clip(CircleShape)
         .background(
-          color = if (isDark) Color(0xF2121214) else Color(0xF6F2F3F5)
+          color = if (isDark) Color(0xD8202022) else Color(0xDEFAFBFD)
         )
         .border(
-          width = 1.dp,
-          color = if (isDark) Color(0x28FFFFFF) else Color(0x1F000000),
+          width = 1.2.dp,
+          brush = Brush.verticalGradient(
+            colors = if (isDark) {
+              listOf(
+                Color(0x66FFFFFF),
+                Color(0x1EFFFFFF),
+                Color(0x08FFFFFF)
+              )
+            } else {
+              listOf(
+                Color(0xC0FFFFFF),
+                Color(0x35000000),
+                Color(0x18000000)
+              )
+            }
+          ),
           shape = CircleShape
         )
-        .pointerInput(destinations) {
-          val velocityTracker = androidx.compose.ui.input.pointer.util.VelocityTracker()
-          awaitEachGesture {
-            val down = awaitFirstDown(requireUnconsumed = false)
-            velocityTracker.resetTracking()
-            velocityTracker.addPosition(down.uptimeMillis, down.position)
-            var totalDragX = 0f
-            var isDragging = false
-            val touchSlop = viewConfiguration.touchSlop
-
-            while (true) {
-              val event = awaitPointerEvent()
-              val change = event.changes.firstOrNull { it.id == down.id } ?: break
-              if (!change.pressed) {
-                if (isDragging) {
-                  val velocity = velocityTracker.calculateVelocity().x
-                  val currentPage = pagerState.currentPage
-                  val fraction = pagerState.currentPageOffsetFraction
-
-                  val targetPage = when {
-                    velocity < -500f && currentPage < destinations.size - 1 -> currentPage + 1
-                    velocity > 500f && currentPage > 0 -> currentPage - 1
-                    fraction > 0.30f && currentPage < destinations.size - 1 -> currentPage + 1
-                    fraction < -0.30f && currentPage > 0 -> currentPage - 1
-                    else -> currentPage
-                  }
-                  coroutineScope.launch {
-                    pagerState.animateScrollToPage(
-                      page = targetPage,
-                      animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
-                    )
-                    onDestinationSelected(destinations[targetPage])
-                  }
-                  VibrationHelper.tick(context)
-                }
-                break
-              }
-
-              velocityTracker.addPosition(change.uptimeMillis, change.position)
-              val dragDelta = change.position.x - change.previousPosition.x
-              totalDragX += dragDelta
-
-              if (!isDragging && kotlin.math.abs(totalDragX) > touchSlop) {
-                isDragging = true
-              }
-
-              if (isDragging) {
-                change.consume()
-                val tabWidth = (size.width / (destinations.size + 1).toFloat()).coerceAtLeast(1f)
-                val scrollDelta = dragDelta * (size.width / tabWidth)
-                coroutineScope.launch {
-                  pagerState.dispatchRawDelta(-scrollDelta)
-                }
-              }
-            }
-          }
+        .drawBehind {
+          // Top specular arc sheen - authentic visionOS / iOS 18 liquid glass refraction depth
+          drawRoundRect(
+            brush = Brush.verticalGradient(
+              colors = listOf(
+                if (isDark) Color(0x28FFFFFF) else Color(0x40FFFFFF),
+                Color.Transparent
+              ),
+              startY = 0f,
+              endY = size.height * 0.45f
+            ),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
+          )
         },
       contentAlignment = Alignment.Center
     ) {
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 8.dp),
+          .padding(horizontal = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        // Tab 0: Home / Today
-        StadiumPillNavItem(
+        // Tab 0: Home (weight 1f)
+        LiquidGlassNavItem(
+          modifier = Modifier.weight(1f),
           destination = destinations[0],
           pageIndex = 0,
           currentPage = pagerState.currentPage,
@@ -1394,14 +1368,20 @@ fun SketchBottomNavigationBar(
           onClick = {
             VibrationHelper.tick(context)
             if (pagerState.currentPage != 0) {
-              coroutineScope.launch { pagerState.animateScrollToPage(0) }
+              coroutineScope.launch {
+                pagerState.animateScrollToPage(
+                  page = 0,
+                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
+                )
+              }
               onDestinationSelected(destinations[0])
             }
           }
         )
 
-        // Tab 1: Productivity
-        StadiumPillNavItem(
+        // Tab 1: Productivity (weight 1f)
+        LiquidGlassNavItem(
+          modifier = Modifier.weight(1f),
           destination = destinations[1],
           pageIndex = 1,
           currentPage = pagerState.currentPage,
@@ -1410,42 +1390,63 @@ fun SketchBottomNavigationBar(
           onClick = {
             VibrationHelper.tick(context)
             if (pagerState.currentPage != 1) {
-              coroutineScope.launch { pagerState.animateScrollToPage(1) }
+              coroutineScope.launch {
+                pagerState.animateScrollToPage(
+                  page = 1,
+                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
+                )
+              }
               onDestinationSelected(destinations[1])
             }
           }
         )
 
-        // 2. Center Quick Add (+) Button nestled cleanly inside the dock
+        // Center Quick Add (+) Button with Kern Society elastic squeeze & liquid jewel styling
         var fabClickKey by remember { mutableIntStateOf(0) }
         val fabRotation by animateFloatAsState(
           targetValue = if (fabClickKey % 2 == 1) 45f else 0f,
           animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            dampingRatio = 0.54f, // Kern Society snappy elastic rebound
+            stiffness = 450f
           ),
           label = "fabRotation"
         )
 
         Box(
           modifier = Modifier
-            .size(42.dp)
+            .padding(horizontal = 4.dp)
+            .size(44.dp)
             .shadow(
-              elevation = if (isDark) 6.dp else 4.dp,
+              elevation = if (isDark) 8.dp else 6.dp,
               shape = CircleShape,
-              ambientColor = if (isDark) Color(0x60000000) else Color(0x20000000),
-              spotColor = if (isDark) Color(0x50000000) else Color(0x18000000)
+              ambientColor = if (isDark) Color(0x70000000) else Color(0x28000000),
+              spotColor = if (isDark) Color(0x60000000) else Color(0x20000000)
             )
             .clip(CircleShape)
             .background(
-              color = if (isDark) BrandSand else BrandCyprus
+              brush = Brush.verticalGradient(
+                colors = if (isDark) {
+                  listOf(Color(0xFFFFFFFF), Color(0xFFE8E8E8))
+                } else {
+                  listOf(Color(0xFF2C2C2E), Color(0xFF1E1E20))
+                }
+              )
             )
             .border(
-              width = 1.dp,
-              color = if (isDark) BrandSand.copy(alpha = 0.40f) else BrandCyprus.copy(alpha = 0.25f),
+              width = 1.2.dp,
+              brush = Brush.verticalGradient(
+                colors = if (isDark) {
+                  listOf(Color(0x90FFFFFF), Color(0x30FFFFFF))
+                } else {
+                  listOf(Color(0x60FFFFFF), Color(0x10000000))
+                }
+              ),
               shape = CircleShape
             )
-            .bounceClick(level = com.example.ui.components.InteractionLevel.MEDIUM, scaleDown = 0.88f) {
+            .elasticStretchPress(
+              horizontalStretch = 1.08f,
+              verticalSquash = 0.90f
+            ) {
               fabClickKey++
               VibrationHelper.click(context)
               onQuickAdd()
@@ -1456,15 +1457,16 @@ fun SketchBottomNavigationBar(
           Icon(
             imageVector = Icons.Default.Add,
             contentDescription = "Center Quick Add FAB",
-            tint = if (isDark) BrandCyprus else BrandSand,
+            tint = if (isDark) Color(0xFF1A1A1C) else Color(0xFFFFFFFF),
             modifier = Modifier
               .size(22.dp)
               .graphicsLayer(rotationZ = fabRotation)
           )
         }
 
-        // Tab 2: Tools
-        StadiumPillNavItem(
+        // Tab 2: Tools (weight 1f)
+        LiquidGlassNavItem(
+          modifier = Modifier.weight(1f),
           destination = destinations[2],
           pageIndex = 2,
           currentPage = pagerState.currentPage,
@@ -1473,14 +1475,20 @@ fun SketchBottomNavigationBar(
           onClick = {
             VibrationHelper.tick(context)
             if (pagerState.currentPage != 2) {
-              coroutineScope.launch { pagerState.animateScrollToPage(2) }
+              coroutineScope.launch {
+                pagerState.animateScrollToPage(
+                  page = 2,
+                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
+                )
+              }
               onDestinationSelected(destinations[2])
             }
           }
         )
 
-        // Tab 3: Insights
-        StadiumPillNavItem(
+        // Tab 3: Insights (weight 1f)
+        LiquidGlassNavItem(
+          modifier = Modifier.weight(1f),
           destination = destinations[3],
           pageIndex = 3,
           currentPage = pagerState.currentPage,
@@ -1489,7 +1497,12 @@ fun SketchBottomNavigationBar(
           onClick = {
             VibrationHelper.tick(context)
             if (pagerState.currentPage != 3) {
-              coroutineScope.launch { pagerState.animateScrollToPage(3) }
+              coroutineScope.launch {
+                pagerState.animateScrollToPage(
+                  page = 3,
+                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
+                )
+              }
               onDestinationSelected(destinations[3])
             }
           }
@@ -1500,7 +1513,8 @@ fun SketchBottomNavigationBar(
 }
 
 @Composable
-private fun StadiumPillNavItem(
+private fun LiquidGlassNavItem(
+  modifier: Modifier = Modifier,
   destination: AppDestination,
   pageIndex: Int,
   currentPage: Int,
@@ -1508,97 +1522,106 @@ private fun StadiumPillNavItem(
   isDark: Boolean,
   onClick: () -> Unit
 ) {
-  val context = LocalContext.current
   val continuousPosition = (currentPage + pageOffset).coerceIn(0f, 3f)
   val distance = kotlin.math.abs(continuousPosition - pageIndex).coerceIn(0f, 1f)
-  val proximity = 1f - distance
-  val isSelected = proximity > 0.45f
-
-  var clickBounceKey by remember { mutableIntStateOf(0) }
-  val clickBounceScale by animateFloatAsState(
-    targetValue = if (clickBounceKey > 0) 1.15f else 1.0f,
-    animationSpec = spring(
-      dampingRatio = Spring.DampingRatioMediumBouncy,
-      stiffness = Spring.StiffnessMedium
-    ),
-    label = "navItemBounce"
-  )
-
-  LaunchedEffect(clickBounceKey) {
-    if (clickBounceKey > 0) {
-      kotlinx.coroutines.delay(120)
-      clickBounceKey = 0
-    }
-  }
+  val proximity = (1f - distance).coerceIn(0f, 1f)
+  val isSelected = proximity > 0.50f
 
   val activeColor = if (isDark) BrandSand else BrandCyprus
-  val inactiveColor = if (isDark) BrandSand.copy(alpha = 0.50f) else BrandCyprus.copy(alpha = 0.45f)
+  val inactiveColor = if (isDark) BrandSand.copy(alpha = 0.44f) else BrandCyprus.copy(alpha = 0.40f)
 
-  val activePillBg = if (isDark) BrandSand.copy(alpha = 0.16f) else BrandCyprus.copy(alpha = 0.10f)
-  val activePillBorder = if (isDark) BrandSand.copy(alpha = 0.28f) else BrandCyprus.copy(alpha = 0.20f)
+  // Liquid capsule animated presence using pure GPU RenderNode transforms (zero layout remeasurement!)
+  val liquidAlpha by animateFloatAsState(
+    targetValue = if (isSelected) 1f else 0f,
+    animationSpec = spring(dampingRatio = 0.80f, stiffness = 450f),
+    label = "liquidAlpha"
+  )
+  val liquidScale by animateFloatAsState(
+    targetValue = if (isSelected) 1f else 0.84f,
+    animationSpec = spring(dampingRatio = 0.65f, stiffness = 420f),
+    label = "liquidScale"
+  )
+  val iconScale by animateFloatAsState(
+    targetValue = if (isSelected) 1.08f else 1.0f,
+    animationSpec = spring(dampingRatio = 0.58f, stiffness = 450f),
+    label = "iconScale"
+  )
 
   Box(
-    modifier = Modifier
-      .scale(clickBounceScale)
-      .animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f))
-      .then(
-        if (isSelected) {
-          Modifier
-            .shadow(
-              elevation = if (isDark) 5.dp else 4.dp,
-              shape = CircleShape,
-              ambientColor = if (isDark) Color(0x50000000) else Color(0x14000000),
-              spotColor = if (isDark) Color(0x35000000) else Color(0x10000000)
-            )
-            .clip(CircleShape)
-            .background(activePillBg)
-            .border(width = 1.dp, color = activePillBorder, shape = CircleShape)
-        } else {
-          Modifier.clip(CircleShape)
-        }
+    modifier = modifier
+      .height(52.dp)
+      .clip(CircleShape)
+      .elasticStretchPress(
+        horizontalStretch = 1.06f,
+        verticalSquash = 0.93f,
+        onClick = onClick
       )
-      .bounceClick(level = com.example.ui.components.InteractionLevel.SMALL, scaleDown = 0.93f) {
-        clickBounceKey++
-        VibrationHelper.tick(context)
-        onClick()
-      }
       .testTag("nav_${destination.name.lowercase()}"),
     contentAlignment = Alignment.Center
   ) {
-    Row(
-      modifier = Modifier.padding(
-        horizontal = if (isSelected) 14.dp else 10.dp,
-        vertical = 9.dp
-      ),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Center
+    // 1. Sliding Liquid Glass Capsule (RenderNode GPU-only, no remeasure)
+    if (liquidAlpha > 0.01f) {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth(0.92f)
+          .height(44.dp)
+          .graphicsLayer {
+            alpha = liquidAlpha
+            scaleX = liquidScale
+            scaleY = liquidScale
+          }
+          .shadow(
+            elevation = if (isDark) 4.dp else 3.dp,
+            shape = CircleShape,
+            ambientColor = if (isDark) Color(0x60000000) else Color(0x18000000),
+            spotColor = if (isDark) Color(0x40000000) else Color(0x10000000)
+          )
+          .clip(CircleShape)
+          .background(
+            color = if (isDark) Color(0x2EFFFFFF) else Color(0x16000000)
+          )
+          .border(
+            width = 1.dp,
+            brush = Brush.verticalGradient(
+              colors = if (isDark) {
+                listOf(Color(0x55FFFFFF), Color(0x15FFFFFF))
+              } else {
+                listOf(Color(0x35000000), Color(0x10000000))
+              }
+            ),
+            shape = CircleShape
+          )
+      )
+    }
+
+    // 2. Icon + Label (fixed, stable layout with zero reflow)
+    Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center
     ) {
       Icon(
         imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
         contentDescription = destination.label,
         tint = if (isSelected) activeColor else inactiveColor,
-        modifier = Modifier.size(20.dp)
+        modifier = Modifier
+          .size(20.dp)
+          .graphicsLayer {
+            scaleX = iconScale
+            scaleY = iconScale
+          }
       )
-
-      AnimatedVisibility(
-        visible = isSelected,
-        enter = fadeIn(animationSpec = tween(180)) + expandHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
-        exit = fadeOut(animationSpec = tween(120)) + shrinkHorizontally(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
-      ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Spacer(modifier = Modifier.width(6.dp))
-          Text(
-            text = destination.label,
-            style = TextStyle(
-              fontFamily = SFProFontFamily,
-              fontSize = 12.5.sp,
-              fontWeight = FontWeight.SemiBold,
-              color = activeColor
-            ),
-            maxLines = 1
-          )
-        }
-      }
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = destination.label,
+        style = TextStyle(
+          fontFamily = SFProFontFamily,
+          fontSize = 10.5.sp,
+          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+          color = if (isSelected) activeColor else inactiveColor,
+          letterSpacing = 0.1.sp
+        ),
+        maxLines = 1
+      )
     }
   }
 }

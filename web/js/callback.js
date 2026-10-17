@@ -1,10 +1,13 @@
 import { supabase } from './supabase-config.js';
+import { initBottomNav } from './bottom-nav.js';
 
 /**
  * TDlxHT Auth Callback & Confirmation Handler
  * Handles Supabase email confirmation, password recovery, and automatic deep linking to Android app.
  */
 document.addEventListener("DOMContentLoaded", async () => {
+  // Initialize unified bottom navigation
+  initBottomNav();
   const loadingCard = document.getElementById("callback-loading");
   const successCard = document.getElementById("callback-success");
   const recoveryCard = document.getElementById("callback-recovery");

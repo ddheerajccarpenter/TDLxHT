@@ -5,8 +5,12 @@
  * instant email confirmation, and reliable password recovery that bypasses broken SMTP.
  */
 import { supabase } from './supabase-config.js';
+import { initBottomNav } from './bottom-nav.js';
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Initialize unified bottom navigation
+  initBottomNav();
+
   const tabs = document.querySelectorAll(".auth-tab");
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
