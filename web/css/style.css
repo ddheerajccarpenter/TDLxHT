@@ -556,13 +556,42 @@ button {
 }
 
 .tool-chip {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   background: var(--field);
   border: 1px solid var(--hairline-soft);
   color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.tool-chip:hover {
+  background: var(--canvas-soft);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.tool-chip.active {
+  background: var(--ink);
+  color: var(--canvas);
+  border-color: var(--ink);
+}
+
+.tool-preview-info {
+  margin-top: 10px;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  background: var(--canvas);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--radius-xs);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--transition-fast);
 }
 
 /* --- Section Shared --- */

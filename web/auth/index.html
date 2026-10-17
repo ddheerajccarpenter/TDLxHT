@@ -21,11 +21,9 @@
       </a>
 
       <div class="nav-actions">
-        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        </button>
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme"></button>
         <a href="/" class="btn btn-outline btn-sm">Home</a>
-        <a href="tdlxht://home" class="btn btn-primary btn-sm" data-deeplink="home">Open App</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Download APK</a>
       </div>
     </div>
   </header>
@@ -133,17 +131,37 @@
 
   <!-- Scripts -->
   <script>
-    const savedTheme = localStorage.getItem("tdlxht_theme") || "light";
-    document.documentElement.setAttribute("data-theme", savedTheme);
+    function updateThemeUI(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("tdlxht_theme", theme);
+      const btn = document.getElementById("theme-toggle-btn");
+      if (btn) {
+        btn.innerHTML = theme === "dark"
+          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>'
+          : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+        btn.title = theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
+      }
+    }
+    const initialTheme = localStorage.getItem("tdlxht_theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    updateThemeUI(initialTheme);
     const toggleBtn = document.getElementById("theme-toggle-btn");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", () => {
-        const cur = document.documentElement.getAttribute("data-theme") || "light";
-        const next = cur === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", next);
-        localStorage.setItem("tdlxht_theme", next);
+        const cur = document.documentElement.getAttribute("data-theme") || "dark";
+        updateThemeUI(cur === "dark" ? "light" : "dark");
       });
     }
+
+    // Deep link fallback
+    document.querySelectorAll('a[data-deeplink], button[data-deeplink]').forEach(el => {
+      el.addEventListener('click', () => {
+        setTimeout(() => {
+          if (!document.hidden) {
+            window.location.href = "https://github.com/ddheerajccarpenter/TDLxHT/releases/latest";
+          }
+        }, 1500);
+      });
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabase-config.js"></script>

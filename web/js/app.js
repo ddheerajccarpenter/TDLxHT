@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
   initAutoFetchVersion();
   initInteractivePreview();
+  initToolChips();
   initDeepLinks();
 });
 
@@ -149,6 +150,23 @@ function initInteractivePreview() {
       updateProgress();
     });
   }
+}
+
+// Tool Chips Interactive Selector
+function initToolChips() {
+  const chips = document.querySelectorAll('.tool-chip');
+  const infoEl = document.getElementById('tool-preview-info');
+  if (!chips.length || !infoEl) return;
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const toolName = chip.getAttribute('data-tool') || '';
+      const toolInfo = chip.getAttribute('data-info') || '';
+      infoEl.innerHTML = `<span style="font-weight: 700;">${toolName}:</span> ${toolInfo}`;
+    });
+  });
 }
 
 // Deep links fallback
