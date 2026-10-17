@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TDlxHT — Minimal Native Android Productivity</title>
-  <meta name="description" content="Offline-first productivity, dual-streak habit discipline, and 14 built-in calculators for Android.">
-  <meta name="theme-color" content="#004643">
+  <title>TDlxHT — Cinematic Offline Productivity & Habit Discipline</title>
+  <meta name="description" content="Cinematic, offline-first productivity, dual-streak habit discipline, and 14 built-in calculators for Android.">
+  <meta name="theme-color" content="#090B0E">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/app-icon.png">
   <link rel="stylesheet" href="/css/style.css">
@@ -17,7 +17,7 @@
 </head>
 <body>
 
-  <!-- Minimal Navbar -->
+  <!-- Minimal Industrial Navbar -->
   <header class="navbar">
     <div class="nav-container">
       <a href="/" class="brand-logo">
@@ -27,7 +27,7 @@
       </a>
 
       <nav class="nav-links">
-        <a href="#features" class="nav-link">Features</a>
+        <a href="#features" class="nav-link">Architecture</a>
         <a href="#download" class="nav-link">Download</a>
         <a href="/auth" class="nav-link">Portal</a>
         <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="nav-link" target="_blank" rel="noopener">GitHub</a>
@@ -49,19 +49,18 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-header">
-        <div class="pill-badge">
-          <span class="status-dot"></span>
-          <span>Native Android • <span class="apk-version-label">v2.3.9</span></span>
+        <div class="pill-badge tech-badge">
+          <span class="rec-dot"></span>
+          <span>SYSTEM // <span class="apk-version-label">v2.3.9</span> • ROOM_DB 0MS</span>
         </div>
 
         <h1 class="hero-title">
-          Focus.<br>
-          Habits.<br>
-          0ms Speed.
+          PURE EXECUTION.<br>
+          <span class="gradient-cinematic">ZERO CLOUD LAG.</span>
         </h1>
 
         <p class="hero-subtitle">
-          Offline Room DB. Dual streaks. 14 Calculators. Zero subscriptions.
+          Offline-first task architecture. Dual-streak habit discipline. 14 integrated practical calculators. Zero subscriptions.
         </p>
 
         <div class="hero-actions">
@@ -77,10 +76,10 @@
           </a>
         </div>
 
-        <!-- Metric Strip -->
+        <!-- Technical Metric Strip -->
         <div class="metric-strip">
           <div class="metric-item">
-            <span class="metric-val">0 ms</span>
+            <span class="metric-val">0.00 ms</span>
             <span class="metric-label">Room DB</span>
           </div>
           <div class="metric-divider"></div>
@@ -91,25 +90,25 @@
           <div class="metric-divider"></div>
           <div class="metric-item">
             <span class="metric-val">100%</span>
-            <span class="metric-label">Offline</span>
+            <span class="metric-label">Local SQLite</span>
           </div>
           <div class="metric-divider"></div>
           <div class="metric-item">
-            <span class="metric-val">0</span>
-            <span class="metric-label">Ads</span>
+            <span class="metric-val">ZERO</span>
+            <span class="metric-label">Trackers</span>
           </div>
         </div>
       </div>
 
-      <!-- Live Minimal Preview Mockup -->
+      <!-- Live Minimal Preview Deck -->
       <div class="preview-card-wrapper">
         <div class="preview-card">
           <div class="preview-card-header">
             <div>
-              <span class="preview-card-eyebrow">Today</span>
-              <h3 class="preview-card-title">Daily Focus</h3>
+              <span class="preview-card-eyebrow">[ INSTRUMENT // TODAY ]</span>
+              <h3 class="preview-card-title">Daily Execution</h3>
             </div>
-            <span id="preview-progress-pill" class="pill-badge pill-badge-accent">2 / 3 Done</span>
+            <span id="preview-progress-pill" class="tech-tag">2 / 3 COMPLETED</span>
           </div>
 
           <div class="progress-bar-track">
@@ -123,21 +122,21 @@
               <button class="preview-checkbox" aria-label="Toggle task 1">✓</button>
               <div class="preview-item-content">
                 <span class="preview-item-title">Ship TDlxHT v2.3.9</span>
-                <span class="preview-item-meta">High Priority</span>
+                <span class="preview-item-meta">PRIORITY // HIGH</span>
               </div>
             </div>
 
             <div class="preview-item task-item" id="task-preview-2">
               <button class="preview-checkbox" aria-label="Toggle task 2"></button>
               <div class="preview-item-content">
-                <span class="preview-item-title">Review weekly streaks</span>
-                <span class="preview-item-meta">18:00</span>
+                <span class="preview-item-title">Audit weekly streaks</span>
+                <span class="preview-item-meta">SCHEDULE // 18:00</span>
               </div>
             </div>
           </div>
 
           <!-- Habit -->
-          <div class="preview-section-title" style="margin-top: 14px;">HABIT</div>
+          <div class="preview-section-title" style="margin-top: 14px;">HABIT DISCIPLINE</div>
           <div class="preview-item habit-item" id="habit-preview">
             <div class="preview-item-content">
               <div class="habit-title-row">
@@ -149,13 +148,13 @@
               </div>
             </div>
             <button id="habit-checkin-btn" class="btn btn-soft btn-sm">
-              +1
+              +1 LOG
             </button>
           </div>
 
           <!-- Tools Chips -->
           <div class="preview-tools-row">
-            <button class="tool-chip active" data-tool="Loan EMI" data-info="Monthly EMI, interest & principal payoff">Loan</button>
+            <button class="tool-chip active" data-tool="Loan EMI" data-info="Monthly EMI, interest & principal schedule">Loan</button>
             <button class="tool-chip" data-tool="GST Tax" data-info="5%, 12%, 18%, 28% slabs + custom rates">GST</button>
             <button class="tool-chip" data-tool="Tip Split" data-info="Custom gratuity & group bill splitting">Tip</button>
             <button class="tool-chip" data-tool="CGPA" data-info="10.0 scale to university percentage">CGPA</button>
@@ -163,7 +162,7 @@
             <button class="tool-chip" data-tool="14 Tools" data-info="Discount, margin, unit conversions & more">+9 More</button>
           </div>
           <div id="tool-preview-info" class="tool-preview-info">
-            <span style="font-weight: 700;">Loan EMI:</span> Monthly EMI, interest & principal payoff
+            <span style="font-weight: 700; color: var(--amber);">» LOAN EMI:</span> Monthly EMI, interest & principal schedule
           </div>
         </div>
       </div>
@@ -172,60 +171,64 @@
     <!-- 4 Core Pillars -->
     <section id="features" class="section">
       <div class="section-heading">
-        <span class="section-tag">Core</span>
-        <h2 class="section-title">Essential Architecture</h2>
+        <span class="section-tag">[ ARCHITECTURE ]</span>
+        <h2 class="section-title">Engineered Precision</h2>
       </div>
 
       <div class="grid-4">
         <div class="card">
+          <span class="card-num">[ 01 ]</span>
           <div class="card-icon">⚡</div>
           <h3 class="card-title">0ms Room DB</h3>
           <p class="card-text">Local SQLite. Zero network latency.</p>
         </div>
 
         <div class="card">
+          <span class="card-num">[ 02 ]</span>
           <div class="card-icon">🔥</div>
           <h3 class="card-title">Dual Streaks</h3>
-          <p class="card-text">Active streak + all-time best.</p>
+          <p class="card-text">Active streak + all-time best record.</p>
         </div>
 
         <div class="card">
+          <span class="card-num">[ 03 ]</span>
           <div class="card-icon">🧮</div>
           <h3 class="card-title">14 Calculators</h3>
-          <p class="card-text">EMI, GST, Tip, CGPA & Attendance.</p>
+          <p class="card-text">EMI, GST, Tip, CGPA & Attendance engines.</p>
         </div>
 
         <div class="card">
+          <span class="card-num">[ 04 ]</span>
           <div class="card-icon">🔒</div>
           <h3 class="card-title">Zero-Trust</h3>
-          <p class="card-text">100% private. Optional cloud sync.</p>
+          <p class="card-text">100% private. Optional encrypted sync.</p>
         </div>
       </div>
     </section>
 
-    <!-- Download Section -->
+    <!-- Download Mission Control Section -->
     <section id="download" class="section">
       <div class="download-container">
         <div class="download-info">
-          <span class="section-tag">Install</span>
+          <span class="section-tag">[ DEPLOYMENT ]</span>
           <h2 class="section-title">Get TDlxHT</h2>
 
           <div class="specs-list">
             <div class="spec-item">
-              <span class="spec-label">Version</span>
+              <span class="spec-label">Release</span>
               <span class="spec-value apk-version-label">v2.3.9</span>
             </div>
             <div class="spec-item">
-              <span class="spec-label">Size</span>
-              <span class="spec-value">16.9 MB</span>
+              <span class="spec-label">Binary Size</span>
+              <span class="spec-value">16.9 MB (R8)</span>
             </div>
             <div class="spec-item">
-              <span class="spec-label">OS</span>
+              <span class="spec-label">Kernel</span>
               <span class="spec-value">Android 7.0+</span>
             </div>
             <div class="spec-item">
-              <span class="spec-label">Sign</span>
-              <span class="spec-value">V2+V3 Verified</span>
+              <span class="spec-label">Signature</span>
+              <span class="spec-value">V2+V3 SHA256</span>
             </div>
           </div>
 
@@ -235,15 +238,15 @@
               <span class="btn-tag">Direct</span>
             </a>
             <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/latest" target="_blank" rel="noopener" class="btn btn-outline btn-lg">
-              <span>Releases</span>
+              <span>All Releases</span>
             </a>
           </div>
 
           <div class="install-steps">
             <ol>
               <li>Download APK.</li>
-              <li>Allow <em>Install unknown apps</em> in settings.</li>
-              <li>Open and use offline.</li>
+              <li>Toggle <em>Allow from this source</em> in settings.</li>
+              <li>Launch and execute offline.</li>
             </ol>
           </div>
         </div>
@@ -253,7 +256,7 @@
             <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" title="Scan to download">
               <img src="/qr-download.png" alt="Scan to download TDlxHT" class="qr-image" width="150" height="150">
             </a>
-            <p class="qr-caption">Scan to Download</p>
+            <p class="qr-caption">[+] SCAN TO DOWNLOAD [+]</p>
           </div>
         </div>
       </div>
@@ -261,12 +264,12 @@
 
   </main>
 
-  <!-- Minimal Footer -->
+  <!-- Minimal Industrial Footer -->
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-left">
         <div class="brand-mark brand-mark-sm">✓</div>
-        <span>TDlxHT Android</span>
+        <span>TDlxHT // KOTLIN NATIVE</span>
         <span class="footer-dot">•</span>
         <span class="footer-copy">© 2026</span>
       </div>

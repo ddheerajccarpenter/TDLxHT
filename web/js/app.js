@@ -133,13 +133,13 @@ function initInteractivePreview() {
       habitChecked = !habitChecked;
       if (habitChecked) {
         streakDays += 1;
-        habitBtn.textContent = "✓ Done";
+        habitBtn.textContent = "✓ LOGGED";
         habitBtn.classList.remove("btn-soft");
         habitBtn.classList.add("btn-primary");
         if (habitFill) habitFill.style.width = "100%";
       } else {
         streakDays -= 1;
-        habitBtn.textContent = "+1";
+        habitBtn.textContent = "+1 LOG";
         habitBtn.classList.remove("btn-primary");
         habitBtn.classList.add("btn-soft");
         if (habitFill) habitFill.style.width = "80%";
@@ -164,7 +164,7 @@ function initToolChips() {
       chip.classList.add('active');
       const toolName = chip.getAttribute('data-tool') || '';
       const toolInfo = chip.getAttribute('data-info') || '';
-      infoEl.innerHTML = `<span style="font-weight: 700;">${toolName}:</span> ${toolInfo}`;
+      infoEl.innerHTML = `<span style="font-weight: 700; color: var(--amber);">» ${toolName.toUpperCase()}:</span> ${toolInfo}`;
     });
   });
 }
