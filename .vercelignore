@@ -1,8 +1,28 @@
+# Ignore Android builds and binaries
+*.apk
+*.aab
+**/*.apk
+**/*.aab
+TDLxHT.2.3.9.apk
+TDlxHT.apk
+TDlxHT-release.aab
+web/*.apk
+dist/*.apk
+
+# Ignore Android source and Gradle caches
 app/
-.gradle/
+TDLxHT/
 build/
+.gradle/
 .kotlin/
+gradle/
 *.jks
-node_modules/
-TDlxHT-debug.apk
-app-debug.apk
+local.properties
+.env.local
+
+# Ignore internal docs & scratch
+ARCHITECTURE.md
+DESIGN*.md
+app.md
+scratch/
+

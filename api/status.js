@@ -42,9 +42,9 @@ export default async function handler(req, res) {
     dbStatus = 'unreachable';
   }
 
-  let version = '2.3.8';
-  let apkFilename = 'TDLxHT.2.3.8.apk';
-  let apkUrl = '/TDLxHT.2.3.8.apk';
+  let version = '2.3.9';
+  let apkFilename = 'TDLxHT.2.3.9.apk';
+  let apkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk';
 
   try {
     const fs = await import('fs');

@@ -32,23 +32,6 @@
       ]
     },
     {
-      "source": "/(.*).apk",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/vnd.android.package-archive"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
-    },
-    {
       "source": "/sitemap(.*).xml",
       "headers": [
         {
@@ -75,23 +58,6 @@
       ]
     },
     {
-      "source": "/models/(.*)",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "model/gltf-binary"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=43200"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         {
@@ -107,6 +73,58 @@
           "value": "1; mode=block"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/download",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/TDlxHT.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/tdlxht.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/TDLxHT.2.3.9.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/TDLxHT-release.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/tdlxht-release.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/TrackSelfMoney.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/trackselfmoney.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/TDLxHT(.*).apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
+    },
+    {
+      "source": "/tdlxht(.*).apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -129,42 +147,6 @@
     {
       "source": "/login",
       "destination": "/auth/index.html"
-    },
-    {
-      "source": "/download",
-      "destination": "/#download"
-    },
-    {
-      "source": "/TDlxHT.apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/tdlxht.apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/TDlxHT-release.apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/tdlxht-release.apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/TrackSelfMoney.apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/trackselfmoney.apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/TDLxHT(.*).apk",
-      "destination": "/TDLxHT.2.3.8.apk"
-    },
-    {
-      "source": "/tdlxht(.*).apk",
-      "destination": "/TDLxHT.2.3.8.apk"
     }
   ]
 }

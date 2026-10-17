@@ -187,29 +187,24 @@ tasks.register("syncReleaseApk") {
       releaseApk.copyTo(File(rootDir, genericFileName), overwrite = true)
 
       val webDir = File(rootDir, "web")
-      if (webDir.exists()) {
-        releaseApk.copyTo(File(webDir, targetFileName), overwrite = true)
-        releaseApk.copyTo(File(webDir, genericFileName), overwrite = true)
-      }
+      file("$rootDir/web").listFiles { f -> f.isFile && f.name.endsWith(".apk") }?.forEach { it.delete() }
 
       val distDir = File(rootDir, "dist")
-      if (distDir.exists()) {
-        releaseApk.copyTo(File(distDir, targetFileName), overwrite = true)
-        releaseApk.copyTo(File(distDir, genericFileName), overwrite = true)
-      }
+      file("$rootDir/dist").listFiles { f -> f.isFile && f.name.endsWith(".apk") }?.forEach { it.delete() }
 
       val releaseOutputDir = File(layout.buildDirectory.get().asFile, "outputs/apk/release")
       releaseApk.copyTo(File(releaseOutputDir, targetFileName), overwrite = true)
       releaseApk.copyTo(File(releaseOutputDir, genericFileName), overwrite = true)
 
-      // Automatically generate version.json for dynamic web auto-fetching
+      // Automatically generate version.json for dynamic web auto-fetching pointing directly to GitHub Release assets
       val versionJsonContent = """
         {
           "version": "$ver",
           "versionCode": $code,
           "filename": "$targetFileName",
-          "apkUrl": "/$targetFileName",
-          "fallbackUrl": "/$genericFileName",
+          "apkUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v$ver/$targetFileName",
+          "fallbackUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/latest/download/$genericFileName",
+          "githubReleaseUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v$ver",
           "releaseDate": "${SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())}"
         }
       """.trimIndent()
@@ -222,7 +217,7 @@ tasks.register("syncReleaseApk") {
         File(distDir, "version.json").writeText(versionJsonContent)
       }
 
-      println("SUCCESS: Enforced $targetFileName & $genericFileName and updated version.json.")
+      println("SUCCESS: Enforced $targetFileName & $genericFileName and updated version.json pointing to GitHub Release.")
     } else {
       println("WARNING: Release APK not found at ${releaseApk.absolutePath}")
     }

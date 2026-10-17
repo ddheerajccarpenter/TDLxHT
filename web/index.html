@@ -1,518 +1,290 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TDlxHT — Offline-First Productivity & Habit Planner for Android</title>
-  <meta name="description" content="TDlxHT is the high-performance, offline-first productivity and habit planner for Android. Engineered with 0ms Room DB speed, dual-streak habit tracking, built-in financial and academic calculators, and secure cloud sync.">
+  <title>TDlxHT — Minimal Offline Productivity & Habit Discipline for Android</title>
+  <meta name="description" content="Fast, offline-first productivity and dual-streak habit planner for Android. Room DB 0ms speed, 14 built-in calculators, private & distraction-free.">
   <meta name="theme-color" content="#004643">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/app-icon.png">
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
   <script>
-    // Routing for Supabase Auth redirects (recovery, email confirmation, tokens)
+    // Routing for Supabase Auth redirects
     if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('type=recovery') || window.location.hash.includes('error='))) {
       window.location.replace('/auth/callback' + window.location.hash);
     }
   </script>
 </head>
-<body data-theme="dark">
+<body>
 
-  <!-- Fixed Full-Viewport 3D Spatial Canvas (Whole-Page Interactive Three.js + GSAP Experience) -->
-  <div id="tdlxht-3d-viewport" class="tdlxht-3d-viewport" aria-hidden="true"></div>
-
-  <!-- Top Navigation Bar -->
+  <!-- Minimal Navigation Bar -->
   <header class="navbar">
-    <div class="container nav-container">
+    <div class="nav-container">
       <a href="/" class="brand-logo">
         <div class="brand-mark">✓</div>
-        <span>TDlxHT</span>
-        <span class="brand-badge">Android Native</span>
+        <span class="brand-name">TDlxHT</span>
+        <span class="brand-badge apk-version-label">v2.3.9</span>
       </a>
 
-      <ul class="nav-links">
-        <li><a href="#how-it-works" class="nav-link">Workflow</a></li>
-        <li><a href="#features" class="nav-link">Features</a></li>
-        <li><a href="#tools" class="nav-link">Calculators</a></li>
-        <li><a href="#security" class="nav-link">Security</a></li>
-        <li><a href="#download" class="nav-link">Download APK</a></li>
-        <li><a href="/auth" class="nav-link">Web Portal</a></li>
-      </ul>
+      <nav class="nav-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#tools" class="nav-link">Calculators</a>
+        <a href="#download" class="nav-link">Download</a>
+        <a href="/auth" class="nav-link">Web Portal</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
 
       <div class="nav-actions">
         <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
-        <a href="/auth" class="btn btn-soft btn-sm nav-auth-btn">Sign In</a>
-        <a href="/TDlxHT.apk" data-apk-download="true" download="TDLxHT.apk" class="btn btn-primary btn-sm nav-app-btn">
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" class="btn btn-primary btn-sm nav-download-btn">
           Download APK
-        </a>
-        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Navigation Menu" title="Menu">
-          <span class="hamburger-bar"></span>
-          <span class="hamburger-bar"></span>
-          <span class="hamburger-bar"></span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile Responsive Drawer Menu -->
-    <div id="mobile-nav-drawer" class="mobile-nav-drawer">
-      <div class="mobile-nav-inner">
-        <a href="#how-it-works" class="mobile-nav-item">Workflow</a>
-        <a href="#features" class="mobile-nav-item">Features</a>
-        <a href="#tools" class="mobile-nav-item">Calculators</a>
-        <a href="#security" class="mobile-nav-item">Security</a>
-        <a href="#download" class="mobile-nav-item">Download APK</a>
-        <a href="/auth" class="mobile-nav-item">Web to APK Portal</a>
-        <div class="mobile-nav-divider"></div>
-        <a href="/TDlxHT.apk" data-apk-download="true" download="TDLxHT.apk" class="btn btn-primary btn-lg btn-shimmer" style="width: 100%;">
-          <span>Download TDlxHT APK (<span class="apk-version-label">v2.3.8</span>)</span>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section with Full-Bleed 3D Spatial Canvas -->
-  <main>
-    <section class="hero-section-wrapper">
-      <div class="hero-section container">
-        <div class="hero-content">
-          <div class="pill-badge badge-shimmer">
-            <span class="pulse-dot"></span>
-            <span id="backend-health-tag">BACKEND V2.3.8 ONLINE</span>
-          </div>
+  <main class="page-container">
 
-          <h1 class="hero-title">
-            Clean, intentional<br>
-            Productivity<br>
-            Built Native for<br>
-            Android.
-          </h1>
-
-          <p class="hero-subtitle">
-            TDlxHT pairs zero-latency offline task execution with dual-streak habit discipline, integrated practical calculation tools, and secure cloud synchronization. Zero web wrappers. Zero subscription clutter.
-          </p>
-
-          <div class="hero-cta-group">
-            <a href="/TDlxHT.apk" id="hero-download-btn" data-apk-download="true" download="TDLxHT.apk" class="btn btn-primary btn-lg btn-shimmer">
-              <span>Download TDlxHT APK (<span class="apk-version-label">v2.3.8</span>)</span>
-            </a>
-            <a href="#how-it-works" class="btn btn-outline btn-lg">
-              <span>Explore Workflow</span>
-            </a>
-            <a href="/auth" class="btn btn-soft btn-lg">
-              <span>Web Companion Portal</span>
-            </a>
-          </div>
-
-          <div class="hero-stats-row">
-            <div class="stat-item">
-              <h4>0 ms</h4>
-              <p>Room DB Local Latency</p>
-            </div>
-            <div class="stat-item">
-              <h4>14 Tools</h4>
-              <p>Built-in Calculators</p>
-            </div>
-            <div class="stat-item">
-              <h4>100%</h4>
-              <p>Row-Level Security</p>
-            </div>
-          </div>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-header">
+        <div class="pill-badge">
+          <span class="status-dot"></span>
+          <span>Android Native • 0ms Room DB • <span class="apk-version-label">v2.3.9</span></span>
         </div>
 
-        <!-- Live TDlxHT Android Interactive Mockup -->
-        <div class="hero-mockup-wrapper">
-          <div class="app-device-card">
-          <div class="device-header">
-            <div class="device-title">
-              <span>Today's Agenda</span>
-            </div>
-            <span id="mockup-completion-badge" class="device-sync-tag">1/2 Completed</span>
-          </div>
+        <h1 class="hero-title">
+          Distraction-free focus.<br>
+          Dual-streak discipline.
+        </h1>
 
-          <!-- Mockup Tabs -->
-          <div class="mockup-tabs">
-            <div class="mockup-tab active" data-tab="all">All Items</div>
-            <div class="mockup-tab" data-tab="tasks">Tasks</div>
-            <div class="mockup-tab" data-tab="habits">Habits</div>
-          </div>
+        <p class="hero-subtitle">
+          An offline-first Android productivity suite pairing zero-latency Room DB task management with dual-streak habit discipline and 14 integrated practical calculators. No ads. No subscriptions.
+        </p>
 
-          <!-- Interactive Habit Item -->
-          <div class="mockup-habit-item">
-            <div class="habit-header">
-              <div class="habit-name">
-                <span>Morning Deep Work</span>
-              </div>
-              <span id="preview-streak-count" class="streak-pill">14 Days</span>
-            </div>
-            <div class="habit-progress-bar">
-              <div class="habit-progress-fill"></div>
-            </div>
-            <div class="habit-footer">
-              <span>Daily Target: 90m Focus</span>
-              <button id="log-habit-preview-btn" class="btn btn-soft btn-sm" style="padding: 4px 10px; font-size: 0.75rem;">
-                Check In (+1)
-              </button>
-            </div>
-          </div>
-
-          <!-- Interactive Task 1 -->
-          <div class="mockup-task-item completed">
-            <div class="task-checkbox">✓</div>
-            <div class="task-details">
-              <div class="task-text">Ship TDlxHT Production Release</div>
-              <div class="task-meta">
-                <span class="priority-pill">HIGH</span>
-                <span>Due Today, 17:00</span>
-                <span>3/3 Subtasks</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Interactive Task 2 -->
-          <div class="mockup-task-item">
-            <div class="task-checkbox"></div>
-            <div class="task-details">
-              <div class="task-text">Review Weekly Habit Heatmap & Calendar</div>
-              <div class="task-meta">
-                <span class="priority-pill" style="color: var(--accent); background: var(--accent-soft);">MEDIUM</span>
-                <span>Due Tomorrow, 10:00</span>
-                <span>1/2 Subtasks</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hairline-soft); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted);">
-            <span>Room DB: Synchronized</span>
-            <a href="tdlxht://tasks" data-deeplink="tasks" style="color: var(--accent); font-weight: 600;">Open in App →</a>
-          </div>
-
-          <!-- Interactive Stadium Pill Bottom Navigation Bar (Image 2 Design) -->
-          <div class="mockup-stadium-dock" style="margin-top: 16px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: var(--radius-pill); padding: 5px 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 14px rgba(0,0,0,0.06);">
-            <!-- Active Tab Pill -->
-            <div style="background: var(--canvas); border-radius: var(--radius-pill); padding: 6px 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); font-weight: 700; font-size: 0.8rem; color: var(--ink);">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-              <span>Home</span>
-            </div>
-            <!-- Inactive Tab: Productivity -->
-            <div style="padding: 6px 8px; color: var(--text-muted); display: flex; align-items: center;" title="Productivity">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-            </div>
-            <!-- Center Plus Action Button (Kept on bottom) -->
-            <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--canvas); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.18); cursor: pointer;" title="Quick Add">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </div>
-            <!-- Inactive Tab: Tools -->
-            <div style="padding: 6px 8px; color: var(--text-muted); display: flex; align-items: center;" title="Tools">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-            </div>
-            <!-- Inactive Tab: Insights -->
-            <div style="padding: 6px 8px; color: var(--text-muted); display: flex; align-items: center;" title="Insights">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </section>
-
-    <!-- Continuous Marquee Ribbon -->
-    <div class="magic-marquee-wrapper" aria-hidden="true">
-      <div class="magic-marquee-track">
-        <div class="marquee-pill">0 ms Room DB Local Latency</div>
-        <div class="marquee-pill">Dual-Streak Habit Discipline</div>
-        <div class="marquee-pill">Bank-Grade bcrypt & PostgreSQL RLS</div>
-        <div class="marquee-pill">Built-in Financial & Student Calculators</div>
-        <div class="marquee-pill">Native Android Kotlin Architecture</div>
-        <div class="marquee-pill">Bi-Directional Supabase Cloud Sync</div>
-        <div class="marquee-pill">Clean Product Typography & Zero Decorative Emojis</div>
-        <div class="marquee-pill">0 ms Room DB Local Latency</div>
-        <div class="marquee-pill">Dual-Streak Habit Discipline</div>
-        <div class="marquee-pill">Bank-Grade bcrypt & PostgreSQL RLS</div>
-        <div class="marquee-pill">Built-in Financial & Student Calculators</div>
-        <div class="marquee-pill">Native Android Kotlin Architecture</div>
-        <div class="marquee-pill">Bi-Directional Supabase Cloud Sync</div>
-        <div class="marquee-pill">Clean Product Typography & Zero Decorative Emojis</div>
-      </div>
-    </div>
-
-    <!-- How It Works / Workflow Section -->
-    <section id="how-it-works" class="section container">
-      <div class="section-header">
-        <span class="section-tag">Product Workflow</span>
-        <h2 class="section-title">How TDlxHT Powers Your Day</h2>
-        <p>A structured, native execution cycle designed to maintain momentum without administrative friction.</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-size: 1.1rem; font-weight: 700;">01</div>
-          <h3>Capture & Add</h3>
-          <p>Quickly capture tasks and habit intentions using quick-add sheets or device shake detection with instant local SQLite commitment.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-size: 1.1rem; font-weight: 700;">02</div>
-          <h3>Organize & Prioritize</h3>
-          <p>Decompose projects into actionable subtasks, assign urgency tiers (High, Medium, Low), and schedule exact reminder times.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-size: 1.1rem; font-weight: 700;">03</div>
-          <h3>Track & Calculate</h3>
-          <p>Log daily habit check-ins and run on-demand financial, student, or utility calculations directly from the integrated tools suite.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-size: 1.1rem; font-weight: 700;">04</div>
-          <h3>Understand & Review</h3>
-          <p>Inspect weekly and monthly completion charts, category distribution breakdowns, and dual-streak performance summaries.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Core Features Section -->
-    <section id="features" class="section container" style="padding-top: 0;">
-      <div class="section-header">
-        <span class="section-tag">Core Capabilities</span>
-        <h2 class="section-title">Engineered for Focus and Consistency</h2>
-        <p>Every interface component is tailored with deliberate spacing, crisp typography, and fluid tactile response.</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          </div>
-          <h3>0 ms True Offline Speed</h3>
-          <p>Unlike cloud-bound web wrappers, TDlxHT executes against local Room DB tables. Mark tasks done and record habits with instantaneous feedback.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          </div>
-          <h3>Dual-Streak Habit Mastery</h3>
-          <p>Track both your current active streak and all-time personal best. Missing one day never wipes out your long-term achievement record.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          </div>
-          <h3>Unified Timeline</h3>
-          <p>View daily tasks alongside recurring habit obligations in a single chronological stream, eliminating schedule collisions.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          </div>
-          <h3>Focus & Pomodoro Timer</h3>
-          <p>Configure dedicated deep-work blocks, short breaks, and long rest intervals with integrated session logs and haptic alerts.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-          </div>
-          <h3>Subtask Decomposition</h3>
-          <p>Break complex initiatives down into hierarchical sub-steps with completion progress tracking and priority classification.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-1-1l2 2M3 22l18-18M7.5 13.5L3 18l3 3 4.5-4.5M10.5 7.5L15 3l3 3-4.5 4.5"></path></svg>
-          </div>
-          <h3>Bi-Directional Cloud Backup</h3>
-          <p>Optionally sync your local records to Supabase with end-to-end cryptographic account authentication and clean JSON exports.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Built-in Tools & Calculators Showcase -->
-    <section id="tools" class="section container" style="padding-top: 0;">
-      <div class="section-header">
-        <span class="section-tag">Integrated Utilities</span>
-        <h2 class="section-title">Built-In Calculators & Practical Tools</h2>
-        <p>No need for standalone utility apps. TDlxHT includes 14 purpose-built calculation engines.</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-weight: 700; font-size: 0.95rem;">₹</div>
-          <h3>Loan & EMI Calculator</h3>
-          <p>Calculate monthly installment amounts, principal payoff, and total interest for home, car, or personal loan scenarios.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-weight: 700; font-size: 0.95rem;">%</div>
-          <h3>GST & Sales Tax</h3>
-          <p>Add or extract GST and sales tax instantly using 5%, 12%, 18%, 28% slabs or custom business rates.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-weight: 700; font-size: 0.95rem;">÷</div>
-          <h3>Tip & Bill Splitter</h3>
-          <p>Divide restaurant checks, calculate custom gratuity percentages, and calculate individual contributions in seconds.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-weight: 700; font-size: 0.95rem;">±</div>
-          <h3>Margin & Profit/Loss</h3>
-          <p>Compute gross margin percentages, markup multipliers, net profit, and return on investment (ROI) on business orders.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-weight: 700; font-size: 0.95rem;">ED</div>
-          <h3>Attendance Planner</h3>
-          <p>Calculate exactly how many classes you must attend to maintain institutional thresholds or safely take leaves.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="font-weight: 700; font-size: 0.95rem;">GP</div>
-          <h3>CGPA to Percentage</h3>
-          <p>Convert 10.0 and 4.0 scale grade points into official percentage equivalents and academic division rankings.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Security & Password Architecture Section -->
-    <section id="security" class="section container" style="padding-top: 0;">
-      <div class="security-banner">
-        <div>
-          <span class="security-badge">Zero-Trust Privacy</span>
-          <h2 style="font-size: 2rem; margin-bottom: 16px;">Enterprise Privacy & Encryption</h2>
-          <p style="margin-bottom: 20px;">
-            TDlxHT follows strict zero-trust standards. Plain-text passwords are never stored, and backend credentials remain isolated on the server.
-          </p>
-          <div class="specs-grid" style="margin: 0;">
-            <div class="spec-box">
-              <span class="spec-label">Password Storage</span>
-              <span class="spec-val">bcrypt One-Way Hash</span>
-            </div>
-            <div class="spec-box">
-              <span class="spec-label">Data Isolation</span>
-              <span class="spec-val">PostgreSQL RLS</span>
-            </div>
-          </div>
-        </div>
-
-        <ul class="security-points">
-          <li class="security-point">
-            <div class="security-point-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            </div>
-            <div class="security-point-content">
-              <h5>One-Way Cryptographic Hashing</h5>
-              <p>User credentials are encrypted via one-way bcrypt hashes. Passwords cannot be decrypted or viewed by administrators.</p>
-            </div>
-          </li>
-          <li class="security-point">
-            <div class="security-point-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            </div>
-            <div class="security-point-content">
-              <h5>Row-Level Security Enforcement</h5>
-              <p>Database queries strictly require authenticated user tokens matching the row owner. Cross-tenant access is architecturally impossible.</p>
-            </div>
-          </li>
-          <li class="security-point">
-            <div class="security-point-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-            </div>
-            <div class="security-point-content">
-              <h5>Isolated Serverless Endpoints</h5>
-              <p>Sensitive service-role credentials and rate-limiting enforcement reside exclusively in serverless runtime environments.</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- Download APK Section -->
-    <section id="download" class="section container" style="padding-top: 0;">
-      <div class="download-card-container">
-        <div>
-          <span class="section-tag">Direct Install</span>
-          <h2 style="font-size: 2.2rem; margin-bottom: 12px;">Download TDlxHT for Android</h2>
-          <p>Get the official production-signed release APK directly on your Android phone or tablet.</p>
-
-          <div class="specs-grid">
-            <div class="spec-box">
-              <span class="spec-label">Application Version</span>
-              <span class="spec-val">v2.2.4 (Production Release)</span>
-            </div>
-            <div class="spec-box">
-              <span class="spec-label">Package Identifier</span>
-              <span class="spec-val">com.aistudio.habittask.wvnk</span>
-            </div>
-            <div class="spec-box">
-              <span class="spec-label">File Size</span>
-              <span class="spec-val">17 MB (Optimized Binary)</span>
-            </div>
-            <div class="spec-box">
-              <span class="spec-label">System Requirement</span>
-              <span class="spec-val">Android 7.0+ (API 24+)</span>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px;">
-            <a href="/TDlxHT.apk" id="main-download-button" data-apk-download="true" download="TDLxHT.apk" class="btn btn-primary btn-lg btn-shimmer">
-              <span>Download TDlxHT APK (<span class="apk-version-label">v2.3.8</span>)</span>
-            </a>
-            <a href="tdlxht://home" class="btn btn-outline btn-lg" data-deeplink="home">
-              <span>Launch Installed App</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="qr-box">
-          <a href="/TDlxHT.apk" data-apk-download="true" download="TDLxHT.apk" title="Scan with camera or click to download APK directly" style="display: flex; flex-direction: column; align-items: center; text-decoration: none;">
-            <img src="/qr-download.png" alt="Scan QR Code to Download TDlxHT APK" class="qr-svg" style="width: 140px; height: 140px; border-radius: 8px; background: #ffffff; padding: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); display: block;" />
-            <span class="qr-caption" style="margin-top: 8px;">Scan with Camera to Download</span>
+        <div class="hero-actions">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" id="hero-download-btn" data-apk-download="true" class="btn btn-primary btn-lg">
+            <span>Download APK (<span class="apk-version-label">v2.3.9</span>)</span>
+            <span class="btn-tag">16.9 MB</span>
+          </a>
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.3.9" id="hero-release-btn" target="_blank" rel="noopener" class="btn btn-outline btn-lg">
+            <span>GitHub Release</span>
+          </a>
+          <a href="/auth" class="btn btn-soft btn-lg">
+            <span>Web Portal</span>
           </a>
         </div>
+
+        <!-- Metrics Strip -->
+        <div class="metric-strip">
+          <div class="metric-item">
+            <span class="metric-val">0 ms</span>
+            <span class="metric-label">Room DB Speed</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-val">14 Tools</span>
+            <span class="metric-label">Built-in Calculators</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-val">100%</span>
+            <span class="metric-label">Offline Ready</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <span class="metric-val">Zero</span>
+            <span class="metric-label">Ads or Trackers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Minimal Interactive Mockup -->
+      <div class="preview-card-wrapper">
+        <div class="preview-card">
+          <div class="preview-card-header">
+            <div>
+              <span class="preview-card-eyebrow">Today's Focus</span>
+              <h3 class="preview-card-title">Daily Execution</h3>
+            </div>
+            <span id="preview-progress-pill" class="pill-badge pill-badge-accent">2 of 3 Completed</span>
+          </div>
+
+          <div class="progress-bar-track">
+            <div id="preview-progress-fill" class="progress-bar-fill" style="width: 66%;"></div>
+          </div>
+
+          <!-- Interactive Tasks -->
+          <div class="preview-section-title">TASKS</div>
+          <div class="preview-items-group">
+            <div class="preview-item task-item completed" id="task-preview-1">
+              <button class="preview-checkbox" aria-label="Toggle task 1">✓</button>
+              <div class="preview-item-content">
+                <span class="preview-item-title">Ship TDlxHT v2.3.9 Production Build</span>
+                <span class="preview-item-meta">High Priority • Room DB Synced</span>
+              </div>
+            </div>
+
+            <div class="preview-item task-item" id="task-preview-2">
+              <button class="preview-checkbox" aria-label="Toggle task 2"></button>
+              <div class="preview-item-content">
+                <span class="preview-item-title">Audit Weekly Habit Heatmaps & Analytics</span>
+                <span class="preview-item-meta">Medium Priority • Due 18:00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Habit -->
+          <div class="preview-section-title" style="margin-top: 14px;">HABIT DISCIPLINE</div>
+          <div class="preview-item habit-item" id="habit-preview">
+            <div class="preview-item-content">
+              <div class="habit-title-row">
+                <span class="preview-item-title">Morning Deep Work</span>
+                <span id="preview-streak-badge" class="streak-badge">🔥 14 Days</span>
+              </div>
+              <div class="progress-bar-track" style="margin: 8px 0;">
+                <div id="habit-progress-fill" class="progress-bar-fill" style="width: 80%;"></div>
+              </div>
+              <span class="preview-item-meta">Daily Target: 90m Focus Session</span>
+            </div>
+            <button id="habit-checkin-btn" class="btn btn-soft btn-sm">
+              +1 Check In
+            </button>
+          </div>
+
+          <!-- Integrated Tools Chips -->
+          <div class="preview-tools-row">
+            <span class="tool-chip">Loan EMI</span>
+            <span class="tool-chip">GST Tax</span>
+            <span class="tool-chip">Tip Splitter</span>
+            <span class="tool-chip">Attendance</span>
+            <span class="tool-chip">CGPA</span>
+            <span class="tool-chip">+9 More</span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Deep Link Diagnostic Console -->
-    <section id="deeplinks" class="container">
-      <div class="deeplink-bar">
-        <div class="deeplink-info">
-          <h4>Android Deep Link Handlers</h4>
-          <p>Test deep link routing directly into your installed TDlxHT Android application:</p>
+    <!-- 4 Core Pillars -->
+    <section id="features" class="section">
+      <div class="section-heading">
+        <span class="section-tag">Core Architecture</span>
+        <h2 class="section-title">Built for Momentum</h2>
+        <p class="section-desc">Designed strictly around speed, discipline, and simplicity. No bloatware or cloud lag.</p>
+      </div>
+
+      <div class="grid-4">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3 class="card-title">0ms Room DB Execution</h3>
+          <p class="card-text">Every action executes directly against your device's local SQLite database. Complete tasks, log habits, and search offline with instantaneous response.</p>
         </div>
-        <div class="deeplink-group">
-          <a href="tdlxht://home" class="btn btn-outline btn-sm" data-deeplink="home">tdlxht://home</a>
-          <a href="tdlxht://tasks" class="btn btn-outline btn-sm" data-deeplink="tasks">tdlxht://tasks</a>
-          <a href="tdlxht://habits" class="btn btn-outline btn-sm" data-deeplink="habits">tdlxht://habits</a>
-          <a href="tdlxht://auth/callback" class="btn btn-outline btn-sm" data-deeplink="auth/callback">tdlxht://auth/callback</a>
+
+        <div class="card">
+          <div class="card-icon">🔥</div>
+          <h3 class="card-title">Dual-Streak Discipline</h3>
+          <p class="card-text">Tracks both your current active streak and your all-time personal best. A missed day pauses your active counter without erasing your lifetime consistency record.</p>
+        </div>
+
+        <div class="card" id="tools">
+          <div class="card-icon">🧮</div>
+          <h3 class="card-title">14 Integrated Calculators</h3>
+          <p class="card-text">Calculate loan EMIs, GST tax slabs, restaurant tip splits, attendance thresholds, and university CGPA scales right within your productivity planner.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔒</div>
+          <h3 class="card-title">Zero-Trust Cloud Privacy</h3>
+          <p class="card-text">Optional Supabase synchronization with one-way bcrypt password encryption and PostgreSQL Row-Level Security. Your data remains strictly yours.</p>
         </div>
       </div>
     </section>
+
+    <!-- Download Section -->
+    <section id="download" class="section">
+      <div class="download-container">
+        <div class="download-info">
+          <span class="section-tag">Direct Install</span>
+          <h2 class="section-title">Get TDlxHT for Android</h2>
+          <p class="section-desc">
+            Download the official production-signed release APK directly from GitHub Releases. No Google Play account required.
+          </p>
+
+          <div class="specs-list">
+            <div class="spec-item">
+              <span class="spec-label">Latest Version</span>
+              <span class="spec-value apk-version-label">v2.3.9</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">File Size</span>
+              <span class="spec-value">16.97 MB (R8 Minified)</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Compatibility</span>
+              <span class="spec-value">Android 7.0+ (API 24 to 35)</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Security</span>
+              <span class="spec-value">V2+V3 Signed • SHA256 Verified</span>
+            </div>
+          </div>
+
+          <div class="download-buttons">
+            <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" id="main-download-btn" data-apk-download="true" class="btn btn-primary btn-lg">
+              <span>Download TDlxHT APK</span>
+              <span class="btn-tag">Direct GitHub Link</span>
+            </a>
+            <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/latest" target="_blank" rel="noopener" class="btn btn-outline btn-lg">
+              <span>All Releases</span>
+            </a>
+          </div>
+
+          <div class="install-steps">
+            <h4>Quick 3-Step Sideloading:</h4>
+            <ol>
+              <li>Tap <strong>Download TDlxHT APK</strong> above.</li>
+              <li>When prompted by Android, tap <em>Settings</em> and toggle <em>Allow from this source</em>.</li>
+              <li>Tap <strong>Install</strong> and launch TDlxHT immediately.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="download-qr-box">
+          <div class="qr-card">
+            <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" title="Scan with phone camera to download">
+              <img src="/qr-download.png" alt="Scan QR Code to download TDlxHT APK" class="qr-image" width="160" height="160">
+            </a>
+            <p class="qr-caption">Scan with Phone Camera</p>
+            <span class="qr-subcaption">Direct download to device</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- Footer -->
+  <!-- Minimal Footer -->
   <footer class="footer">
-    <div class="container footer-container">
-      <div class="brand-logo" style="font-size: 1.05rem;">
-        <div class="brand-mark" style="width: 32px; height: 32px; font-size: 0.95rem;">✓</div>
+    <div class="footer-container">
+      <div class="footer-left">
+        <div class="brand-mark brand-mark-sm">✓</div>
         <span>TDlxHT Android</span>
+        <span class="footer-dot">•</span>
+        <span class="footer-copy">© 2026. Native Kotlin & Room DB.</span>
       </div>
 
-      <div class="footer-copy">
-        &copy; 2026 TDlxHT. High-performance offline productivity & habit planner.
-      </div>
-
-      <div class="footer-links">
+      <div class="footer-right">
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener" class="footer-link">GitHub</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.3.9" target="_blank" rel="noopener" class="footer-link">Release Notes</a>
         <a href="/auth" class="footer-link">Web Portal</a>
-        <a href="/auth/callback" class="footer-link">Auth Callback</a>
-        <a href="/TDlxHT.apk" id="footer-apk-download" data-apk-download="true" download="TDLxHT.apk" class="footer-link">Download APK (v2.3.8)</a>
+        <a href="tdlxht://home" class="footer-link">Open App</a>
       </div>
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>
