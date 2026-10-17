@@ -1,0 +1,8 @@
+app/
+.gradle/
+build/
+.kotlin/
+*.jks
+node_modules/
+TDlxHT-debug.apk
+app-debug.apk

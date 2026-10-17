@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Portal — TDlxHT Android</title>
+  <meta name="description" content="Sign in, register, or manage your TDlxHT account. Synchronize tasks, habits, and productivity analytics.">
+  <meta name="theme-color" content="#004643">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23004643'/><path d='M30 52 L42 64 L70 36' stroke='%23F0EDE5' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="brand-mark">✓</div>
+        <span>TDlxHT</span>
+        <span class="brand-badge">Android</span>
+      </a>
+
+      <div class="nav-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <a href="/" class="btn btn-outline btn-sm">Home</a>
+        <a href="tdlxht://home" class="btn btn-primary btn-sm" data-deeplink="home">Open App</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="auth-page-wrapper">
+    <div class="auth-card">
+
+      <!-- Alert Box -->
+      <div id="auth-alert" class="alert-box"></div>
+
+      <!-- Logged In Profile View -->
+      <div id="user-profile-card" style="display: none; text-align: center;">
+        <div class="brand-mark" style="width: 56px; height: 56px; font-size: 1.6rem; margin: 0 auto 18px;">✓</div>
+        <h2 style="font-size: 1.6rem; margin-bottom: 6px;">Welcome Back</h2>
+        <p id="profile-user-email" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--accent); margin-bottom: 12px;"></p>
+        
+        <div style="margin-bottom: 24px;">
+          <span id="profile-email-confirmed" class="pill-badge">Checking status...</span>
+        </div>
+
+        <div style="background: var(--canvas-soft); padding: 14px 18px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); margin-bottom: 24px; text-align: left;">
+          <span class="spec-label">User ID (Supabase UID)</span>
+          <div id="profile-user-id" style="font-family: var(--font-mono); font-size: 0.74rem; word-break: break-all; color: var(--text-muted); margin-top: 4px;"></div>
+        </div>
+
+        <div class="callback-actions">
+          <button id="profile-open-app-btn" class="btn btn-primary btn-lg">
+            <span>Open in TDlxHT App</span>
+          </button>
+          <button id="profile-logout-btn" class="btn btn-outline">
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Auth Forms -->
+      <div id="auth-forms-container">
+        <div class="auth-card-header">
+          <h2>TDlxHT Account</h2>
+          <p>Access your habits, tasks, and cloud synchronizations.</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">Sign In</button>
+          <button class="auth-tab" data-tab="register">Register</button>
+          <button class="auth-tab" data-tab="forgot">Forgot</button>
+        </div>
+
+        <!-- Sign In Form -->
+        <form id="login-form">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Sign In
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name or Handle</label>
+            <input type="text" id="register-name" class="form-input" placeholder="Alex" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email Address</label>
+            <input type="email" id="register-email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password</label>
+            <input type="password" id="register-password" class="form-input" placeholder="At least 6 characters" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-confirm-password">Confirm Password</label>
+            <input type="password" id="register-confirm-password" class="form-input" placeholder="Repeat password" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Create Account
+          </button>
+        </form>
+
+        <!-- Forgot Password Form -->
+        <form id="forgot-form" style="display: none;">
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+            Enter your email and we'll send a password reset link directly to your inbox.
+          </p>
+          <div class="form-group">
+            <label class="form-label" for="forgot-email">Account Email</label>
+            <input type="email" id="forgot-email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Send Reset Link
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    const savedTheme = localStorage.getItem("tdlxht_theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    const toggleBtn = document.getElementById("theme-toggle-btn");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        const cur = document.documentElement.getAttribute("data-theme") || "light";
+        const next = cur === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("tdlxht_theme", next);
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

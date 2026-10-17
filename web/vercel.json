@@ -1,0 +1,124 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap(.*).xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=43200"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=43200"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/sitemaps.xml",
+      "destination": "/sitemap.xml"
+    },
+    {
+      "source": "/auth/callback",
+      "destination": "/auth/callback/index.html"
+    },
+    {
+      "source": "/auth/callback/",
+      "destination": "/auth/callback/index.html"
+    },
+    {
+      "source": "/auth",
+      "destination": "/auth/index.html"
+    },
+    {
+      "source": "/auth/",
+      "destination": "/auth/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/auth/index.html"
+    },
+    {
+      "source": "/download",
+      "destination": "/#download"
+    },
+    {
+      "source": "/TDlxHT.apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/tdlxht.apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/TDlxHT-release.apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/tdlxht-release.apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/TrackSelfMoney.apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/trackselfmoney.apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/TDLxHT(.*).apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    },
+    {
+      "source": "/tdlxht(.*).apk",
+      "destination": "/TDLxHT.2.3.7.apk"
+    }
+  ]
+}

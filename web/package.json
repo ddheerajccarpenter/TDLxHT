@@ -1,0 +1,11 @@
+{
+  "name": "tdlxht-web",
+  "version": "2.3.7",
+  "private": true,
+  "description": "TDlxHT To-Do & Habit Tracker Web Portal, Showcase and Auth Deep Link Gateway",
+  "scripts": {
+    "dev": "npx serve -p 3000 .",
+    "start": "npx serve -p 3000 .",
+    "build": "echo 'Static build ready for Vercel'"
+  }
+}

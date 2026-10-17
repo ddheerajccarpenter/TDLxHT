@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.aistudio.habittask.wvnk",
+      "sha256_cert_fingerprints": [
+        "A9:E6:D4:F6:EE:04:04:44:58:7D:50:2C:05:AE:8E:C7:E6:44:F2:8D:BC:A7:DB:8A:64:5B:9D:F4:E1:9B:D3:08"
+      ]
+    }
+  }
+]

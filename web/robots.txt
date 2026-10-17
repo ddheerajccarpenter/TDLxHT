@@ -1,0 +1,16 @@
+# https://www.robotstxt.org/robotstxt.html
+# TDlxHT — Offline-First Productivity & Habit Planner for Android
+User-agent: *
+Allow: /
+Allow: /auth
+Allow: /version.json
+Allow: /TDLxHT.apk
+Allow: /TDLxHT.*.apk
+
+# Disallow internal auth callbacks and internal API routes
+Disallow: /auth/callback
+Disallow: /api/
+
+# Sitemaps
+Sitemap: https://tdlxht.vercel.app/sitemap.xml
+Sitemap: https://tdlxht.vercel.app/sitemaps.xml

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Confirmation & Authentication Gateway — TDlxHT</title>
+  <meta name="description" content="TDlxHT Authentication Gateway and Deep Link Forwarder for Supabase Email Verification.">
+  <meta name="theme-color" content="#004643">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23004643'/><path d='M30 52 L42 64 L70 36' stroke='%23F0EDE5' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Minimal Header -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="brand-mark">✓</div>
+        <span>TDlxHT</span>
+        <span class="brand-badge">Android</span>
+      </a>
+
+      <div class="nav-actions">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <a href="/" class="btn btn-outline btn-sm">Home</a>
+        <a href="/TDLxHT.2.3.5.apk" download="TDLxHT.2.3.5.apk" class="btn btn-primary btn-sm">Download APK</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="auth-page-wrapper">
+    <div class="auth-card">
+
+      <!-- Loading State -->
+      <div id="callback-loading" class="callback-status-card">
+        <div class="status-loading-spinner"></div>
+        <h2 style="font-size: 1.6rem; margin-bottom: 8px;">
+          Verifying Email Link...
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+          Connecting to Supabase Cloud and securing your authentication session.
+        </p>
+      </div>
+
+      <!-- Success State -->
+      <div id="callback-success" class="callback-status-card" style="display: none;">
+        <div class="status-icon-circle status-success-circle">✓</div>
+        
+        <h2 style="font-size: 1.7rem; margin-bottom: 8px;">
+          Email Confirmed
+        </h2>
+
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 6px;">
+          Your account is verified and ready for mobile synchronization.
+        </p>
+        
+        <div style="font-family: var(--font-mono); font-size: 0.88rem; color: var(--accent); margin-bottom: 24px;" id="confirmed-user-email">
+          user@example.com
+        </div>
+
+        <div class="callback-actions">
+          <a href="tdlxht://auth/callback" id="callback-open-app-btn" class="btn btn-primary btn-lg">
+            <span>Open in TDlxHT App</span>
+          </a>
+
+          <a href="/auth" class="btn btn-outline">
+            <span>Account Portal</span>
+          </a>
+
+          <a href="/TDLxHT.2.3.5.apk" download="TDLxHT.2.3.5.apk" class="btn btn-soft btn-sm">
+            <span>Download Android APK</span>
+          </a>
+        </div>
+
+        <div id="redirect-countdown" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); margin-top: 18px;">
+          Attempting to launch TDlxHT App in 3s...
+        </div>
+      </div>
+
+      <!-- Password Reset / Recovery State -->
+      <div id="callback-recovery" class="callback-status-card" style="display: none;">
+        <div class="brand-mark" style="width: 48px; height: 48px; font-size: 1.4rem; margin: 0 auto 16px;">✓</div>
+        
+        <h2 style="font-size: 1.6rem; margin-bottom: 8px;">
+          Set New Password
+        </h2>
+
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+          Enter a new, secure password for your TDlxHT account.
+        </p>
+
+        <div id="recovery-alert" class="alert-box" style="margin-bottom: 16px;"></div>
+
+        <form id="recovery-form" style="text-align: left;">
+          <div class="form-group">
+            <label class="form-label" for="new-recovery-password">New Password</label>
+            <input type="password" id="new-recovery-password" class="form-input" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirm-recovery-password">Confirm Password</label>
+            <input type="password" id="confirm-recovery-password" class="form-input" placeholder="Repeat new password" required minlength="6" autocomplete="new-password">
+          </div>
+
+          <button type="submit" id="recovery-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            Save Password & Launch App
+          </button>
+        </form>
+      </div>
+
+      <!-- Error State -->
+      <div id="callback-error" class="callback-status-card" style="display: none;">
+        <div class="status-icon-circle status-error-circle">!</div>
+
+        <h2 style="font-size: 1.6rem; margin-bottom: 8px;">
+          Verification Notice
+        </h2>
+
+        <p id="callback-error-message" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
+          This link may have expired, or your email has already been verified.
+        </p>
+
+        <div class="callback-actions">
+          <a href="/auth" class="btn btn-primary">
+            <span>Go to Sign In</span>
+          </a>
+          <a href="tdlxht://home" class="btn btn-outline">
+            <span>Open TDlxHT App</span>
+          </a>
+          <a href="/" class="btn btn-soft btn-sm">
+            <span>Back to Homepage</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    const savedTheme = localStorage.getItem("tdlxht_theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    const toggleBtn = document.getElementById("theme-toggle-btn");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        const cur = document.documentElement.getAttribute("data-theme") || "light";
+        const next = cur === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("tdlxht_theme", next);
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase-config.js"></script>
+  <script src="/js/callback.js"></script>
+</body>
+</html>
