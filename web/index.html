@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TDlxHT — Minimal Offline Productivity & Habit Discipline for Android</title>
-  <meta name="description" content="Fast, offline-first productivity and dual-streak habit planner for Android. Room DB 0ms speed, 14 built-in calculators, private & distraction-free.">
+  <title>TDlxHT — Minimal Native Android Productivity</title>
+  <meta name="description" content="Offline-first productivity, dual-streak habit discipline, and 14 built-in calculators for Android.">
   <meta name="theme-color" content="#004643">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/app-icon.png">
   <link rel="stylesheet" href="/css/style.css">
   <script>
-    // Routing for Supabase Auth redirects
     if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('type=recovery') || window.location.hash.includes('error='))) {
       window.location.replace('/auth/callback' + window.location.hash);
     }
@@ -18,7 +17,7 @@
 </head>
 <body>
 
-  <!-- Minimal Navigation Bar -->
+  <!-- Minimal Navbar -->
   <header class="navbar">
     <div class="nav-container">
       <a href="/" class="brand-logo">
@@ -29,17 +28,16 @@
 
       <nav class="nav-links">
         <a href="#features" class="nav-link">Features</a>
-        <a href="#tools" class="nav-link">Calculators</a>
         <a href="#download" class="nav-link">Download</a>
-        <a href="/auth" class="nav-link">Web Portal</a>
+        <a href="/auth" class="nav-link">Portal</a>
         <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="nav-link" target="_blank" rel="noopener">GitHub</a>
       </nav>
 
       <div class="nav-actions">
-        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" class="btn btn-primary btn-sm nav-download-btn">
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" class="btn btn-primary btn-sm">
           Download APK
         </a>
       </div>
@@ -53,115 +51,112 @@
       <div class="hero-header">
         <div class="pill-badge">
           <span class="status-dot"></span>
-          <span>Android Native • 0ms Room DB • <span class="apk-version-label">v2.3.9</span></span>
+          <span>Native Android • <span class="apk-version-label">v2.3.9</span></span>
         </div>
 
         <h1 class="hero-title">
-          Distraction-free focus.<br>
-          Dual-streak discipline.
+          Focus.<br>
+          Habits.<br>
+          0ms Speed.
         </h1>
 
         <p class="hero-subtitle">
-          An offline-first Android productivity suite pairing zero-latency Room DB task management with dual-streak habit discipline and 14 integrated practical calculators. No ads. No subscriptions.
+          Offline Room DB. Dual streaks. 14 Calculators. Zero subscriptions.
         </p>
 
         <div class="hero-actions">
           <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" id="hero-download-btn" data-apk-download="true" class="btn btn-primary btn-lg">
-            <span>Download APK (<span class="apk-version-label">v2.3.9</span>)</span>
+            <span>Download APK</span>
             <span class="btn-tag">16.9 MB</span>
           </a>
           <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.3.9" id="hero-release-btn" target="_blank" rel="noopener" class="btn btn-outline btn-lg">
-            <span>GitHub Release</span>
-          </a>
-          <a href="/auth" class="btn btn-soft btn-lg">
-            <span>Web Portal</span>
+            <span>GitHub</span>
           </a>
         </div>
 
-        <!-- Metrics Strip -->
+        <!-- Metric Strip -->
         <div class="metric-strip">
           <div class="metric-item">
             <span class="metric-val">0 ms</span>
-            <span class="metric-label">Room DB Speed</span>
+            <span class="metric-label">Room DB</span>
           </div>
           <div class="metric-divider"></div>
           <div class="metric-item">
-            <span class="metric-val">14 Tools</span>
-            <span class="metric-label">Built-in Calculators</span>
+            <span class="metric-val">14</span>
+            <span class="metric-label">Calculators</span>
           </div>
           <div class="metric-divider"></div>
           <div class="metric-item">
             <span class="metric-val">100%</span>
-            <span class="metric-label">Offline Ready</span>
+            <span class="metric-label">Offline</span>
           </div>
           <div class="metric-divider"></div>
           <div class="metric-item">
-            <span class="metric-val">Zero</span>
-            <span class="metric-label">Ads or Trackers</span>
+            <span class="metric-val">0</span>
+            <span class="metric-label">Ads</span>
           </div>
         </div>
       </div>
 
-      <!-- Live Minimal Interactive Mockup -->
+      <!-- Live Minimal Preview Mockup -->
       <div class="preview-card-wrapper">
         <div class="preview-card">
           <div class="preview-card-header">
             <div>
-              <span class="preview-card-eyebrow">Today's Focus</span>
-              <h3 class="preview-card-title">Daily Execution</h3>
+              <span class="preview-card-eyebrow">Today</span>
+              <h3 class="preview-card-title">Daily Focus</h3>
             </div>
-            <span id="preview-progress-pill" class="pill-badge pill-badge-accent">2 of 3 Completed</span>
+            <span id="preview-progress-pill" class="pill-badge pill-badge-accent">2 / 3 Done</span>
           </div>
 
           <div class="progress-bar-track">
             <div id="preview-progress-fill" class="progress-bar-fill" style="width: 66%;"></div>
           </div>
 
-          <!-- Interactive Tasks -->
+          <!-- Tasks -->
           <div class="preview-section-title">TASKS</div>
           <div class="preview-items-group">
             <div class="preview-item task-item completed" id="task-preview-1">
               <button class="preview-checkbox" aria-label="Toggle task 1">✓</button>
               <div class="preview-item-content">
-                <span class="preview-item-title">Ship TDlxHT v2.3.9 Production Build</span>
-                <span class="preview-item-meta">High Priority • Room DB Synced</span>
+                <span class="preview-item-title">Ship TDlxHT v2.3.9</span>
+                <span class="preview-item-meta">High Priority</span>
               </div>
             </div>
 
             <div class="preview-item task-item" id="task-preview-2">
               <button class="preview-checkbox" aria-label="Toggle task 2"></button>
               <div class="preview-item-content">
-                <span class="preview-item-title">Audit Weekly Habit Heatmaps & Analytics</span>
-                <span class="preview-item-meta">Medium Priority • Due 18:00</span>
+                <span class="preview-item-title">Review weekly streaks</span>
+                <span class="preview-item-meta">18:00</span>
               </div>
             </div>
           </div>
 
-          <!-- Interactive Habit -->
-          <div class="preview-section-title" style="margin-top: 14px;">HABIT DISCIPLINE</div>
+          <!-- Habit -->
+          <div class="preview-section-title" style="margin-top: 14px;">HABIT</div>
           <div class="preview-item habit-item" id="habit-preview">
             <div class="preview-item-content">
               <div class="habit-title-row">
                 <span class="preview-item-title">Morning Deep Work</span>
-                <span id="preview-streak-badge" class="streak-badge">🔥 14 Days</span>
+                <span id="preview-streak-badge" class="streak-badge">🔥 14d</span>
               </div>
-              <div class="progress-bar-track" style="margin: 8px 0;">
+              <div class="progress-bar-track" style="margin: 8px 0 4px;">
                 <div id="habit-progress-fill" class="progress-bar-fill" style="width: 80%;"></div>
               </div>
-              <span class="preview-item-meta">Daily Target: 90m Focus Session</span>
             </div>
             <button id="habit-checkin-btn" class="btn btn-soft btn-sm">
-              +1 Check In
+              +1
             </button>
           </div>
 
-          <!-- Integrated Tools Chips -->
+          <!-- Tools Chips -->
           <div class="preview-tools-row">
-            <span class="tool-chip">Loan EMI</span>
-            <span class="tool-chip">GST Tax</span>
-            <span class="tool-chip">Tip Splitter</span>
-            <span class="tool-chip">Attendance</span>
+            <span class="tool-chip">Loan</span>
+            <span class="tool-chip">GST</span>
+            <span class="tool-chip">Tip</span>
             <span class="tool-chip">CGPA</span>
+            <span class="tool-chip">Attendance</span>
             <span class="tool-chip">+9 More</span>
           </div>
         </div>
@@ -171,34 +166,33 @@
     <!-- 4 Core Pillars -->
     <section id="features" class="section">
       <div class="section-heading">
-        <span class="section-tag">Core Architecture</span>
-        <h2 class="section-title">Built for Momentum</h2>
-        <p class="section-desc">Designed strictly around speed, discipline, and simplicity. No bloatware or cloud lag.</p>
+        <span class="section-tag">Core</span>
+        <h2 class="section-title">Essential Architecture</h2>
       </div>
 
       <div class="grid-4">
         <div class="card">
           <div class="card-icon">⚡</div>
-          <h3 class="card-title">0ms Room DB Execution</h3>
-          <p class="card-text">Every action executes directly against your device's local SQLite database. Complete tasks, log habits, and search offline with instantaneous response.</p>
+          <h3 class="card-title">0ms Room DB</h3>
+          <p class="card-text">Local SQLite. Zero network latency.</p>
         </div>
 
         <div class="card">
           <div class="card-icon">🔥</div>
-          <h3 class="card-title">Dual-Streak Discipline</h3>
-          <p class="card-text">Tracks both your current active streak and your all-time personal best. A missed day pauses your active counter without erasing your lifetime consistency record.</p>
+          <h3 class="card-title">Dual Streaks</h3>
+          <p class="card-text">Active streak + all-time best.</p>
         </div>
 
-        <div class="card" id="tools">
+        <div class="card">
           <div class="card-icon">🧮</div>
-          <h3 class="card-title">14 Integrated Calculators</h3>
-          <p class="card-text">Calculate loan EMIs, GST tax slabs, restaurant tip splits, attendance thresholds, and university CGPA scales right within your productivity planner.</p>
+          <h3 class="card-title">14 Calculators</h3>
+          <p class="card-text">EMI, GST, Tip, CGPA & Attendance.</p>
         </div>
 
         <div class="card">
           <div class="card-icon">🔒</div>
-          <h3 class="card-title">Zero-Trust Cloud Privacy</h3>
-          <p class="card-text">Optional Supabase synchronization with one-way bcrypt password encryption and PostgreSQL Row-Level Security. Your data remains strictly yours.</p>
+          <h3 class="card-title">Zero-Trust</h3>
+          <p class="card-text">100% private. Optional cloud sync.</p>
         </div>
       </div>
     </section>
@@ -207,58 +201,53 @@
     <section id="download" class="section">
       <div class="download-container">
         <div class="download-info">
-          <span class="section-tag">Direct Install</span>
-          <h2 class="section-title">Get TDlxHT for Android</h2>
-          <p class="section-desc">
-            Download the official production-signed release APK directly from GitHub Releases. No Google Play account required.
-          </p>
+          <span class="section-tag">Install</span>
+          <h2 class="section-title">Get TDlxHT</h2>
 
           <div class="specs-list">
             <div class="spec-item">
-              <span class="spec-label">Latest Version</span>
+              <span class="spec-label">Version</span>
               <span class="spec-value apk-version-label">v2.3.9</span>
             </div>
             <div class="spec-item">
-              <span class="spec-label">File Size</span>
-              <span class="spec-value">16.97 MB (R8 Minified)</span>
+              <span class="spec-label">Size</span>
+              <span class="spec-value">16.9 MB</span>
             </div>
             <div class="spec-item">
-              <span class="spec-label">Compatibility</span>
-              <span class="spec-value">Android 7.0+ (API 24 to 35)</span>
+              <span class="spec-label">OS</span>
+              <span class="spec-value">Android 7.0+</span>
             </div>
             <div class="spec-item">
-              <span class="spec-label">Security</span>
-              <span class="spec-value">V2+V3 Signed • SHA256 Verified</span>
+              <span class="spec-label">Sign</span>
+              <span class="spec-value">V2+V3 Verified</span>
             </div>
           </div>
 
           <div class="download-buttons">
             <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" id="main-download-btn" data-apk-download="true" class="btn btn-primary btn-lg">
-              <span>Download TDlxHT APK</span>
-              <span class="btn-tag">Direct GitHub Link</span>
+              <span>Download APK</span>
+              <span class="btn-tag">Direct</span>
             </a>
             <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/latest" target="_blank" rel="noopener" class="btn btn-outline btn-lg">
-              <span>All Releases</span>
+              <span>Releases</span>
             </a>
           </div>
 
           <div class="install-steps">
-            <h4>Quick 3-Step Sideloading:</h4>
             <ol>
-              <li>Tap <strong>Download TDlxHT APK</strong> above.</li>
-              <li>When prompted by Android, tap <em>Settings</em> and toggle <em>Allow from this source</em>.</li>
-              <li>Tap <strong>Install</strong> and launch TDlxHT immediately.</li>
+              <li>Download APK.</li>
+              <li>Allow <em>Install unknown apps</em> in settings.</li>
+              <li>Open and use offline.</li>
             </ol>
           </div>
         </div>
 
         <div class="download-qr-box">
           <div class="qr-card">
-            <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" title="Scan with phone camera to download">
-              <img src="/qr-download.png" alt="Scan QR Code to download TDlxHT APK" class="qr-image" width="160" height="160">
+            <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk" data-apk-download="true" title="Scan to download">
+              <img src="/qr-download.png" alt="Scan to download TDlxHT" class="qr-image" width="150" height="150">
             </a>
-            <p class="qr-caption">Scan with Phone Camera</p>
-            <span class="qr-subcaption">Direct download to device</span>
+            <p class="qr-caption">Scan to Download</p>
           </div>
         </div>
       </div>
@@ -273,14 +262,14 @@
         <div class="brand-mark brand-mark-sm">✓</div>
         <span>TDlxHT Android</span>
         <span class="footer-dot">•</span>
-        <span class="footer-copy">© 2026. Native Kotlin & Room DB.</span>
+        <span class="footer-copy">© 2026</span>
       </div>
 
       <div class="footer-right">
         <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener" class="footer-link">GitHub</a>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.3.9" target="_blank" rel="noopener" class="footer-link">Release Notes</a>
-        <a href="/auth" class="footer-link">Web Portal</a>
-        <a href="tdlxht://home" class="footer-link">Open App</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.3.9" target="_blank" rel="noopener" class="footer-link">Releases</a>
+        <a href="/auth" class="footer-link">Portal</a>
+        <a href="tdlxht://home" class="footer-link">App</a>
       </div>
     </div>
   </footer>

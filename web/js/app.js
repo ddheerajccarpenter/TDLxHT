@@ -101,7 +101,7 @@ function initInteractivePreview() {
     const percent = Math.round((totalCompleted / total) * 100);
 
     if (progressPill) {
-      progressPill.textContent = `${totalCompleted} of ${total} Completed`;
+      progressPill.textContent = `${totalCompleted} / ${total} Done`;
     }
     if (progressFill) {
       progressFill.style.width = `${percent}%`;
@@ -132,19 +132,19 @@ function initInteractivePreview() {
       habitChecked = !habitChecked;
       if (habitChecked) {
         streakDays += 1;
-        habitBtn.textContent = "Completed ✓";
+        habitBtn.textContent = "✓ Done";
         habitBtn.classList.remove("btn-soft");
         habitBtn.classList.add("btn-primary");
         if (habitFill) habitFill.style.width = "100%";
       } else {
         streakDays -= 1;
-        habitBtn.textContent = "+1 Check In";
+        habitBtn.textContent = "+1";
         habitBtn.classList.remove("btn-primary");
         habitBtn.classList.add("btn-soft");
         if (habitFill) habitFill.style.width = "80%";
       }
       if (streakBadge) {
-        streakBadge.textContent = `🔥 ${streakDays} Days`;
+        streakBadge.textContent = `🔥 ${streakDays}d`;
       }
       updateProgress();
     });
