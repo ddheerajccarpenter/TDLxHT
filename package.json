@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "vite",
     "build": "vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp web/qr-download.* dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true)",
     "release": "./gradlew syncReleaseApk && npm run build && npx vercel --prod --yes",
     "preview": "vite preview"
