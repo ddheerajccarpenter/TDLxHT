@@ -4,6 +4,8 @@
  * Uses secure Vercel Serverless Functions (/api/register, /api/recover) for zero-leakage,
  * instant email confirmation, and reliable password recovery that bypasses broken SMTP.
  */
+import { supabase } from './supabase-config.js';
+
 document.addEventListener("DOMContentLoaded", async () => {
   const tabs = document.querySelectorAll(".auth-tab");
   const loginForm = document.getElementById("login-form");
@@ -28,7 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Check for existing session
-  const supabase = window.TDLXHT_CONFIG ? window.TDLXHT_CONFIG.getClient() : null;
   if (supabase) {
     try {
       const { data: { session } } = await supabase.auth.getSession();

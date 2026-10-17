@@ -42,38 +42,31 @@ export default async function handler(req, res) {
 
     if (serviceRoleKey) {
       // 1. Generate the official one-time verification link via Supabase GoTrue Admin API
-      const response = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
-        method: 'POST',
-        headers: {
-          'apikey': serviceRoleKey,
-          'Authorization': `Bearer ${serviceRoleKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 'recovery',
-          email: cleanEmail,
-          options: {
-            redirectTo: callbackUrl
-          }
-        })
-      });
+      try {
+        const response = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+          method: 'POST',
+          headers: {
+            'apikey': serviceRoleKey,
+            'Authorization': `Bearer ${serviceRoleKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'recovery',
+            email: cleanEmail,
+            options: {
+              redirectTo: callbackUrl
+            }
+          })
+        });
 
-      const data = await response.json();
-      if (response.ok && data.action_link) {
-        actionLink = data.action_link;
+        const data = await response.json();
+        if (response.ok && data.action_link) {
+          actionLink = data.action_link;
+        }
+      } catch (adminErr) {
+        console.warn('Admin generate_link failed:', adminErr);
       }
     }
-
-    if (!response.ok) {
-      const errMsg = data.msg || data.message || data.error_description || 'Unable to process recovery request.';
-      // Return a generic security message so attackers cannot enumerate valid user emails
-      return res.status(200).json({
-        success: true,
-        message: 'If an account exists with this email address, a password recovery link has been sent to your inbox.'
-      });
-    }
-
-    const actionLink = data.action_link;
 
     // 2. Dispatch Email via SMTP (Gmail, Resend, or custom SMTP) if configured
     const smtpHost = process.env.SMTP_HOST;
@@ -83,7 +76,7 @@ export default async function handler(req, res) {
 
     let emailSent = false;
 
-    if (smtpHost && smtpUser && smtpPass) {
+    if (smtpHost && smtpUser && smtpPass && actionLink) {
       try {
         const transporter = nodemailer.createTransport({
           host: smtpHost,

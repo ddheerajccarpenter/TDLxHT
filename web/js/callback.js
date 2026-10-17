@@ -1,3 +1,5 @@
+import { supabase } from './supabase-config.js';
+
 /**
  * TDlxHT Auth Callback & Confirmation Handler
  * Handles Supabase email confirmation, password recovery, and automatic deep linking to Android app.
@@ -37,7 +39,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tokenHash = searchParams.get("token_hash");
 
   try {
-    const supabase = window.TDLXHT_CONFIG ? window.TDLXHT_CONFIG.getClient() : null;
     let verifiedEmail = "Your Account";
 
     // 2. Exchange PKCE code, OTP token_hash, or establish session from tokens
