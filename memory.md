@@ -87,10 +87,12 @@ The website strictly implements the single-page long-form layout specified by `t
 - **Persistence**: Android Jetpack Room (SQLite).
 - **Minification**: Google R8 shrinking with ProGuard optimization.
 - **Build Configuration**:
-  - `app/build.gradle.kts`: Application ID `com.aistudio.habittask.wvnk`, `minSdk = 24`, `targetSdk = 36`, `versionCode = 27`, `versionName = "2.4.0"`.
+  - `app/build.gradle.kts`: Application ID `com.aistudio.habittask.wvnk`, `minSdk = 24`, `targetSdk = 36`, `versionCode = 28`, `versionName = "2.4.1"`.
   - `app/src/main/java/com/example/ui/theme/Color.kt`: Centralized `#252525` and `#FFFFFF` tokens.
   - `app/src/main/res/drawable/ic_launcher_background.xml`: `#252525` background.
-  - `app/src/main/res/mipmap-*/`: Monochrome launcher icons from `AppIcons/`.
+  - `app/src/main/res/mipmap-*/`: Monochrome launcher icons with dark `#252525` depth background and white emblem.
+  - `app/src/main/java/com/example/MainActivity.kt`: Liquid Glass Navigation Bar with zero-lag $O(1)$ constant-slot geometry and GPU RenderNode liquid indicator pill.
+  - `app/src/main/java/com/example/ui/components/SketchComponents.kt`: Kern Society kinetic elastic squash & stretch (`Modifier.elasticStretchPress`), Dheeraj Carpenter 3D perspective depth (`Modifier.tactile3DDepth`), icon nudges (`Modifier.iconNudgePress`), and checkbox kinetic squash snap.
 
 ---
 
@@ -114,7 +116,7 @@ Serves on `http://localhost:5173/`.
 ```
 Generates release APK at `app/build/outputs/apk/release/app-release.apk` with official R8 minification and signing.
 Copied to project root:
-- `TDLxHT.2.4.0.apk`
+- `TDLxHT.2.4.1.apk`
 - `TDlxHT.apk`
 
 ---
@@ -124,5 +126,8 @@ Copied to project root:
 - **Web Layout**: Matches `TDLxHT_single_page_grayscale_wireframe.svg` in hierarchy, section order, proportions, and responsive behavior.
 - **Color Discipline**: Verified across CSS and Kotlin Compose UI. Only `#252525` and `#FFFFFF` are authored.
 - **Bottom Navigation**: 4-item dock (`Dashboard`, `Features`, `Calculators`, `Download`) synchronizes with viewport scroll state without flickering.
-- **App Icons**: Launcher mipmaps, adaptive foreground, and web favicon updated with new monochrome identity.
-- **APK Compilation**: Successfully compiled `v2.4.0` (versionCode 27) with R8 minification and V1/V2/V3 signing.
+- **App Icons**: Launcher mipmaps (with dark depth background) and transparent web favicons updated to the new checklist + leaf vector emblem.
+- **Liquid Glass Nav Bar**: Frosted glass surface, vertical specular rim gradient, and top arc sheen exclusive to the APK app.
+- **Sliding Nav Bar Animation Fix**: Completely lag-free 120fps fluid transitions without layout remeasurement.
+- **Kinetic Physics & Depth**: Kern Society volume-conserving elastic squash & stretch and Dheeraj Carpenter 3D perspective depth integrated into all cards and interactive controls.
+- **APK Compilation**: Compiled `v2.4.1` (versionCode 28) with R8 minification and V1/V2/V3 signing.

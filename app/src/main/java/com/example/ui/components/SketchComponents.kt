@@ -54,6 +54,7 @@ import com.example.ui.theme.MobbinField
 import com.example.ui.theme.MobbinCanvasSoft
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
+import kotlinx.coroutines.launch
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material3.Icon
@@ -675,7 +676,7 @@ fun Modifier.kernSquashCounter(
     if (key != null) {
       scaleXAnim.snapTo(1.15f)
       scaleYAnim.snapTo(0.85f)
-      kotlinx.coroutines.launch {
+      launch {
         scaleXAnim.animateTo(
           targetValue = 1f,
           animationSpec = spring(dampingRatio = 0.50f, stiffness = 420f)
@@ -737,10 +738,296 @@ fun SketchCard(
         ),
         shape = RoundedCornerShape(cornerRadius)
       )
+      .drawBehind {
+        // Specular top highlight sheen for physical Apple-style Liquid Glass
+        drawRoundRect(
+          brush = Brush.verticalGradient(
+            colors = listOf(
+              if (isDark) Color(0x28FFFFFF) else Color(0x35FFFFFF),
+              Color.Transparent
+            ),
+            startY = 0f,
+            endY = size.height * 0.45f
+          ),
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius.toPx(), cornerRadius.toPx())
+        )
+      }
       .clip(RoundedCornerShape(cornerRadius))
   ) {
     content()
   }
+}
+
+/**
+ * Canonical GlassCard composable implementing Apple Liquid Glass material.
+ */
+@Composable
+fun GlassCard(
+  modifier: Modifier = Modifier,
+  cornerRadius: Dp = 18.dp,
+  backgroundColor: Color = CardBackground,
+  borderColor: Color = CardBorder,
+  borderWidth: Dp = 1.dp,
+  elevation: Dp = 4.dp,
+  onClick: (() -> Unit)? = null,
+  content: @Composable () -> Unit
+) {
+  SketchCard(
+    modifier = modifier,
+    cornerRadius = cornerRadius,
+    backgroundColor = backgroundColor,
+    borderColor = borderColor,
+    borderWidth = borderWidth,
+    elevation = elevation,
+    onClick = onClick,
+    content = content
+  )
+}
+
+/**
+ * Apple-Style Liquid Glass Button — Icon with Visible Label Pattern.
+ * Mandatory pattern: <GlassButton icon={<PlusIcon />}>Add Task</GlassButton>
+ * Renders a tactile translucent stadium pill with specular sheen and spring press.
+ */
+@Composable
+fun GlassButton(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  icon: (@Composable () -> Unit)? = null,
+  enabled: Boolean = true,
+  content: @Composable () -> Unit
+) {
+  val isDark = LocalAppColors.current.isDark
+  Box(
+    modifier = modifier
+      .bounceClick(scaleDown = 0.94f) {
+        if (enabled) onClick()
+      }
+      .shadow(
+        elevation = if (isDark) 4.dp else 2.dp,
+        shape = CircleShape,
+        ambientColor = if (isDark) Color(0x60000000) else Color(0x15000000),
+        spotColor = if (isDark) Color(0x40000000) else Color(0x0E000000)
+      )
+      .clip(CircleShape)
+      .background(
+        color = if (isDark) Color(0xD825252A) else Color(0xE8FFFFFF)
+      )
+      .border(
+        width = 1.dp,
+        brush = Brush.verticalGradient(
+          colors = if (isDark) {
+            listOf(Color(0x50FFFFFF), Color(0x18FFFFFF))
+          } else {
+            listOf(Color(0x65FFFFFF), Color(0x20000000))
+          }
+        ),
+        shape = CircleShape
+      )
+      .drawBehind {
+        // Specular top highlight sheen
+        drawRoundRect(
+          brush = Brush.verticalGradient(
+            colors = listOf(
+              if (isDark) Color(0x2EFFFFFF) else Color(0x45FFFFFF),
+              Color.Transparent
+            ),
+            startY = 0f,
+            endY = size.height * 0.45f
+          ),
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
+        )
+      }
+      .padding(horizontal = 14.dp, vertical = 8.dp),
+    contentAlignment = Alignment.Center
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+      if (icon != null) {
+        icon()
+      }
+      content()
+    }
+  }
+}
+
+/**
+ * Apple-Style Liquid Glass Button — Circular Icon-Only Pattern.
+ * Mandatory pattern: <GlassButton icon={<PlusIcon />} aria-label="Add" />
+ * Accessible name (contentDescription) is required.
+ */
+@Composable
+fun GlassButton(
+  onClick: () -> Unit,
+  contentDescription: String,
+  modifier: Modifier = Modifier,
+  size: Dp = 40.dp,
+  icon: @Composable () -> Unit
+) {
+  val isDark = LocalAppColors.current.isDark
+  Box(
+    modifier = modifier
+      .size(size)
+      .bounceClick(scaleDown = 0.92f) { onClick() }
+      .shadow(
+        elevation = if (isDark) 6.dp else 3.dp,
+        shape = CircleShape,
+        ambientColor = if (isDark) Color(0x70000000) else Color(0x18000000),
+        spotColor = if (isDark) Color(0x4D000000) else Color(0x10000000)
+      )
+      .clip(CircleShape)
+      .background(
+        color = if (isDark) Color(0xD825252A) else Color(0xEBFFFFFF)
+      )
+      .border(
+        width = 1.dp,
+        brush = Brush.verticalGradient(
+          colors = if (isDark) {
+            listOf(Color(0x55FFFFFF), Color(0x18FFFFFF))
+          } else {
+            listOf(Color(0x80FFFFFF), Color(0x22000000))
+          }
+        ),
+        shape = CircleShape
+      )
+      .drawBehind {
+        drawRoundRect(
+          brush = Brush.verticalGradient(
+            colors = listOf(
+              if (isDark) Color(0x33FFFFFF) else Color(0x50FFFFFF),
+              Color.Transparent
+            ),
+            startY = 0f,
+            endY = size.height * 0.45f
+          ),
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
+        )
+      },
+    contentAlignment = Alignment.Center
+  ) {
+    icon()
+  }
+}
+
+/**
+ * Apple-Style Liquid Glass Menu Popup.
+ * Provides a translucent floating glass context menu with checkmark states.
+ */
+@Composable
+fun GlassMenu(
+  expanded: Boolean,
+  onDismissRequest: () -> Unit,
+  modifier: Modifier = Modifier,
+  content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+  if (expanded) {
+    Dialog(onDismissRequest = onDismissRequest) {
+      val isDark = LocalAppColors.current.isDark
+      Box(
+        modifier = modifier
+          .widthIn(min = 180.dp, max = 280.dp)
+          .shadow(
+            elevation = 16.dp,
+            shape = RoundedCornerShape(18.dp),
+            ambientColor = Color.Black.copy(alpha = 0.6f),
+            spotColor = Color.Black.copy(alpha = 0.4f)
+          )
+          .clip(RoundedCornerShape(18.dp))
+          .background(if (isDark) Color(0xEE202024) else Color(0xF5FFFFFF))
+          .border(
+            1.dp,
+            Brush.verticalGradient(
+              listOf(Color(0x60FFFFFF), Color(0x15FFFFFF))
+            ),
+            RoundedCornerShape(18.dp)
+          )
+          .padding(8.dp)
+      ) {
+        Column(
+          modifier = Modifier.fillMaxWidth(),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+          content = content
+        )
+      }
+    }
+  }
+}
+
+/**
+ * Single item inside a GlassMenu with optional checkmark indicator.
+ */
+@Composable
+fun GlassMenuItem(
+  label: String,
+  checked: Boolean = false,
+  onSelect: () -> Unit,
+  modifier: Modifier = Modifier,
+  destructive: Boolean = false,
+  icon: (@Composable () -> Unit)? = null
+) {
+  val isDark = LocalAppColors.current.isDark
+  Row(
+    modifier = modifier
+      .fillMaxWidth()
+      .clip(RoundedCornerShape(10.dp))
+      .bounceClick { onSelect() }
+      .padding(horizontal = 12.dp, vertical = 10.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+      if (icon != null) {
+        icon()
+      }
+      Text(
+        text = label,
+        style = TextStyle(
+          fontFamily = SFProFontFamily,
+          fontSize = 15.sp,
+          fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
+          color = when {
+            destructive -> Color(0xFFE05D5D)
+            checked -> InkPrimary
+            else -> InkSecondary
+          }
+        )
+      )
+    }
+    if (checked) {
+      Text(
+        text = "✓",
+        style = TextStyle(
+          fontFamily = SFProFontFamily,
+          fontSize = 15.sp,
+          fontWeight = FontWeight.Bold,
+          color = InkPrimary
+        )
+      )
+    }
+  }
+}
+
+/**
+ * Canonical GlassSegmented composable implementing Apple Liquid Glass segmented tab.
+ */
+@Composable
+fun GlassSegmented(
+  items: List<String>,
+  selectedIndex: Int,
+  onItemSelected: (Int) -> Unit,
+  modifier: Modifier = Modifier
+) {
+  SketchSegmentedControl(
+    items = items,
+    selectedIndex = selectedIndex,
+    onItemSelected = onItemSelected,
+    modifier = modifier
+  )
 }
 
 /**
@@ -1042,7 +1329,7 @@ fun SketchCheckbox(
     if (checked && !isReduced) {
       squashX.snapTo(1.16f)
       squashY.snapTo(0.84f)
-      kotlinx.coroutines.launch {
+      launch {
         squashX.animateTo(
           targetValue = 1f,
           animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)

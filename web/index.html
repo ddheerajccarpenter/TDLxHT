@@ -20,7 +20,17 @@
 </head>
 <body>
 
-  <!-- Top Header (Wireframe: Compact, Quiet Architectural Frame) -->
+  <!-- SVG Displacement Filter for real glass refraction -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <filter id="lg-distort" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Top Header (Glass Frame) -->
   <header class="page-container" style="padding-top: 0;">
     <div class="header-frame">
       <a href="/" class="header-brand" aria-label="TDLxHT Home">
@@ -37,7 +47,7 @@
         <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
           <span>Theme</span>
         </button>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk" data-apk-download="true" class="btn btn-primary btn-sm">
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk" data-apk-download="true" class="btn btn-primary btn-sm">
           Download APK
         </a>
       </div>
@@ -55,7 +65,7 @@
     <section id="dashboard" class="hero-layout">
       <!-- Left Column: Copy & Actions -->
       <div class="hero-left">
-        <span class="hero-sub-label">NATIVE ANDROID · V2.4.0</span>
+        <span class="hero-sub-label">NATIVE ANDROID · V2.4.1</span>
         <h1 class="hero-heading">
           Tasks, habits and<br>
           calculators.<br>
@@ -65,7 +75,7 @@
           Manage daily tasks, build habits and use practical calculators without needing a constant internet connection.
         </p>
         <div class="hero-actions-row">
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk" data-apk-download="true" class="btn btn-primary">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk" data-apk-download="true" class="btn btn-primary">
             Download APK
           </a>
           <a href="#features" class="btn btn-outline">
@@ -74,7 +84,7 @@
         </div>
       </div>
 
-      <!-- Right Column: Product Preview Placeholder matching Wireframe -->
+      <!-- Right Column: Product Preview Placeholder -->
       <div class="product-preview-card">
         <div class="preview-header">PRODUCT PREVIEW PLACEHOLDER</div>
         <div class="preview-mockup-grid">
@@ -121,7 +131,7 @@
       </div>
     </section>
 
-    <!-- Four Concise Product Facts Strip (Wireframe Structure) -->
+    <!-- Four Concise Product Facts Strip -->
     <div class="product-facts-strip">
       <div class="product-fact-cell">
         <h3 class="fact-title">Offline-first</h3>
@@ -209,7 +219,7 @@
       <!-- Working Search Input -->
       <div class="calc-search-box">
         <span class="calc-search-icon">⌕</span>
-        <input type="text" id="calc-search-input" class="calc-search-input" placeholder="Search calculators..." aria-label="Search calculators">
+        <input type="search" id="calc-search-input" class="calc-search-input" placeholder="Search calculators..." aria-label="Search calculators">
       </div>
 
       <!-- Categories Grid (6 Cards Matching Wireframe) -->
@@ -292,6 +302,30 @@
         <div class="calc-runner-header">
           <span class="calc-runner-title" id="calc-runner-title">Loan EMI Calculator</span>
           <span id="calc-category-tag" class="section-eyebrow-tag" style="margin: 0;">FINANCE</span>
+          <!-- GlassMenu: Sort Calculator Results -->
+          <div class="glass-menu-wrapper" id="calc-sort-menu">
+            <button class="glass-menu-trigger lg-button lg-button--clear lg-glass" aria-label="Sort by" aria-haspopup="true" aria-expanded="false" id="calc-sort-trigger">
+              <svg class="glass-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="15" y2="12"/>
+                <line x1="3" y1="18" x2="9" y2="18"/>
+              </svg>
+            </button>
+            <div class="glass-menu-popover lg-glass" id="calc-sort-popover" role="menu" aria-label="Sort by" hidden>
+              <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Date">
+                <span class="glass-menu-check" aria-hidden="true">✓</span>
+                <span class="glass-menu-label">Date</span>
+              </button>
+              <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="true" data-sort="Name">
+                <span class="glass-menu-check" aria-hidden="true">✓</span>
+                <span class="glass-menu-label">Name</span>
+              </button>
+              <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Size">
+                <span class="glass-menu-check" aria-hidden="true">✓</span>
+                <span class="glass-menu-label">Size</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="calc-runner-grid">
@@ -354,14 +388,14 @@
         <div class="download-info-left">
           <h2 class="download-title">Get TDLxHT for Android</h2>
           <p class="download-subtitle">Check version, file size and compatibility before downloading.</p>
-          <span class="download-meta-specs">Version 2.4.0 · 17.8 MB · Android 7–15</span>
+          <span class="download-meta-specs">Version 2.4.1 · 18.6 MB · Android 7–15</span>
         </div>
 
         <div class="download-actions-right">
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk" data-apk-download="true" class="btn btn-primary" style="width: 220px;">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk" data-apk-download="true" class="btn btn-primary" style="width: 220px;">
             Download APK
           </a>
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.4.0" target="_blank" rel="noopener" class="download-github-link">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.4.1" target="_blank" rel="noopener" class="download-github-link">
             GitHub Releases
           </a>
         </div>
@@ -376,34 +410,68 @@
         <a href="#calculators">Calculators</a>
         <a href="/auth">Portal</a>
       </nav>
-      <div class="footer-credit">Wireframe · grayscale only</div>
+      <div class="footer-credit">Liquid Glass · Dark mode ready</div>
     </footer>
 
   </main>
 
-  <!-- Fixed Bottom Navigation (Wireframe Authority: Dashboard · Features · Calculators · Download) -->
+  <!-- Fixed Bottom Navigation — Liquid Glass Tab Bar (Icons Only) -->
   <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
-    <nav class="bottom-dock">
-      <a href="#dashboard" class="dock-tab active" data-tab="dashboard">
-        <div class="dock-tab-icon">▤</div>
-        <span>Dashboard</span>
+    <nav class="bottom-dock lg-track lg-track--tabbar lg-track--icons-only" style="--lg-count:4;--lg-index:0;">
+      <div class="lg-track__glass lg-glass"></div>
+
+      <a href="#dashboard" class="dock-tab lg-track__item active" data-tab="dashboard" aria-selected="true" aria-label="Dashboard">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </div>
       </a>
-      <a href="#features" class="dock-tab" data-tab="features">
-        <div class="dock-tab-icon">✓</div>
-        <span>Features</span>
+
+      <a href="#features" class="dock-tab lg-track__item" data-tab="features" aria-label="Features">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
       </a>
-      <a href="#calculators" class="dock-tab" data-tab="calculators">
-        <div class="dock-tab-icon">⊞</div>
-        <span>Calculators</span>
+
+      <a href="#calculators" class="dock-tab lg-track__item" data-tab="calculators" aria-label="Calculators">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2"/>
+            <line x1="8" y1="6" x2="16" y2="6"/>
+            <line x1="8" y1="10" x2="10" y2="10"/>
+            <line x1="14" y1="10" x2="16" y2="10"/>
+            <line x1="8" y1="14" x2="10" y2="14"/>
+            <line x1="14" y1="14" x2="16" y2="14"/>
+            <line x1="8" y1="18" x2="10" y2="18"/>
+            <line x1="14" y1="18" x2="16" y2="18"/>
+          </svg>
+        </div>
       </a>
-      <a href="#download" class="dock-tab" data-tab="download">
-        <div class="dock-tab-icon">↓</div>
-        <span>Download</span>
+
+      <a href="#download" class="dock-tab lg-track__item" data-tab="download" aria-label="Download">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
       </a>
+
+      <div class="lg-track__lens lg-glass" data-lg-refract></div>
+      <div class="lg-track__select"></div>
     </nav>
   </aside>
 
   <!-- Application Logic -->
   <script type="module" src="/js/app.js"></script>
+  <!-- Liquid Glass Enhancement -->
+  <script type="module" src="/js/liquid-glass.js"></script>
 </body>
 </html>

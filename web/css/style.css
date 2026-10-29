@@ -1,59 +1,141 @@
 /* ==========================================================================
-   TDLxHT Strict Two-Color Wireframe Design System
-   Authored Colors: ONLY #252525 (Dark Grey) and #FFFFFF (White)
-   Matches TDLxHT_single_page_grayscale_wireframe.svg structure and proportions.
+   TDLxHT Design System — DESIGN.md Tokens
+   Dark Mode: Bugatti-inspired | Light Mode: Mobbin-inspired
    ========================================================================== */
 
-/* --- Strict Two-Color Tokens --- */
-:root, [data-theme="dark"] {
-  --canvas: #252525;
-  --surface: #252525;
-  --surface-card: #252525;
-  --surface-card-hover: #252525;
-  --ink: #FFFFFF;
-  --ink-secondary: #FFFFFF;
-  --border: #FFFFFF;
-  --hairline: #FFFFFF;
-  
-  --primary: #FFFFFF;
-  --on-primary: #252525;
-
-  --btn-bg: #FFFFFF;
-  --btn-text: #252525;
-  --btn-outline-bg: #252525;
-  --btn-outline-border: #FFFFFF;
-  --btn-outline-text: #FFFFFF;
-
-  --font-display: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
-
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 16px;
-}
-
+/* ─── Design System Tokens from DESIGN.md ────────────────────────────────────── */
+:root,
 [data-theme="light"] {
-  --canvas: #FFFFFF;
-  --surface: #FFFFFF;
-  --surface-card: #FFFFFF;
-  --surface-card-hover: #FFFFFF;
-  --ink: #252525;
-  --ink-secondary: #252525;
-  --border: #252525;
-  --hairline: #252525;
+  /* Mobbin-inspired Light Mode */
+  --color-canvas: #ffffff;
+  --color-canvas-soft: #f3f3f3;
+  --color-field: #f0f0f0;
+  --color-surface-card: #ffffff;
+  --color-ink: #141414;
+  --color-ink-soft: #262626;
+  --color-text-muted: #707070;
+  --color-text-faint: #adadad;
+  --color-hairline: #e0e0e0;
+  --color-hairline-soft: #f0f0f0;
+  --color-primary: #141414;
+  --color-on-primary: #ffffff;
+  --color-accent: #0066ff;
 
-  --primary: #252525;
-  --on-primary: #FFFFFF;
+  /* Map to old variables for compatibility */
+  --canvas: var(--color-canvas);
+  --surface: var(--color-canvas);
+  --surface-card: var(--color-surface-card);
+  --ink: var(--color-ink);
+  --ink-secondary: var(--color-ink-soft);
+  --border: var(--color-hairline);
+  --hairline: var(--color-hairline);
+  --primary: var(--color-primary);
+  --on-primary: var(--color-on-primary);
+  --btn-bg: var(--color-primary);
+  --btn-text: var(--color-on-primary);
+  --btn-outline-bg: var(--color-canvas);
+  --btn-outline-border: var(--color-hairline);
+  --btn-outline-text: var(--color-ink);
 
-  --btn-bg: #252525;
-  --btn-text: #FFFFFF;
-  --btn-outline-bg: #FFFFFF;
-  --btn-outline-border: #252525;
-  --btn-outline-text: #252525;
+  /* Typography */
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+  --tracking-display: 0;
+
+  /* Geometry — Mobbin = pill shapes */
+  --radius-none: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 16px;
+  --radius-md: 24px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* Button tokens */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-color: var(--color-on-primary);
+  --btn-primary-border: transparent;
+  --btn-primary-radius: var(--radius-full);
+
+  /* Mesh background */
+  --mesh-base: #f8f8f8;
+  --mesh-1: rgba(100, 140, 255, 0.08);
+  --mesh-2: rgba(255, 120, 80, 0.06);
+  --mesh-3: rgba(60, 200, 140, 0.05);
+  --mesh-4: rgba(200, 100, 255, 0.04);
 }
+
+[data-theme="dark"] {
+  /* Bugatti-inspired Dark Mode */
+  --color-canvas: #000000;
+  --color-canvas-soft: #0d0d0d;
+  --color-field: transparent;
+  --color-surface-card: #141414;
+  --color-ink: #ffffff;
+  --color-ink-soft: #e6e6e6;
+  --color-text-muted: #999999;
+  --color-text-faint: #666666;
+  --color-hairline: #262626;
+  --color-hairline-soft: #262626;
+  --color-primary: #ffffff;
+  --color-on-primary: #000000;
+  --color-accent: #c3d9f3;
+
+  /* Map to old variables */
+  --canvas: var(--color-canvas);
+  --surface: var(--color-canvas);
+  --surface-card: var(--color-surface-card);
+  --ink: var(--color-ink);
+  --ink-secondary: var(--color-ink-soft);
+  --border: var(--color-hairline);
+  --hairline: var(--color-hairline);
+  --primary: var(--color-primary);
+  --on-primary: var(--color-on-primary);
+  --btn-bg: var(--color-primary);
+  --btn-text: var(--color-on-primary);
+  --btn-outline-bg: transparent;
+  --btn-outline-border: var(--color-hairline);
+  --btn-outline-text: var(--color-ink);
+
+  /* Typography — Bugatti uses wide tracking */
+  --font-display: "Saira Condensed", "Inter", -apple-system, sans-serif;
+  --font-body: "Cormorant Garamond", Garamond, "Georgia", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --tracking-display: 2px;
+
+  /* Geometry — Bugatti = rectangular cards, pill buttons only */
+  --radius-none: 0px;
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* Button tokens — Bugatti: transparent with outline */
+  --btn-primary-bg: transparent;
+  --btn-primary-color: #ffffff;
+  --btn-primary-border: 1px solid #ffffff;
+  --btn-primary-radius: var(--radius-full);
+
+  /* Mesh background */
+  --mesh-base: #050505;
+  --mesh-1: rgba(120, 119, 198, 0.25);
+  --mesh-2: rgba(255, 100, 60, 0.15);
+  --mesh-3: rgba(100, 200, 255, 0.12);
+  --mesh-4: rgba(60, 255, 160, 0.08);
+}
+
+@keyframes mesh-drift {
+  0%   { background-position: 0% 0%, 100% 100%, 50% 50%, 0% 100%; }
+  50%  { background-position: 10% 15%, 90% 85%, 55% 45%, 8% 90%; }
+  100% { background-position: 0% 0%, 100% 100%, 50% 50%, 0% 100%; }
+}
+
+/* ─── Liquid Glass Gradient Mesh Background (referenced by :root vars) ─────── */
 
 /* Reset & Base Rules */
 *, *::before, *::after {
@@ -84,8 +166,14 @@ html {
 }
 
 body {
-  background-color: var(--canvas);
-  color: var(--ink);
+  background-color: var(--mesh-base);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% 20%, var(--mesh-1) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, var(--mesh-2) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, var(--mesh-3) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 70% 30%, var(--mesh-4) 0%, transparent 60%);
+  background-attachment: fixed;
+  color: var(--color-ink);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -214,18 +302,20 @@ input, select {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-weight: 700;
-  font-size: 1.05rem;
+  font-weight: 600;
+  font-size: 0.9rem;
   padding: 12px 24px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+  font-family: var(--font-mono);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
 
 .btn-primary {
-  background-color: var(--btn-bg);
-  color: var(--btn-text);
-  border: 1.6px solid var(--btn-bg);
+  background-color: var(--btn-primary-bg, var(--btn-bg));
+  color: var(--btn-primary-color, var(--btn-text));
+  border: var(--btn-primary-border, 1.6px solid var(--btn-bg));
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
@@ -238,9 +328,10 @@ input, select {
 }
 
 .btn-outline {
-  background-color: var(--btn-outline-bg);
-  color: var(--btn-outline-text);
-  border: 1.6px solid var(--btn-outline-border);
+  background-color: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-full);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -310,10 +401,10 @@ input, select {
 }
 
 .hero-heading {
-  font-size: clamp(2.2rem, 4vw, 3.1rem);
+  font-size: clamp(2.4rem, 5vw, 3.5rem);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
   margin-bottom: 24px;
 }
 
@@ -725,6 +816,9 @@ input, select {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
   border-bottom: 1px solid var(--border);
   padding-bottom: 12px;
   margin-bottom: 20px;
@@ -913,14 +1007,27 @@ input, select {
 /* ==========================================================================
    Footer
    ========================================================================== */
+/* Footer — near-black fill with rounded top corners (Mobbin-inspired) */
 .footer-strip {
-  margin-top: 64px;
-  border-top: 1px solid var(--border);
-  padding: 24px 0;
+  background-color: var(--color-ink);
+  color: var(--color-on-primary);
+  border-radius: 24px 24px 0 0;
+  margin-top: 80px;
+  padding: 40px 48px;
+  border-top: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 0.95rem;
+}
+
+.footer-strip a { color: var(--color-on-primary); opacity: 0.7; }
+.footer-strip a:hover { opacity: 1; text-decoration: underline; }
+
+[data-theme="dark"] .footer-strip {
+  background-color: var(--color-surface-card);
+  border-radius: 0;
+  border-top: 1px solid var(--color-hairline);
 }
 
 .footer-nav {
@@ -1136,3 +1243,324 @@ input, select {
   margin-top: 24px;
 }
 
+
+/* ==========================================================================
+   Liquid Glass — Component Overrides
+   Let backdrop-filter show the gradient mesh through glass elements.
+   We keep layout/border/padding but remove opaque background fills.
+   ========================================================================== */
+
+/* Header frame: glass, no solid fill */
+.header-frame.lg-glass {
+  background-color: transparent;
+}
+
+/* Feature cards: transparent fill, glass handles the backdrop */
+.feature-card.lg-glass,
+.feature-card.lg-card.lg-glass {
+  background-color: transparent;
+}
+
+/* Product preview card */
+.product-preview-card.lg-glass {
+  background-color: transparent;
+}
+
+/* Principles card */
+.principles-card.lg-glass {
+  background-color: transparent;
+}
+
+/* Download card */
+.download-card.lg-glass {
+  background-color: transparent;
+}
+
+/* Calc runner panel */
+.calc-runner-panel.lg-glass {
+  background-color: transparent;
+}
+
+/* Search box */
+.calc-search-box.lg-glass {
+  background-color: transparent;
+}
+
+/* Stat boxes */
+.preview-stat-box.lg-glass {
+  background-color: transparent;
+}
+
+/* Calculator category cards: glass base, keep hover invert */
+.calc-category-card.lg-glass {
+  background-color: transparent;
+}
+
+.calc-category-card.lg-glass:hover,
+.calc-category-card.lg-glass.active {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: var(--ink);
+  transform: translateY(-2px);
+}
+
+[data-theme="light"] .calc-category-card.lg-glass:hover,
+[data-theme="light"] .calc-category-card.lg-glass.active {
+  background-color: rgba(30, 30, 50, 0.12);
+}
+
+/* Product fact cells */
+.product-fact-cell.lg-glass {
+  background-color: transparent;
+}
+
+/* Bottom dock: fully transparent so lg-track glass handles it */
+.bottom-dock.lg-track.lg-track--tabbar {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* lg-track__glass is the actual blurred container */
+.lg-track__glass.lg-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+/* Dock tab items sit above the glass layer */
+.dock-tab.lg-track__item {
+  position: relative;
+  z-index: 1;
+  color: var(--ink);
+}
+
+/* Active dock tab: pill highlight */
+.dock-tab.lg-track__item.active {
+  background-color: rgba(255, 255, 255, 0.18);
+  color: var(--ink);
+}
+
+[data-theme="light"] .dock-tab.lg-track__item.active {
+  background-color: rgba(0, 0, 0, 0.10);
+}
+
+/* Dock tab icon within glass nav */
+.dock-tab-icon.lg-nav__icon {
+  border-color: currentColor;
+}
+
+/* Button glass overrides: keep original sizing, let lg-glass add blur */
+.btn.lg-button.lg-glass {
+  background-color: transparent;
+}
+
+/* Primary button: keep white fill for contrast (it's a CTA) */
+.btn-primary.lg-button {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+}
+
+.btn-primary.lg-button:hover {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+/* Theme toggle glass */
+.theme-toggle-btn.lg-glass {
+  background-color: transparent;
+}
+
+/* Ensure text inside glass elements is always readable */
+.lg-glass .fact-title,
+.lg-glass .fact-desc,
+.lg-glass .feature-title,
+.lg-glass .feature-text,
+.lg-glass .principle-heading,
+.lg-glass .principle-desc,
+.lg-glass .download-title,
+.lg-glass .download-subtitle,
+.lg-glass .download-meta-specs,
+.lg-glass .calc-runner-title,
+.lg-glass .preview-stat-val,
+.lg-glass .preview-stat-title,
+.lg-glass .preview-stat-meta,
+.lg-glass .calc-cat-name,
+.lg-glass .calc-cat-tools {
+  position: relative;
+  z-index: 1;
+}
+
+/* html background: also gets the mesh so the very top/sides look good */
+html {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(120, 80, 255, 0.12) 0%, transparent 50%),
+    var(--canvas);
+}
+
+[data-theme="light"] html {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(180, 150, 255, 0.10) 0%, transparent 50%),
+    var(--canvas);
+}
+
+/* ─── Cards — rectangular in dark, rounded in light ─────────────────────────── */
+.feature-card,
+.product-preview-card,
+.calc-runner-panel,
+.principles-card,
+.download-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .product-preview-card,
+[data-theme="dark"] .calc-runner-panel,
+[data-theme="dark"] .principles-card,
+[data-theme="dark"] .download-card {
+  border-radius: var(--radius-none); /* Bugatti: rectangular */
+}
+
+/* ─── Section eyebrow — monospace in dark mode ──────────────────────────────── */
+[data-theme="dark"] .section-eyebrow-tag {
+  font-family: var(--font-mono);
+  letter-spacing: 2px;
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+/* ─── Header frame theme variants ───────────────────────────────────────────── */
+[data-theme="dark"] .header-frame {
+  background-color: rgba(0,0,0,0.3);
+  border-color: var(--color-hairline);
+}
+
+[data-theme="light"] .header-frame {
+  background-color: var(--color-canvas-soft);
+  border-color: var(--color-hairline-soft);
+  border-radius: var(--radius-full);
+}
+
+/* ─── Calculator category card glass active state ───────────────────────────── */
+.calc-category-card.lg-glass:hover,
+.calc-category-card.lg-glass.active {
+  background-color: rgba(255,255,255,0.12);
+  color: var(--color-ink);
+  border-color: rgba(255,255,255,0.3);
+}
+
+[data-theme="light"] .calc-category-card.lg-glass:hover,
+[data-theme="light"] .calc-category-card.lg-glass.active {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ─── Icon-only bottom nav ───────────────────────────────────────────────────── */
+.bottom-dock.lg-track--icons-only .lg-nav__label,
+.bottom-dock .dock-tab span:not(.dock-tab-icon) {
+  display: none;
+}
+
+.bottom-dock.lg-track--icons-only {
+  --lg-item-w: 56px;
+  --lg-item-h: 56px;
+}
+
+/* ─── GlassMenu ─────────────────────────────────────────────────────────────── */
+.glass-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.glass-menu-trigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  border: none;
+}
+
+.glass-menu-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.glass-menu-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  border-radius: 16px;
+  padding: 6px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+  /* Override any opacity/display for hidden */
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95) translateY(-4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.glass-menu-popover:not([hidden]) {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+/* Remove native hidden so we can animate */
+.glass-menu-popover[hidden] {
+  display: flex !important; /* override hidden to keep in flow for animation */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glass-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--lg-fg, var(--ink));
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+.glass-menu-item:hover {
+  background: rgba(128,128,128,0.15);
+}
+
+.glass-menu-check {
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lg-accent, #0088ff);
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+
+.glass-menu-item[aria-checked="true"] .glass-menu-check {
+  opacity: 1;
+}
+
+.glass-menu-divider {
+  height: 1px;
+  background: var(--lg-edge, rgba(0,0,0,0.08));
+  margin: 4px 0;
+}

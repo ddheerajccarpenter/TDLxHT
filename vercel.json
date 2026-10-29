@@ -78,52 +78,52 @@
   "redirects": [
     {
       "source": "/download",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/TDlxHT.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/tdlxht.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
-      "source": "/TDLxHT.2.4.0.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "source": "/TDLxHT.2.4.1.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/TDLxHT-release.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/tdlxht-release.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/TrackSelfMoney.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/trackselfmoney.apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/TDLxHT(.*).apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     },
     {
       "source": "/tdlxht(.*).apk",
-      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.0/TDLxHT.2.4.0.apk",
+      "destination": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk",
       "permanent": false
     }
   ],
