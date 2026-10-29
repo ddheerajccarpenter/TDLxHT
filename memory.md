@@ -57,8 +57,8 @@ The website strictly implements the single-page long-form layout specified by `t
 5. **04 / PRODUCT PRINCIPLES (`#principles`)**:
    - Two-column card articulating offline-first autonomy and straightforward-by-design utility.
 6. **05 / DOWNLOAD (`#download`)**:
-   - Clear version information (`Version 2.4.2 · 16.5 MB · Android 7–15`).
-   - Direct APK download action and GitHub Releases link (`v2.4.2`).
+   - Clear version information (`Version 2.4.3 · 16.5 MB · Android 7–15`).
+   - Direct APK download action and GitHub Releases link (`v2.4.3`).
 7. **Footer**: Concise brand, secondary links (`Features`, `Calculators`, `Portal`), and wireframe note.
 8. **Fixed Bottom Navigation Dock**:
    - 4 destinations: `Dashboard`, `Features`, `Calculators`, `Download`.
@@ -87,7 +87,7 @@ The website strictly implements the single-page long-form layout specified by `t
 - **Persistence**: Android Jetpack Room (SQLite).
 - **Minification**: Google R8 shrinking with ProGuard optimization.
 - **Build Configuration**:
-  - `app/build.gradle.kts`: Application ID `com.aistudio.habittask.wvnk`, `minSdk = 24`, `targetSdk = 36`, `versionCode = 29`, `versionName = "2.4.2"`.
+  - `app/build.gradle.kts`: Application ID `com.aistudio.habittask.wvnk`, `minSdk = 24`, `targetSdk = 35`, `versionCode = 30`, `versionName = "2.4.3"`.
   - `app/src/main/java/com/example/ui/theme/Color.kt`: Centralized `#252525` and `#FFFFFF` tokens.
   - `app/src/main/res/drawable/ic_launcher_background.xml`: `#252525` background.
   - `app/src/main/res/mipmap-*/`: Monochrome launcher icons with dark `#252525` depth background and white emblem.
@@ -130,7 +130,7 @@ Or to compile and synchronize both root and web APK binaries with `version.json`
 ```
 Generates release APK at `app/build/outputs/apk/release/app-release.apk` with official Google R8 minification and signing.
 Copied to project root:
-- `TDLxHT.2.4.2.apk`
+- `TDLxHT.2.4.3.apk`
 - `TDlxHT.apk`
 
 ### 6. Android Unit Test Suite
@@ -157,4 +157,4 @@ Executes `./gradlew syncReleaseApk`, `npm run build`, and `npx vercel --prod --y
 - **Sliding Nav Bar Animation Fix**: Completely lag-free 120fps fluid transitions without layout remeasurement.
 - **Kinetic Physics & Depth**: Kern Society volume-conserving elastic squash & stretch and Dheeraj Carpenter 3D perspective depth integrated into all cards and interactive controls.
 - **Backend Architecture**: Origin-validated CORS, `X-Request-Id` correlation tracing, `Server-Timing` metrics, sliding-window IP rate limiting, and structured `AppError` envelopes across all `/api/*` endpoints.
-- **APK Compilation**: Compiled `v2.4.2` (versionCode 29) with R8 minification and V1/V2/V3 signing.
+- **APK Compilation**: Compiled `v2.4.3` (versionCode 30) with R8 minification and V1/V2/V3 signing. Clean permissions (removed dangerous flags) and targetSdk 35 for 100% device compatibility.

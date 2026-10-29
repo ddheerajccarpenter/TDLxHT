@@ -52,14 +52,18 @@
 ## 2. APK Release Build Status
 
 - **Application ID**: `com.aistudio.habittask.wvnk`
-- **Target SDK**: 36 | **Min SDK**: 24
-- **Version**: `v2.4.2` (versionCode `29`)
+- **Target SDK**: 35 (Android 15 Production Stable) | **Min SDK**: 24 (Android 7.0+)
+- **Version**: `v2.4.3` (versionCode `30`)
 - **Binary Outputs**:
   - `app/build/outputs/apk/release/app-release.apk`
-  - `TDLxHT.2.4.2.apk` (16.5 MB, 17,337,243 bytes)
+  - `TDLxHT.2.4.3.apk` (16.5 MB)
   - `TDlxHT.apk` (Root alias)
 - **Minification & Signing**: Google R8 bytecode shrinking with official V1, V2, and V3 signatures.
-- **Verification**: Gradle build succeeded in 2m 30s (0 errors).
+- **Fix for 'App Not Installed'**:
+  - Bumped `versionCode` to 30 to clear version downgrade restrictions.
+  - Set `targetSdk = 35` to avoid experimental API 36 parser rejects on Android 11-15.
+  - Removed unused dangerous permissions (`REQUEST_INSTALL_PACKAGES`, `SYSTEM_ALERT_WINDOW`, `USE_FULL_SCREEN_INTENT`) that triggered Google Play Protect blocks.
+- **Verification**: Gradle build succeeded with 0 errors.
 
 ---
 
@@ -73,9 +77,9 @@
 | **Kern Society Physics** | DONE | Elastic squash & stretch press, snappy spring overshoot, checkbox kinetic snap. |
 | **Dheeraj Carpenter Depth**| DONE | 3D perspective tilt, specular highlights, layered shadows, icon nudges. |
 | **Web Production Build** | DONE | `npm run build` passing with 0 errors. |
-| **Vercel Redirects** | DONE | `vercel.json` download routes redirecting to `v2.4.2`. |
-| **APK Version Bump** | DONE | `versionCode = 29`, `versionName = "2.4.2"`. |
+| **Vercel Redirects** | DONE | `vercel.json` download routes redirecting to `v2.4.3`. |
+| **APK Version Bump** | DONE | `versionCode = 30`, `versionName = "2.4.3"`. |
 | **APK Release Assembly** | DONE | `./gradlew syncReleaseApk` with R8 minification & V1-V3 signing (16.53 MB). |
-| **Security Hardening** | DONE | Enforced HTTPS-only via `network_security_config.xml`, HSTS/CSP headers in `vercel.json`, patched npm dependencies. |
-| **GitHub Release** | DONE | Published official release `v2.4.2` with `TDLxHT.2.4.2.apk` and `TDlxHT.apk` assets. |
+| **Security Hardening** | DONE | Enforced HTTPS-only via `network_security_config.xml`, HSTS/CSP headers in `vercel.json`, removed dangerous permissions. |
+| **GitHub Release** | DONE | Published official release `v2.4.3` with `TDLxHT.2.4.3.apk` and `TDlxHT.apk` assets. |
 | **Vercel Production Deploy** | DONE | Deployed live to `https://tdlxht.vercel.app`. |
