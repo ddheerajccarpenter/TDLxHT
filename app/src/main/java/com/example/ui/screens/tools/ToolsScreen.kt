@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DragHandle
@@ -70,6 +71,10 @@ import com.example.data.tools.ToolResult
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassMenu
+import com.example.ui.components.GlassMenuItem
 import com.example.ui.components.SketchFilterChip
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.SketchSearchBar
@@ -112,6 +117,8 @@ fun ToolsScreen(
   val favoriteToolIds by AppPreferences.favoriteToolIds.collectAsStateWithLifecycle()
   val customToolOrder by AppPreferences.customToolOrder.collectAsStateWithLifecycle()
   var isReorderMode by remember { mutableStateOf(false) }
+  var sortCriterion by rememberSaveable { mutableStateOf("Name") }
+  var showSortMenu by remember { mutableStateOf(false) }
 
   var selectedCategory by remember { mutableStateOf(ToolCategory.ALL) }
   var searchQuery by remember { mutableStateOf("") }
@@ -128,7 +135,7 @@ fun ToolsScreen(
     onToolModalStateChanged?.invoke(activeTool != null)
   }
 
-  val filteredTools = remember(selectedCategory, searchQuery, favoriteToolIds, customToolOrder) {
+  val filteredTools = remember(selectedCategory, searchQuery, favoriteToolIds, customToolOrder, sortCriterion) {
     val q = searchQuery.trim().lowercase()
 
     // 1. Order all tools according to customToolOrder (or natural index)
@@ -142,13 +149,21 @@ fun ToolsScreen(
     val fullOrdered = favs + others
 
     // 3. Filter by category & search query
-    fullOrdered.filter { tool ->
+    val matching = fullOrdered.filter { tool ->
       val matchesCategory = (selectedCategory == ToolCategory.ALL) || (tool.category == selectedCategory)
       val matchesQuery = q.isEmpty() ||
         tool.name.lowercase().contains(q) ||
         tool.description.lowercase().contains(q) ||
         tool.tags.any { it.lowercase().contains(q) }
       matchesCategory && matchesQuery
+    }
+
+    // 4. Apply selected sort criteria (GlassMenu items: Date, Name, Size)
+    when (sortCriterion) {
+      "Name" -> matching.sortedBy { it.name }
+      "Size" -> matching.sortedByDescending { it.description.length }
+      "Date" -> matching.reversed()
+      else -> matching
     }
   }
 
@@ -167,32 +182,68 @@ fun ToolsScreen(
         .padding(horizontal = 16.dp),
       contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding)
     ) {
-      // Header
+      // Header with Apple Liquid Glass Controls
       item {
         AppHeader(
           title = "Tools",
           onBack = onBack,
           rightContent = {
-            Box(
-              modifier = Modifier
-                .border(1.dp, if (isReorderMode) PillBackgroundDark else CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .background(if (isReorderMode) PillBackgroundDark else Color.Transparent)
-                .bounceClick { isReorderMode = !isReorderMode }
-                .padding(horizontal = 10.dp, vertical = 6.dp)
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-              Text(
-                text = if (isReorderMode) "Done" else "Reorder",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 12.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = if (isReorderMode) PillTextDark else InkSecondary
+              // GlassMenu Trigger Button (<GlassMenu icon={<SortIcon />} aria-label="Sort by" />)
+              GlassButton(
+                onClick = { showSortMenu = true },
+                contentDescription = "Sort by",
+                size = 36.dp
+              ) {
+                Icon(
+                  imageVector = Icons.AutoMirrored.Filled.Sort,
+                  contentDescription = null,
+                  tint = InkPrimary,
+                  modifier = Modifier.size(18.dp)
                 )
-              )
+              }
+
+              Box(
+                modifier = Modifier
+                  .border(1.dp, if (isReorderMode) PillBackgroundDark else CardBorder, RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(if (isReorderMode) PillBackgroundDark else Color.Transparent)
+                  .bounceClick { isReorderMode = !isReorderMode }
+                  .padding(horizontal = 10.dp, vertical = 6.dp)
+              ) {
+                Text(
+                  text = if (isReorderMode) "Done" else "Reorder",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isReorderMode) PillTextDark else InkSecondary
+                  )
+                )
+              }
             }
           }
         )
+
+        // GlassMenu Context Dropdown
+        GlassMenu(
+          expanded = showSortMenu,
+          onDismissRequest = { showSortMenu = false }
+        ) {
+          listOf("Date", "Name", "Size").forEach { sort ->
+            GlassMenuItem(
+              label = sort,
+              checked = sort == sortCriterion,
+              onSelect = {
+                sortCriterion = sort
+                showSortMenu = false
+              }
+            )
+          }
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
       }

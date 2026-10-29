@@ -71,6 +71,9 @@ import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassSegmented
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchProgressBar
 import com.example.ui.components.SketchSegmentedControl
@@ -196,44 +199,36 @@ fun HomeScreen(
               horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
               if (onNavigateToSearch != null) {
-                Box(
-                  modifier = Modifier
-                    .size(38.dp)
-                    .border(1.dp, CardBorder, CircleShape)
-                    .clip(CircleShape)
-                    .background(CardBackground)
-                    .bounceClick(scaleDown = 0.90f) { onNavigateToSearch() }
-                    .testTag("home_search_button"),
-                  contentAlignment = Alignment.Center
+                GlassButton(
+                  onClick = onNavigateToSearch,
+                  contentDescription = "Search",
+                  size = 38.dp,
+                  modifier = Modifier.testTag("home_search_button")
                 ) {
                   Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = null,
                     tint = InkPrimary,
                     modifier = Modifier.size(19.dp)
                   )
                 }
               }
 
-              Box(
-                modifier = Modifier
-                  .size(38.dp)
-                  .border(1.dp, CardBorder, CircleShape)
-                  .clip(CircleShape)
-                  .background(CardBackground)
-                  .bounceClick(scaleDown = 0.90f) {
-                    if (onNavigateToSettings != null) {
-                      onNavigateToSettings()
-                    } else {
-                      onNavigateToAddTask()
-                    }
+              GlassButton(
+                onClick = {
+                  if (onNavigateToSettings != null) {
+                    onNavigateToSettings()
+                  } else {
+                    onNavigateToAddTask()
                   }
-                  .testTag("home_settings_button"),
-                contentAlignment = Alignment.Center
+                },
+                contentDescription = "Settings",
+                size = 38.dp,
+                modifier = Modifier.testTag("home_settings_button")
               ) {
                 Icon(
                   imageVector = Icons.Default.Settings,
-                  contentDescription = "Settings",
+                  contentDescription = null,
                   tint = InkPrimary,
                   modifier = Modifier.size(19.dp)
                 )
@@ -286,10 +281,11 @@ fun HomeScreen(
         }
       }
 
-      // DAILY SUMMARY CARD (Matching screenshot 1)
+      // DAILY SUMMARY CARD (Apple Liquid Glass)
       item {
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 100)
+        GlassCard(
+          modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 100),
+          cornerRadius = 20.dp
         ) {
           Column(
             modifier = Modifier
@@ -417,9 +413,9 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
       }
 
-      // Filter Segment: [All] [Tasks] [Habits]
+      // Filter Segment: [All] [Tasks] [Habits] - Apple Liquid Glass Segmented
       item {
-        SketchSegmentedControl(
+        GlassSegmented(
           items = listOf("All", "Tasks", "Habits"),
           selectedIndex = selectedTab,
           onItemSelected = { selectedTab = it },
@@ -473,18 +469,28 @@ fun HomeScreen(
                 )
               }
 
-              Text(
-                text = "+ Add Task",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.SemiBold,
-                  color = AccentTerracotta
-                ),
-                modifier = Modifier
-                  .bounceClick { onNavigateToAddTask() }
-                  .testTag("add_task_header_btn")
-              )
+              GlassButton(
+                onClick = onNavigateToAddTask,
+                icon = {
+                  Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = InkPrimary,
+                    modifier = Modifier.size(15.dp)
+                  )
+                },
+                modifier = Modifier.testTag("add_task_header_btn")
+              ) {
+                Text(
+                  text = "Add Task",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = InkPrimary
+                  )
+                )
+              }
             }
           }
         }
@@ -597,18 +603,28 @@ fun HomeScreen(
                 )
               }
 
-              Text(
-                text = "+ Add Habit",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.SemiBold,
-                  color = AccentTerracotta
-                ),
-                modifier = Modifier
-                  .bounceClick { onNavigateToAddHabit() }
-                  .testTag("add_habit_header_btn")
-              )
+              GlassButton(
+                onClick = onNavigateToAddHabit,
+                icon = {
+                  Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = InkPrimary,
+                    modifier = Modifier.size(15.dp)
+                  )
+                },
+                modifier = Modifier.testTag("add_habit_header_btn")
+              ) {
+                Text(
+                  text = "Add Habit",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = InkPrimary
+                  )
+                )
+              }
             }
           }
         }

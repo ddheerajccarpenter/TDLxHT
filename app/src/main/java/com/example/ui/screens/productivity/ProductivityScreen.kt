@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.model.Habit
 import com.example.data.model.Task
-import com.example.ui.components.SketchSegmentedControl
+import com.example.ui.components.GlassSegmented
 import com.example.ui.components.paperDotBackground
 import com.example.ui.screens.calendar.CalendarScreen
 import com.example.ui.screens.habits.HabitListScreen
@@ -126,8 +126,8 @@ fun ProductivityScreen(
         .windowInsetsPadding(WindowInsets.navigationBars),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      // 1. Productivity Tab Nav Bar (Tasks | Habits | Calendar) positioned directly above the nav bar
-      SketchSegmentedControl(
+      // 1. Productivity Tab Nav Bar (Tasks | Habits | Calendar) positioned directly above the nav bar - Apple Liquid Glass
+      GlassSegmented(
         items = listOf("Tasks", "Habits", "Calendar"),
         selectedIndex = selectedTab,
         onItemSelected = { selectedTab = it },

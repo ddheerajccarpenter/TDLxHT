@@ -863,13 +863,15 @@ fun GlassButton(
   onClick: () -> Unit,
   contentDescription: String,
   modifier: Modifier = Modifier,
-  size: Dp = 40.dp,
+  buttonSize: Dp = 40.dp,
+  size: Dp = buttonSize,
   icon: @Composable () -> Unit
 ) {
   val isDark = LocalAppColors.current.isDark
+  val resolvedSize = if (size != 40.dp) size else buttonSize
   Box(
     modifier = modifier
-      .size(size)
+      .size(resolvedSize)
       .bounceClick(scaleDown = 0.92f) { onClick() }
       .shadow(
         elevation = if (isDark) 6.dp else 3.dp,
@@ -900,9 +902,9 @@ fun GlassButton(
               Color.Transparent
             ),
             startY = 0f,
-            endY = size.height * 0.45f
+            endY = this.size.height * 0.45f
           ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(this.size.height / 2, this.size.height / 2)
         )
       },
     contentAlignment = Alignment.Center
@@ -1064,19 +1066,15 @@ fun AppHeader(
       if (leftContent != null) {
         leftContent()
       } else if (onBack != null) {
-        Box(
-          modifier = Modifier
-            .size(38.dp)
-            .border(1.dp, CardBorder, CircleShape)
-            .clip(CircleShape)
-            .background(CardBackground)
-            .bounceClick { onBack() }
-            .testTag("header_back_btn"),
-          contentAlignment = Alignment.Center
+        GlassButton(
+          onClick = onBack,
+          contentDescription = backLabel,
+          size = 38.dp,
+          modifier = Modifier.testTag("header_back_btn")
         ) {
           Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = backLabel,
+            contentDescription = null,
             tint = InkPrimary,
             modifier = Modifier.size(19.dp)
           )
@@ -1106,19 +1104,15 @@ fun AppHeader(
       if (rightContent != null) {
         rightContent()
       } else if (actionIcon != null && onActionClick != null) {
-        Box(
-          modifier = Modifier
-            .size(38.dp)
-            .border(1.dp, CardBorder, CircleShape)
-            .clip(CircleShape)
-            .background(CardBackground)
-            .bounceClick { onActionClick() }
-            .then(if (actionTestTag != null) Modifier.testTag(actionTestTag) else Modifier),
-          contentAlignment = Alignment.Center
+        GlassButton(
+          onClick = onActionClick,
+          contentDescription = actionContentDescription ?: "Action",
+          size = 38.dp,
+          modifier = if (actionTestTag != null) Modifier.testTag(actionTestTag) else Modifier
         ) {
           Icon(
             imageVector = actionIcon,
-            contentDescription = actionContentDescription,
+            contentDescription = null,
             tint = InkPrimary,
             modifier = Modifier.size(19.dp)
           )
@@ -1286,15 +1280,8 @@ fun AppEmptyState(
 
     if (actionText != null && onAction != null) {
       Spacer(modifier = Modifier.height(14.dp))
-      Box(
-        modifier = Modifier
-          .height(36.dp)
-          .background(PillBackgroundDark, RoundedCornerShape(10.dp))
-          .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-          .clip(RoundedCornerShape(10.dp))
-          .bounceClick { onAction() }
-          .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center
+      GlassButton(
+        onClick = onAction
       ) {
         Text(
           text = actionText,
@@ -1302,7 +1289,7 @@ fun AppEmptyState(
             fontFamily = SFProFontFamily,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
-            color = PillTextDark
+            color = InkPrimary
           )
         )
       }

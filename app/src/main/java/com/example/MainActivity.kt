@@ -129,6 +129,8 @@ import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.ui.components.AnimatedDialogContent
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
 import com.example.ui.components.bounceClick
 import com.example.ui.components.elasticStretchPress
 import com.example.ui.screens.auth.AuthenticationScreen
@@ -1401,7 +1403,7 @@ fun SketchBottomNavigationBar(
           }
         )
 
-        // Center Quick Add (+) Button with Kern Society elastic squeeze & liquid jewel styling
+        // Center Quick Add (+) Button — Apple Liquid Glass Circular Button pattern
         var fabClickKey by remember { mutableIntStateOf(0) }
         val fabRotation by animateFloatAsState(
           targetValue = if (fabClickKey % 2 == 1) 45f else 0f,
@@ -1412,54 +1414,24 @@ fun SketchBottomNavigationBar(
           label = "fabRotation"
         )
 
-        Box(
+        GlassButton(
+          onClick = {
+            fabClickKey++
+            VibrationHelper.click(context)
+            onQuickAdd()
+          },
+          contentDescription = "Create new item",
+          size = 46.dp,
           modifier = Modifier
             .padding(horizontal = 4.dp)
-            .size(44.dp)
-            .shadow(
-              elevation = if (isDark) 8.dp else 6.dp,
-              shape = CircleShape,
-              ambientColor = if (isDark) Color(0x70000000) else Color(0x28000000),
-              spotColor = if (isDark) Color(0x60000000) else Color(0x20000000)
-            )
-            .clip(CircleShape)
-            .background(
-              brush = Brush.verticalGradient(
-                colors = if (isDark) {
-                  listOf(Color(0xFFFFFFFF), Color(0xFFE8E8E8))
-                } else {
-                  listOf(Color(0xFF2C2C2E), Color(0xFF1E1E20))
-                }
-              )
-            )
-            .border(
-              width = 1.2.dp,
-              brush = Brush.verticalGradient(
-                colors = if (isDark) {
-                  listOf(Color(0x90FFFFFF), Color(0x30FFFFFF))
-                } else {
-                  listOf(Color(0x60FFFFFF), Color(0x10000000))
-                }
-              ),
-              shape = CircleShape
-            )
-            .elasticStretchPress(
-              horizontalStretch = 1.08f,
-              verticalSquash = 0.90f
-            ) {
-              fabClickKey++
-              VibrationHelper.click(context)
-              onQuickAdd()
-            }
-            .testTag("nav_center_fab"),
-          contentAlignment = Alignment.Center
+            .testTag("nav_center_fab")
         ) {
           Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Center Quick Add FAB",
-            tint = if (isDark) Color(0xFF1A1A1C) else Color(0xFFFFFFFF),
+            contentDescription = null,
+            tint = if (isDark) com.example.ui.theme.BrandWhite else com.example.ui.theme.BrandDarkGrey,
             modifier = Modifier
-              .size(22.dp)
+              .size(24.dp)
               .graphicsLayer(rotationZ = fabRotation)
           )
         }

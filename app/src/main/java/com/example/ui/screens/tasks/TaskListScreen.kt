@@ -65,6 +65,10 @@ import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassMenu
+import com.example.ui.components.GlassMenuItem
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchFilterChip
 import com.example.ui.components.SketchSearchBar
@@ -171,39 +175,30 @@ fun TaskListScreen(
 
         Spacer(modifier = Modifier.width(6.dp))
 
-        // Sort Menu Button
+        // Sort Menu Button (Apple Liquid Glass)
         Box {
-          Box(
-            modifier = Modifier
-              .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-              .clip(RoundedCornerShape(10.dp))
-              .bounceClick { sortMenuExpanded = true }
-              .padding(horizontal = 8.dp, vertical = 6.dp),
-            contentAlignment = Alignment.Center
+          GlassButton(
+            onClick = { sortMenuExpanded = true },
+            contentDescription = "Sort by",
+            size = 36.dp
           ) {
             Icon(
               imageVector = Icons.Default.FilterList,
-              contentDescription = "Sort",
+              contentDescription = null,
               tint = InkPrimary,
               modifier = Modifier.size(18.dp)
             )
           }
 
-          DropdownMenu(
+          GlassMenu(
             expanded = sortMenuExpanded,
             onDismissRequest = { sortMenuExpanded = false }
           ) {
             TaskSort.entries.forEach { sortOption ->
-              DropdownMenuItem(
-                text = {
-                  Text(
-                    text = sortOption.displayName,
-                    style = TextStyle(
-                      fontWeight = if (sortOption == currentSort) FontWeight.Bold else FontWeight.Normal
-                    )
-                  )
-                },
-                onClick = {
+              GlassMenuItem(
+                label = sortOption.displayName,
+                checked = sortOption == currentSort,
+                onSelect = {
                   viewModel.setTaskSort(sortOption)
                   sortMenuExpanded = false
                 }
