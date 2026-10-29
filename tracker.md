@@ -4,7 +4,7 @@
 
 ---
 
-## 1. Release v2.4.1 Highlights & Changelog
+## 1. Release v2.4.2 Highlights & Changelog
 
 ### A. New Brand App Icon System
 - **Transparent Vector Emblem**: White minimalist task checklist with cyclical plant leaf emblem from user specification.
@@ -53,10 +53,10 @@
 
 - **Application ID**: `com.aistudio.habittask.wvnk`
 - **Target SDK**: 36 | **Min SDK**: 24
-- **Version**: `v2.4.1` (versionCode `28`)
+- **Version**: `v2.4.2` (versionCode `29`)
 - **Binary Outputs**:
   - `app/build/outputs/apk/release/app-release.apk`
-  - `TDLxHT.2.4.1.apk` (17.3 MB, 17,320,355 bytes)
+  - `TDLxHT.2.4.2.apk` (16.5 MB, 17,337,243 bytes)
   - `TDlxHT.apk` (Root alias)
 - **Minification & Signing**: Google R8 bytecode shrinking with official V1, V2, and V3 signatures.
 - **Verification**: Gradle build succeeded in 2m 30s (0 errors).
@@ -72,10 +72,10 @@
 | **Sliding Nav Lag Fix** | DONE | Fixed-weight slots, removed pointerInput drag loop, GPU RenderNode liquid pill. |
 | **Kern Society Physics** | DONE | Elastic squash & stretch press, snappy spring overshoot, checkbox kinetic snap. |
 | **Dheeraj Carpenter Depth**| DONE | 3D perspective tilt, specular highlights, layered shadows, icon nudges. |
-| **Web Production Build** | DONE | `npm run build` passing in 388ms with 0 errors. |
-| **Vercel Redirects** | DONE | `vercel.json` download routes redirecting to `v2.4.1`. |
-| **APK Version Bump** | DONE | `versionCode = 28`, `versionName = "2.4.1"`. |
+| **Web Production Build** | DONE | `npm run build` passing with 0 errors. |
+| **Vercel Redirects** | DONE | `vercel.json` download routes redirecting to `v2.4.2`. |
+| **APK Version Bump** | DONE | `versionCode = 29`, `versionName = "2.4.2"`. |
 | **APK Release Assembly** | DONE | `./gradlew syncReleaseApk` with R8 minification & V1-V3 signing (16.53 MB). |
 | **Security Hardening** | DONE | Enforced HTTPS-only via `network_security_config.xml`, HSTS/CSP headers in `vercel.json`, patched npm dependencies. |
-| **GitHub Release** | DONE | Published official release `v2.4.1` with `TDLxHT.2.4.1.apk` and `TDlxHT.apk` assets. |
+| **GitHub Release** | DONE | Published official release `v2.4.2` with `TDLxHT.2.4.2.apk` and `TDlxHT.apk` assets. |
 | **Vercel Production Deploy** | DONE | Deployed live to `https://tdlxht.vercel.app`. |
