@@ -1,33 +1,20 @@
 // Vercel Serverless Function: TDlxHT Secure Password Recovery Handler
-// Dispatches a password recovery email strictly to the user's inbox.
-// Zero Secret Leakage: Does NOT expose tokens or action links in HTTP response.
+// Follows nodejs-backend-patterns & security-and-hardening:
+// - Dispatches a password recovery email strictly to the user's inbox
+// - Zero Secret Leakage: Does NOT expose tokens or action links in HTTP response
+// - Origin validation & strict security headers
 
 import nodemailer from 'nodemailer';
 import { checkRateLimit } from './_rateLimit.js';
+import { applySecurityHeaders, sendSuccess, sendError, AppError } from './_middleware.js';
 
 export default async function handler(req, res) {
-  const allowedOrigins = [
-    'https://tdlxht.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173'
-  ];
-  const origin = req.headers.origin;
-  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', 'https://tdlxht.vercel.app');
-  }
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (applySecurityHeaders(req, res, { allowedMethods: ['POST', 'OPTIONS'] })) {
+    return;
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return sendError(res, new AppError('Method not allowed. Use POST.', 405, 'METHOD_NOT_ALLOWED'));
   }
 
   // Rate limit: 5 password recovery requests per 15 minutes per IP
@@ -37,14 +24,12 @@ export default async function handler(req, res) {
 
   const { email } = req.body || {};
   if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 255) {
-    return res.status(400).json({ error: 'A valid email address is required (max 255 characters).' });
+    return sendError(res, new AppError('A valid email address is required (max 255 characters).', 400, 'INVALID_EMAIL'));
   }
 
   const cleanEmail = email.trim().toLowerCase();
   const supabaseUrl = process.env.SUPABASE_URL || 'https://mtlckvkyimoqbrlvirch.supabase.co';
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
-
-  const anonKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bGNrdmt5aW1vcWJybHZpcmNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5Njc0MTEsImV4cCI6MjEwMzU0MzQxMX0.gGxCER-GAzSVS6IMzKoy5p8NwuDbOZ2QiBzkEeG_-J4';
 
   try {
     const webUrl = process.env.APP_WEB_URL || 'https://tdlxht.vercel.app';
@@ -76,11 +61,11 @@ export default async function handler(req, res) {
           actionLink = data.action_link;
         }
       } catch (adminErr) {
-        console.warn('Admin generate_link failed:', adminErr);
+        console.warn('[Recovery API] Admin generate_link error:', adminErr.message);
       }
     }
 
-    // 2. Dispatch Email via SMTP (Gmail, Resend, or custom SMTP) if configured
+    // 2. Dispatch Email via SMTP if configured
     const smtpHost = process.env.SMTP_HOST;
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
@@ -126,7 +111,7 @@ export default async function handler(req, res) {
         });
         emailSent = true;
       } catch (mailErr) {
-        console.error('SMTP Mail send failed:', mailErr);
+        console.error('[Recovery API] SMTP Mail send failed:', mailErr.message);
       }
     }
 
@@ -146,21 +131,16 @@ export default async function handler(req, res) {
           })
         });
       } catch (nativeErr) {
-        console.warn('Native GoTrue recover attempt:', nativeErr);
+        console.warn('[Recovery API] Native GoTrue recover attempt:', nativeErr.message);
       }
     }
 
-    // CRITICAL SECURITY INVARIANT:
-    // NEVER leak action_link or verification tokens in the response body!
-    return res.status(200).json({
-      success: true,
-      message: 'If an account exists with this email address, a password recovery link has been sent to your Gmail inbox. Please check your inbox and spam folder.'
+    // Invariant: never leak tokens in response
+    return sendSuccess(res, {
+      message: 'If an account exists with this email address, a password recovery link has been sent to your inbox.'
     });
 
   } catch (err) {
-    console.error('Password recovery error:', err);
-    return res.status(500).json({
-      error: 'An unexpected error occurred while processing your request.'
-    });
+    return sendError(res, new AppError('An unexpected error occurred while processing your request.', 500, 'INTERNAL_ERROR', err.message));
   }
 }

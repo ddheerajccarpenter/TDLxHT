@@ -1,20 +1,19 @@
 // Vercel Serverless Function: Gemini Productivity Intelligence Engine
-// Secure server-side processing with zero client key exposure, strict rate limiting, and data minimization.
+// Follows nodejs-backend-patterns & backend-patterns:
+// - Boundary input sanitization with bounded numeric coercion
+// - Origin validation, rate limiting, and zero client key exposure
+// - Deterministic offline rule fallback engine
 
 import { checkRateLimit } from './_rateLimit.js';
+import { applySecurityHeaders, sendSuccess, sendError, AppError } from './_middleware.js';
 
 export default async function handler(req, res) {
-  // CORS & Security headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (applySecurityHeaders(req, res, { allowedMethods: ['POST', 'OPTIONS'] })) {
+    return;
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+    return sendError(res, new AppError('Method not allowed. Use POST.', 405, 'METHOD_NOT_ALLOWED'));
   }
 
   // Rate limit: 30 requests / minute / IP
@@ -36,7 +35,7 @@ export default async function handler(req, res) {
 
   // For a brand new user with 0 tasks and 0 habits, return clean onboarding guidance
   if (totalTasks === 0 && activeHabits === 0) {
-    return res.status(200).json({
+    return sendSuccess(res, {
       source: 'rule_engine',
       insight: {
         insightType: 'onboarding',
@@ -98,65 +97,84 @@ export default async function handler(req, res) {
   const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GENIMI_API_KEY;
 
   if (!geminiApiKey) {
-    // Return high-quality deterministic rule response if no API key is configured
-    return res.status(200).json({
-      source: 'rule_engine',
+    return sendSuccess(res, {
+      source: 'rule_engine_fallback',
       insight: generateRuleBasedInsight()
     });
   }
 
   try {
-    const prompt = `You are a concise, personal productivity advisor. Analyze these aggregate metrics:
+    const prompt = `You are the productivity intelligence engine inside TDlxHT.
+Analyze these user metrics:
 - Total Tasks: ${totalTasks}
 - Completed Tasks: ${completedTasks}
 - Overdue Tasks: ${overdueTasks}
 - Active Habits: ${activeHabits}
 - Habits Completed Today: ${habitsCompletedToday}
-- Longest Active Streak: ${longestStreak} days
-- Productivity Score: ${productivityScore}%
+- Longest Streak: ${longestStreak} days
+- Productivity Score: ${productivityScore}/100
 
-Provide 1 actionable, calm, encouraging productivity insight.
-Respond strictly in JSON matching this schema:
+Respond ONLY with valid JSON (no markdown formatting, no code fences):
 {
-  "insightType": "task_overload" | "missed_habits" | "streak_milestone" | "daily_momentum",
-  "title": string (max 40 chars),
-  "message": string (1-2 sentences max),
-  "priority": "HIGH" | "MEDIUM" | "LOW",
-  "actionSuggestion": string (max 45 chars),
-  "confidence": number (0.0 to 1.0)
+  "insightType": "momentum | warning | celebration | tip",
+  "title": "Short punchy title (max 40 chars)",
+  "message": "Actionable, direct advice in 1-2 sentences (max 140 chars). No filler.",
+  "priority": "LOW | MEDIUM | HIGH",
+  "actionSuggestion": "A concrete single action they should take right now (max 50 chars)",
+  "confidence": 0.95
 }`;
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-            responseMimeType: 'application/json'
-          }
-        })
-      }
-    );
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
 
-    if (!geminiRes.ok) {
-      throw new Error(`Gemini API error: ${geminiRes.status}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+
+    const apiRes = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 250,
+          responseMimeType: "application/json"
+        }
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (!apiRes.ok) {
+      throw new Error(`Gemini API returned status ${apiRes.status}`);
     }
 
-    const data = await geminiRes.json();
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    const parsedInsight = JSON.parse(candidateText);
+    const data = await apiRes.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    return res.status(200).json({
-      source: 'gemini',
-      insight: parsedInsight
+    if (!rawText) {
+      throw new Error('Empty response from Gemini');
+    }
+
+    const cleanJson = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    const parsed = JSON.parse(cleanJson);
+
+    return sendSuccess(res, {
+      source: 'gemini_ai',
+      insight: {
+        insightType: parsed.insightType || 'tip',
+        title: parsed.title || 'Productivity Insight',
+        message: parsed.message || 'Keep moving forward on your daily priorities.',
+        priority: parsed.priority || 'LOW',
+        actionSuggestion: parsed.actionSuggestion || 'Check your tasks',
+        confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.9
+      }
     });
+
   } catch (err) {
-    // Fail-safe: Always return valid structured response
-    return res.status(200).json({
-      source: 'rule_fallback',
+    console.warn('[Gemini Insights] Falling back to rule engine:', err.message);
+    return sendSuccess(res, {
+      source: 'rule_engine_fallback',
       insight: generateRuleBasedInsight()
     });
   }

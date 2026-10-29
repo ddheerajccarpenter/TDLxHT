@@ -1,19 +1,20 @@
 // Vercel Serverless Function: TDlxHT Secure User Registration
-// Creates users via GoTrue Admin API with auto-confirmed email (bypasses localhost confirmation issue)
+// Follows nodejs-backend-patterns:
+// - Boundary input validation & string sanitization
+// - Origin verification and strict security headers
+// - Structured AppError and standard API envelopes
+// - Rate limiting to prevent volumetric abuse
 
 import { checkRateLimit } from './_rateLimit.js';
+import { applySecurityHeaders, sendSuccess, sendError, AppError } from './_middleware.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (applySecurityHeaders(req, res, { allowedMethods: ['POST', 'OPTIONS'] })) {
+    return;
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return sendError(res, new AppError('Method not allowed. Use POST.', 405, 'METHOD_NOT_ALLOWED'));
   }
 
   // Rate limit: 10 registrations per 15 minutes per IP
@@ -23,12 +24,13 @@ export default async function handler(req, res) {
 
   const { email, password, display_name } = req.body || {};
 
+  // Input Validation
   if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 255) {
-    return res.status(400).json({ error: 'A valid email address is required (max 255 characters).' });
+    return sendError(res, new AppError('A valid email address is required (max 255 characters).', 400, 'INVALID_EMAIL'));
   }
 
   if (!password || typeof password !== 'string' || password.length < 6 || password.length > 128) {
-    return res.status(400).json({ error: 'Password must be between 6 and 128 characters.' });
+    return sendError(res, new AppError('Password must be between 6 and 128 characters.', 400, 'INVALID_PASSWORD'));
   }
 
   const cleanEmail = email.trim().toLowerCase();
@@ -37,7 +39,6 @@ export default async function handler(req, res) {
 
   const supabaseUrl = process.env.SUPABASE_URL || 'https://mtlckvkyimoqbrlvirch.supabase.co';
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
-
   const anonKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bGNrdmt5aW1vcWJybHZpcmNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5Njc0MTEsImV4cCI6MjEwMzU0MzQxMX0.gGxCER-GAzSVS6IMzKoy5p8NwuDbOZ2QiBzkEeG_-J4';
 
   try {
@@ -84,39 +85,31 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errMsg = data.msg || data.message || data.error_description || 'Failed to create user account.';
-      
-      // Check for common trigger collision error
-      if (errMsg.includes('Database error') || errMsg.includes('saving new user') || errMsg.includes('creating new user')) {
-        return res.status(500).json({
-          error: 'Database trigger conflict: Please execute the updated Section 1-3 in supabase_setup.sql via Supabase SQL Editor to drop the on_auth_user_auto_confirm trigger.',
-          code: 'DB_TRIGGER_ERROR',
-          details: errMsg
-        });
-      }
 
       if (errMsg.toLowerCase().includes('already registered') || errMsg.toLowerCase().includes('already exists')) {
-        return res.status(409).json({
-          error: 'An account with this email already exists. Please sign in instead.'
-        });
+        return sendError(res, new AppError('An account with this email already exists. Please sign in instead.', 409, 'USER_EXISTS'));
       }
 
-      return res.status(response.status).json({ error: errMsg });
+      if (errMsg.includes('Database error') || errMsg.includes('saving new user') || errMsg.includes('creating new user')) {
+        return sendError(res, new AppError('Database trigger conflict during registration.', 500, 'DB_TRIGGER_ERROR', errMsg));
+      }
+
+      return sendError(res, new AppError(errMsg, response.status || 400, 'REGISTRATION_FAILED'));
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Account created successfully with auto-confirmed email.',
+    const user = data.user || data;
+
+    return sendSuccess(res, {
+      message: 'User registration completed successfully.',
       user: {
-        id: data.id,
-        email: data.email,
+        id: user.id,
+        email: user.email,
         display_name: displayName,
-        email_confirmed: true
+        confirmed: true
       }
-    });
+    }, 201);
+
   } catch (err) {
-    console.error('Registration API error:', err);
-    return res.status(500).json({
-      error: err.message || 'Server error creating account.'
-    });
+    return sendError(res, new AppError('An unexpected server error occurred during registration.', 500, 'INTERNAL_ERROR', err.message));
   }
 }

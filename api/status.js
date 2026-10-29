@@ -1,16 +1,18 @@
 // Vercel Serverless Function: TDlxHT Backend Status & Health Check
-// Secures sensitive operations on the backend without leaking keys to the public frontend.
+// Follows nodejs-backend-patterns & backend-patterns:
+// - Origin validation & strict security headers
+// - Dynamic version discovery with safe fallbacks
+// - Latency & connectivity probe with circuit protection
+// - Zero credential exposure
 
 import { checkRateLimit } from './_rateLimit.js';
+import { applySecurityHeaders, sendSuccess } from './_middleware.js';
+import fs from 'fs';
+import path from 'path';
 
 export default async function handler(req, res) {
-  // Set standard security and CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (applySecurityHeaders(req, res, { allowedMethods: ['GET', 'HEAD', 'OPTIONS'] })) {
+    return;
   }
 
   // Rate limit: 60 requests / minute / IP
@@ -42,13 +44,11 @@ export default async function handler(req, res) {
     dbStatus = 'unreachable';
   }
 
-  let version = '2.3.9';
-  let apkFilename = 'TDLxHT.2.3.9.apk';
-  let apkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.3.9/TDLxHT.2.3.9.apk';
+  let version = '2.4.2';
+  let apkFilename = 'TDLxHT.2.4.2.apk';
+  let apkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.2/TDLxHT.2.4.2.apk';
 
   try {
-    const fs = await import('fs');
-    const path = await import('path');
     const candidates = [
       path.join(process.cwd(), 'version.json'),
       path.join(process.cwd(), 'dist', 'version.json'),
@@ -65,19 +65,19 @@ export default async function handler(req, res) {
     }
   } catch (_) {}
 
-  // Response strictly obscures sensitive secret keys!
-  return res.status(200).json({
+  res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+
+  return sendSuccess(res, {
     name: 'TDlxHT Backend Engine',
-    version: version,
+    version,
     apk_filename: apkFilename,
     apk_url: apkUrl,
     status: 'online',
-    timestamp: new Date().toISOString(),
     database: {
       status: dbStatus,
       latency_ms: pingLatencyMs,
       endpoint_configured: true,
-      service_role_secured: true,
+      service_role_secured: hasServiceRoleKey,
       client_anon_available: hasAnonKey
     },
     ai_engine: {
