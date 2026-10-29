@@ -98,26 +98,52 @@ The website strictly implements the single-page long-form layout specified by `t
 
 ## 6. Build and Verification Instructions
 
-### Web Production Build
+### 1. Fetch Latest Code & Tags
+```bash
+git pull origin main --tags
+```
+
+### 2. Install Web Dependencies
+```bash
+npm install
+```
+
+### 3. Web Production Build
 ```bash
 npm run build
 ```
-Builds production assets to `dist/` with zero warnings or errors.
+Builds production assets to `dist/` with static asset synchronization.
 
-### Local Development Server
+### 4. Local Development Server
 ```bash
 npm run dev
 ```
-Serves on `http://localhost:5173/`.
+Serves web preview at `http://localhost:5173/`.
 
-### Android APK Build
+### 5. Android APK Release Build
 ```bash
 ./gradlew assembleRelease
 ```
-Generates release APK at `app/build/outputs/apk/release/app-release.apk` with official R8 minification and signing.
+Or to compile and synchronize both root and web APK binaries with `version.json`:
+```bash
+./gradlew syncReleaseApk
+```
+Generates release APK at `app/build/outputs/apk/release/app-release.apk` with official Google R8 minification and signing.
 Copied to project root:
 - `TDLxHT.2.4.2.apk`
 - `TDlxHT.apk`
+
+### 6. Android Unit Test Suite
+```bash
+./gradlew testDebugUnitTest
+```
+Runs 33/33 unit tests for offline Room database, streak calculations, and task view models.
+
+### 7. One-Command Full Release
+```bash
+npm run release
+```
+Executes `./gradlew syncReleaseApk`, `npm run build`, and `npx vercel --prod --yes` in sequence.
 
 ---
 
@@ -130,4 +156,5 @@ Copied to project root:
 - **Liquid Glass Nav Bar**: Frosted glass surface, vertical specular rim gradient, and top arc sheen exclusive to the APK app.
 - **Sliding Nav Bar Animation Fix**: Completely lag-free 120fps fluid transitions without layout remeasurement.
 - **Kinetic Physics & Depth**: Kern Society volume-conserving elastic squash & stretch and Dheeraj Carpenter 3D perspective depth integrated into all cards and interactive controls.
+- **Backend Architecture**: Origin-validated CORS, `X-Request-Id` correlation tracing, `Server-Timing` metrics, sliding-window IP rate limiting, and structured `AppError` envelopes across all `/api/*` endpoints.
 - **APK Compilation**: Compiled `v2.4.2` (versionCode 29) with R8 minification and V1/V2/V3 signing.
