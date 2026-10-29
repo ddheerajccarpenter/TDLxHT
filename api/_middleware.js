@@ -84,3 +84,4 @@ export function sendError(res, error) {
     ...(error.details ? { details: error.details } : {})
   });
 }
+
