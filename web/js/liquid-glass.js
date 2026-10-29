@@ -185,63 +185,76 @@ function initMouseGlow() {
 
 // ─── GlassMenu: Sort dropdown with checkmarks ─────────────────────────────────
 function initGlassMenu() {
-  const trigger = document.getElementById('calc-sort-trigger');
-  const popover = document.getElementById('calc-sort-popover');
-  if (!trigger || !popover) return;
+  const menuWrappers = document.querySelectorAll('.glass-menu-wrapper');
+  if (!menuWrappers.length) return;
 
-  let currentSort = 'Name';
+  menuWrappers.forEach(menuWrapper => {
+    const trigger = menuWrapper.querySelector('.glass-menu-trigger');
+    const popover = menuWrapper.querySelector('.glass-menu-popover');
+    if (!trigger || !popover) return;
 
-  function openMenu() {
-    popover.removeAttribute('hidden');
-    trigger.setAttribute('aria-expanded', 'true');
-    // Add lift effect
-    popover.setAttribute('data-open', '');
-  }
+    let currentSort = 'Name';
 
-  function closeMenu() {
-    popover.setAttribute('hidden', '');
-    trigger.setAttribute('aria-expanded', 'false');
-    popover.removeAttribute('data-open');
-  }
-
-  trigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isOpen = trigger.getAttribute('aria-expanded') === 'true';
-    isOpen ? closeMenu() : openMenu();
-  });
-
-  // Close on outside click
-  document.addEventListener('click', (e) => {
-    if (!document.getElementById('calc-sort-menu').contains(e.target)) {
-      closeMenu();
+    function openMenu() {
+      popover.removeAttribute('hidden');
+      trigger.setAttribute('aria-expanded', 'true');
+      popover.setAttribute('data-open', '');
     }
-  });
 
-  // Close on Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMenu();
-  });
+    function closeMenu() {
+      popover.setAttribute('hidden', '');
+      trigger.setAttribute('aria-expanded', 'false');
+      popover.removeAttribute('data-open');
+    }
 
-  // Handle menu item selection
-  popover.querySelectorAll('.glass-menu-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const sort = item.getAttribute('data-sort');
-      currentSort = sort;
-
-      // Update checked state
-      popover.querySelectorAll('.glass-menu-item').forEach(i => {
-        i.setAttribute('aria-checked', i.getAttribute('data-sort') === sort ? 'true' : 'false');
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close other menus first
+      menuWrappers.forEach(other => {
+        if (other !== menuWrapper) {
+          const otherPop = other.querySelector('.glass-menu-popover');
+          const otherTrig = other.querySelector('.glass-menu-trigger');
+          if (otherPop) otherPop.setAttribute('hidden', '');
+          if (otherTrig) otherTrig.setAttribute('aria-expanded', 'false');
+        }
       });
-
-      closeMenu();
-
-      // Dispatch sort event for future use
-      document.dispatchEvent(new CustomEvent('calcSort', { detail: { sort } }));
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      isOpen ? closeMenu() : openMenu();
     });
-  });
 
-  // Start with 'Name' checked
-  popover.querySelectorAll('.glass-menu-item').forEach(item => {
-    item.setAttribute('aria-checked', item.getAttribute('data-sort') === currentSort ? 'true' : 'false');
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!menuWrapper.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    // Handle menu item selection
+    popover.querySelectorAll('.glass-menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const sort = item.getAttribute('data-sort');
+        currentSort = sort;
+
+        // Update checked state
+        popover.querySelectorAll('.glass-menu-item').forEach(i => {
+          i.setAttribute('aria-checked', i.getAttribute('data-sort') === sort ? 'true' : 'false');
+        });
+
+        closeMenu();
+
+        // Dispatch sort event
+        document.dispatchEvent(new CustomEvent('sortChanged', { detail: { sort, menuId: menuWrapper.id } }));
+      });
+    });
+
+    // Start with 'Name' checked
+    popover.querySelectorAll('.glass-menu-item').forEach(item => {
+      item.setAttribute('aria-checked', item.getAttribute('data-sort') === currentSort ? 'true' : 'false');
+    });
   });
 }

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp web/*.png dist/ 2>/dev/null || true) && (cp web/*.svg dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true)",
+    "build": "vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp web/*.png dist/ 2>/dev/null || true) && (cp web/*.svg dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true) && (mkdir -p dist/apk && cp app/build/outputs/apk/release/app-release.apk dist/apk/app-liquid-glass-updated.apk 2>/dev/null || true)",
     "release": "./gradlew syncReleaseApk && npm run build && npx vercel --prod --yes",
     "preview": "vite preview"
   },

@@ -20,20 +20,39 @@ document.addEventListener("DOMContentLoaded", () => {
   initVersionSync();
 });
 
-// Theme Toggle (Reverses #252525 and #FFFFFF only)
+// Theme Toggle (Supports both GlassSwitch inputs and legacy buttons)
 function initThemeToggle() {
-  const toggleBtn = document.getElementById('theme-toggle-btn');
-  if (!toggleBtn) return;
+  const switchInputs = document.querySelectorAll('.theme-switch-input');
+  const legacyToggleBtn = document.getElementById('theme-toggle-btn');
 
   const currentTheme = localStorage.getItem('tdlxht-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', currentTheme);
 
-  toggleBtn.addEventListener('click', () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const nextTheme = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    localStorage.setItem('tdlxht-theme', nextTheme);
+  // Sync state to all switches
+  switchInputs.forEach(input => {
+    input.checked = (currentTheme === 'dark');
+    input.addEventListener('change', () => {
+      const nextTheme = input.checked ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('tdlxht-theme', nextTheme);
+      // Synchronize all switch inputs on page
+      switchInputs.forEach(other => {
+        if (other !== input) other.checked = input.checked;
+      });
+    });
   });
+
+  if (legacyToggleBtn) {
+    legacyToggleBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const nextTheme = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('tdlxht-theme', nextTheme);
+      switchInputs.forEach(input => {
+        input.checked = (nextTheme === 'dark');
+      });
+    });
+  }
 }
 
 // Product Preview Interactive Tasks & Stats

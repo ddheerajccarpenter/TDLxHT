@@ -44,9 +44,17 @@
         <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="header-link" target="_blank" rel="noopener">GitHub</a>
         <a href="/auth" class="header-link">Portal</a>
         <div class="header-separator"></div>
-        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
-          <span>Theme</span>
-        </button>
+        <!-- Liquid Glass Theme Switch (Sun / Moon) -->
+        <div class="glass-switch-wrapper" title="Toggle Theme" aria-label="Toggle Theme">
+          <span class="glass-switch-icon" aria-hidden="true">☀️</span>
+          <label class="glass-switch" for="theme-switch-header">
+            <input type="checkbox" id="theme-switch-header" class="theme-switch-input" aria-label="Toggle dark/light theme">
+            <span class="glass-switch-track lg-glass">
+              <span class="glass-switch-thumb lg-glass"></span>
+            </span>
+          </label>
+          <span class="glass-switch-icon" aria-hidden="true">🌙</span>
+        </div>
         <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.1/TDLxHT.2.4.1.apk" data-apk-download="true" class="btn btn-primary btn-sm">
           Download APK
         </a>
@@ -84,47 +92,93 @@
         </div>
       </div>
 
-      <!-- Right Column: Product Preview Placeholder -->
-      <div class="product-preview-card">
-        <div class="preview-header">PRODUCT PREVIEW PLACEHOLDER</div>
-        <div class="preview-mockup-grid">
-          <!-- Phone Silhouette -->
-          <div class="preview-phone-frame">
-            <div class="preview-phone-title">TDLxHT</div>
-            <div class="preview-task-item checked" data-task-id="1">
-              <span class="preview-task-check">✓</span>
-              <span>Task Management</span>
+      <!-- Right Column: Interactive Apple-Style Liquid Glass Showcase -->
+      <div class="product-preview-card lg-glass">
+        <div class="preview-header">
+          <span>LIQUID GLASS EXPERIENCE</span>
+          <span class="preview-header-badge">INTERACTIVE</span>
+        </div>
+
+        <!-- Interactive Liquid Glass Demo Stage -->
+        <div class="interactive-glass-stage">
+          <div class="stage-top-bar">
+            <!-- GlassSwitch with Sun and Moon -->
+            <div class="glass-switch-wrapper" aria-label="Demo theme toggle">
+              <span class="glass-switch-icon" aria-hidden="true">☀️</span>
+              <label class="glass-switch" for="theme-switch-demo">
+                <input type="checkbox" id="theme-switch-demo" class="theme-switch-input" aria-label="Demo theme switch">
+                <span class="glass-switch-track lg-glass">
+                  <span class="glass-switch-thumb lg-glass"></span>
+                </span>
+              </label>
+              <span class="glass-switch-icon" aria-hidden="true">🌙</span>
             </div>
-            <div class="preview-task-item checked" data-task-id="2">
-              <span class="preview-task-check">✓</span>
-              <span>Habit Tracking</span>
-            </div>
-            <div class="preview-task-item" data-task-id="3">
-              <span class="preview-task-check"></span>
-              <span>Focus Sessions</span>
-            </div>
-            <div class="preview-task-item" data-task-id="4">
-              <span class="preview-task-check"></span>
-              <span>14 Calculators</span>
+
+            <!-- Choices with a checkmark: GlassMenu (Sort by Date, Name, Size) -->
+            <div class="glass-menu-wrapper" id="hero-sort-menu">
+              <button class="glass-menu-trigger lg-button lg-button--clear lg-glass" aria-label="Sort by" aria-haspopup="true" aria-expanded="false" id="hero-sort-trigger">
+                <svg class="glass-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="15" y2="12"/>
+                  <line x1="3" y1="18" x2="9" y2="18"/>
+                </svg>
+              </button>
+              <div class="glass-menu-popover lg-glass" id="hero-sort-popover" role="menu" aria-label="Sort by" hidden>
+                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Date">
+                  <span class="glass-menu-check" aria-hidden="true">✓</span>
+                  <span class="glass-menu-label">Date</span>
+                </button>
+                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="true" data-sort="Name">
+                  <span class="glass-menu-check" aria-hidden="true">✓</span>
+                  <span class="glass-menu-label">Name</span>
+                </button>
+                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Size">
+                  <span class="glass-menu-check" aria-hidden="true">✓</span>
+                  <span class="glass-menu-label">Size</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Preview Stats Column -->
-          <div class="preview-stats-col">
-            <div class="preview-stat-box">
-              <span class="preview-stat-title">Tasks Done</span>
-              <span class="preview-stat-val">8 / 10</span>
-              <span class="preview-stat-meta">80% completed</span>
+          <div class="preview-mockup-grid">
+            <!-- Phone Silhouette -->
+            <div class="preview-phone-frame lg-glass">
+              <div class="preview-phone-title">TDLxHT · Daily Tasks</div>
+              <div class="preview-task-item checked" data-task-id="1">
+                <span class="preview-task-check">✓</span>
+                <span>Task Management</span>
+              </div>
+              <div class="preview-task-item checked" data-task-id="2">
+                <span class="preview-task-check">✓</span>
+                <span>Habit Tracking</span>
+              </div>
+              <div class="preview-task-item" data-task-id="3">
+                <span class="preview-task-check"></span>
+                <span>Focus Sessions</span>
+              </div>
+              <div class="preview-task-item" data-task-id="4">
+                <span class="preview-task-check"></span>
+                <span>14 Calculators</span>
+              </div>
             </div>
-            <div class="preview-stat-box">
-              <span class="preview-stat-title">Habit Streak</span>
-              <span class="preview-stat-val">14 Days</span>
-              <span class="preview-stat-meta">Consistency record</span>
-            </div>
-            <div class="preview-stat-box">
-              <span class="preview-stat-title">Focus Time</span>
-              <span class="preview-stat-val">3.5 Hours</span>
-              <span class="preview-stat-meta">Active session</span>
+
+            <!-- Preview Stats Column -->
+            <div class="preview-stats-col">
+              <div class="preview-stat-box lg-glass">
+                <span class="preview-stat-title">Tasks Done</span>
+                <span class="preview-stat-val">8 / 10</span>
+                <span class="preview-stat-meta">80% completed</span>
+              </div>
+              <div class="preview-stat-box lg-glass">
+                <span class="preview-stat-title">Habit Streak</span>
+                <span class="preview-stat-val">14 Days</span>
+                <span class="preview-stat-meta">Consistency record</span>
+              </div>
+              <div class="preview-stat-box lg-glass">
+                <span class="preview-stat-title">Focus Time</span>
+                <span class="preview-stat-val">3.5 Hours</span>
+                <span class="preview-stat-meta">Active session</span>
+              </div>
             </div>
           </div>
         </div>
