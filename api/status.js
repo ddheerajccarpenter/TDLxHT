@@ -94,5 +94,5 @@ export default async function handler(req, res) {
       encryption: 'bcrypt_pgcrypto',
       public_key_exposure: 'disabled'
     }
-  });
+  }, 200, req);
 }
