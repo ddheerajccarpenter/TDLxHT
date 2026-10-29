@@ -75,4 +75,7 @@
 | **Web Production Build** | DONE | `npm run build` passing in 388ms with 0 errors. |
 | **Vercel Redirects** | DONE | `vercel.json` download routes redirecting to `v2.4.1`. |
 | **APK Version Bump** | DONE | `versionCode = 28`, `versionName = "2.4.1"`. |
-| **APK Release Assembly** | IN PROGRESS | Running `./gradlew assembleRelease` with R8 minification & V1-V3 signing. |
+| **APK Release Assembly** | DONE | `./gradlew syncReleaseApk` with R8 minification & V1-V3 signing (16.53 MB). |
+| **Security Hardening** | DONE | Enforced HTTPS-only via `network_security_config.xml`, HSTS/CSP headers in `vercel.json`, patched npm dependencies. |
+| **GitHub Release** | DONE | Published official release `v2.4.1` with `TDLxHT.2.4.1.apk` and `TDlxHT.apk` assets. |
+| **Vercel Production Deploy** | DONE | Deployed live to `https://tdlxht.vercel.app`. |

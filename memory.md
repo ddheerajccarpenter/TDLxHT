@@ -57,8 +57,8 @@ The website strictly implements the single-page long-form layout specified by `t
 5. **04 / PRODUCT PRINCIPLES (`#principles`)**:
    - Two-column card articulating offline-first autonomy and straightforward-by-design utility.
 6. **05 / DOWNLOAD (`#download`)**:
-   - Clear version information (`Version 2.4.0 · 17.8 MB · Android 7–15`).
-   - Direct APK download action and GitHub Releases link.
+   - Clear version information (`Version 2.4.1 · 16.5 MB · Android 7–15`).
+   - Direct APK download action and GitHub Releases link (`v2.4.1`).
 7. **Footer**: Concise brand, secondary links (`Features`, `Calculators`, `Portal`), and wireframe note.
 8. **Fixed Bottom Navigation Dock**:
    - 4 destinations: `Dashboard`, `Features`, `Calculators`, `Download`.
