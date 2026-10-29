@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 export default function handler(req, res) {
-  let latestApkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.2/TDLxHT.2.4.2.apk';
+  let latestApkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.3/TDLxHT.2.4.3.apk';
 
   try {
     const candidates = [

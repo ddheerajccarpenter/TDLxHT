@@ -44,9 +44,9 @@ export default async function handler(req, res) {
     dbStatus = 'unreachable';
   }
 
-  let version = '2.4.2';
-  let apkFilename = 'TDLxHT.2.4.2.apk';
-  let apkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.2/TDLxHT.2.4.2.apk';
+  let version = '2.4.3';
+  let apkFilename = 'TDLxHT.2.4.3.apk';
+  let apkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.3/TDLxHT.2.4.3.apk';
 
   try {
     const candidates = [
