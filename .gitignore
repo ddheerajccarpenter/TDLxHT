@@ -27,7 +27,5 @@ scratch/
 **/*.md
 *.md
 !/README.md
-!/tracker.md
-!/TDLxHT_UI_UX_Redesign.md
-!/memory.md
-!/designglass.md
+!/design.md
+!/technical.md
