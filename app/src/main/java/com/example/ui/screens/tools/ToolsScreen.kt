@@ -41,8 +41,25 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Grade
+import androidx.compose.material.icons.outlined.HourglassEmpty
+import androidx.compose.material.icons.outlined.LocalOffer
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Percent
+import androidx.compose.material.icons.outlined.PriceChange
+import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.ReceiptLong
+import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.util.AppPreferences
 import androidx.compose.material3.Icon
@@ -180,7 +197,7 @@ fun ToolsScreen(
       modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp),
-      contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding)
+      contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
     ) {
       // Header with Apple Liquid Glass Controls
       item {
@@ -313,21 +330,28 @@ fun ToolsScreen(
                   verticalAlignment = Alignment.CenterVertically,
                   modifier = Modifier.weight(1f)
                 ) {
+                  val isDarkTools = com.example.ui.theme.LocalAppColors.current.isDark
                   Box(
                     modifier = Modifier
-                      .size(44.dp)
-                      .background(if (isFav) AccentTerracotta.copy(alpha = 0.12f) else InkPrimary.copy(alpha = 0.06f), CircleShape)
-                      .border(1.2.dp, if (isFav) AccentTerracotta else CardBorder, CircleShape)
-                      .clip(CircleShape),
+                      .size(38.dp)
+                      .clip(RoundedCornerShape(10.dp))
+                      .background(
+                        if (isFav) AccentTerracotta.copy(alpha = 0.15f)
+                        else (if (isDarkTools) Color(0x1EFFFFFF) else Color(0x10000000))
+                      )
+                      .border(
+                        0.6.dp,
+                        if (isFav) AccentTerracotta.copy(alpha = 0.5f)
+                        else (if (isDarkTools) Color(0x28FFFFFF) else Color(0x18000000)),
+                        RoundedCornerShape(10.dp)
+                      ),
                     contentAlignment = Alignment.Center
                   ) {
-                    Text(
-                      text = tool.name.take(2).uppercase(),
-                      style = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isFav) AccentTerracotta else InkPrimary
-                      )
+                    Icon(
+                      imageVector = getToolIcon(tool.id),
+                      contentDescription = null,
+                      tint = if (isFav) AccentTerracotta else InkPrimary,
+                      modifier = Modifier.size(20.dp)
                     )
                   }
 
@@ -960,5 +984,26 @@ fun ToolInputField(
       keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
       modifier = Modifier.fillMaxWidth()
     )
+  }
+}
+
+private fun getToolIcon(toolId: String): ImageVector {
+  return when (toolId) {
+    "loan_emi" -> Icons.Outlined.AccountBalance
+    "split_bill" -> Icons.Outlined.Receipt
+    "gst_tax" -> Icons.Outlined.ReceiptLong
+    "margin_markup" -> Icons.Outlined.PriceChange
+    "attendance_planner" -> Icons.Outlined.School
+    "cgpa_converter" -> Icons.Outlined.Grade
+    "exam_countdown" -> Icons.Outlined.HourglassEmpty
+    "profit_loss" -> Icons.Outlined.AttachMoney
+    "discount_savings" -> Icons.Outlined.LocalOffer
+    "break_even" -> Icons.Outlined.TrendingUp
+    "date_difference" -> Icons.Outlined.CalendarToday
+    "percentage_change" -> Icons.Outlined.Percent
+    "unit_converter" -> Icons.Outlined.SwapHoriz
+    "pomodoro_planner" -> Icons.Outlined.Timer
+    "reading_estimator" -> Icons.Outlined.MenuBook
+    else -> Icons.Outlined.Calculate
   }
 }

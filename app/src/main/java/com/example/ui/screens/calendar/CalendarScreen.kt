@@ -81,6 +81,7 @@ import com.example.ui.screens.home.HabitItemCard
 import com.example.ui.screens.home.TaskItemCard
 import com.example.ui.theme.AccentRed
 import com.example.ui.theme.AccentTerracotta
+import com.example.ui.theme.LocalAppColors
 import com.example.ui.theme.CardBackground
 import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
@@ -1107,13 +1108,18 @@ fun WeekViewCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            val isDarkCal = LocalAppColors.current.isDark
             Box(
               modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
                 .bounceClick(scaleDown = 0.90f) { onDateSelected(date) }
-                .background(if (isSelected) PillBackgroundDark else Color.Transparent)
-                .border(1.2.dp, if (isSelected) PillBackgroundDark else CardBorder.copy(alpha = 0.5f), CircleShape),
+                .background(if (isSelected) (if (isDarkCal) Color(0x30FFFFFF) else Color(0xEEFFFFFF)) else Color.Transparent)
+                .border(
+                  0.75.dp,
+                  if (isSelected) (if (isDarkCal) Color(0x50FFFFFF) else Color(0x30000000)) else CardBorder.copy(alpha = 0.4f),
+                  CircleShape
+                ),
               contentAlignment = Alignment.Center
             ) {
               Text(
@@ -1121,7 +1127,7 @@ fun WeekViewCard(
                 style = TextStyle(
                   fontSize = 14.sp,
                   fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                  color = if (isSelected) PillTextDark else InkPrimary
+                  color = if (isSelected) (if (isDarkCal) Color.White else Color(0xFF111113)) else InkPrimary
                 )
               )
             }

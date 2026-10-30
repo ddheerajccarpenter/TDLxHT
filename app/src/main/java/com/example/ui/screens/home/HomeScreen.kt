@@ -330,10 +330,13 @@ fun HomeScreen(
               }
 
               Column(horizontalAlignment = Alignment.End) {
-                // Date badge pill
+                // Date badge pill (subtle translucent glass)
+                val isDarkLocal = com.example.ui.theme.LocalAppColors.current.isDark
                 Box(
                   modifier = Modifier
-                    .border(1.2.dp, CardBorder, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isDarkLocal) Color(0x1CFFFFFF) else Color(0x10000000))
+                    .border(0.6.dp, if (isDarkLocal) Color(0x28FFFFFF) else Color(0x18000000), RoundedCornerShape(10.dp))
                     .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                   Text(
@@ -390,10 +393,13 @@ fun HomeScreen(
 
               if (summary.maxStreak > 0) {
                 Spacer(modifier = Modifier.width(10.dp))
+                val isDarkLocal = com.example.ui.theme.LocalAppColors.current.isDark
                 Box(
                   modifier = Modifier
                     .pulseEntrance(delayMs = 180)
-                    .background(PillBackgroundDark, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isDarkLocal) Color(0x26FFFFFF) else Color(0x18000000))
+                    .border(0.6.dp, if (isDarkLocal) Color(0x35FFFFFF) else Color(0x20000000), RoundedCornerShape(10.dp))
                     .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                   Text(
@@ -401,7 +407,7 @@ fun HomeScreen(
                     style = TextStyle(
                       fontSize = 12.sp,
                       fontWeight = FontWeight.Bold,
-                      color = PillTextDark
+                      color = if (isDarkLocal) Color.White else Color(0xFF111113)
                     )
                   )
                 }
@@ -448,11 +454,13 @@ fun HomeScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
               // Independent View Switcher (List / Grid)
+              val isDarkTasksView = com.example.ui.theme.LocalAppColors.current.isDark
+              val isGridTasks = todayTasksViewMode == "GRID"
               Box(
                 modifier = Modifier
-                  .border(1.2.dp, if (todayTasksViewMode == "GRID") PillBackgroundDark else CardBorder, RoundedCornerShape(8.dp))
                   .clip(RoundedCornerShape(8.dp))
-                  .background(if (todayTasksViewMode == "GRID") PillBackgroundDark else Color.Transparent)
+                  .background(if (isGridTasks) (if (isDarkTasksView) Color(0x28FFFFFF) else Color(0xEEFFFFFF)) else Color.Transparent)
+                  .border(0.6.dp, if (isGridTasks) (if (isDarkTasksView) Color(0x38FFFFFF) else Color(0x30000000)) else CardBorder, RoundedCornerShape(8.dp))
                   .bounceClick {
                     val next = if (todayTasksViewMode == "GRID") "LIST" else "GRID"
                     AppPreferences.setTodayTasksViewMode(context, next)
@@ -464,7 +472,7 @@ fun HomeScreen(
                   style = TextStyle(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (todayTasksViewMode == "GRID") PillTextDark else InkSecondary
+                    color = if (isGridTasks) (if (isDarkTasksView) Color.White else Color(0xFF111113)) else InkSecondary
                   )
                 )
               }
@@ -582,11 +590,13 @@ fun HomeScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
               // Independent View Switcher (List / Grid)
+              val isDarkHabitsView = com.example.ui.theme.LocalAppColors.current.isDark
+              val isGridHabits = todayHabitsViewMode == "GRID"
               Box(
                 modifier = Modifier
-                  .border(1.2.dp, if (todayHabitsViewMode == "GRID") PillBackgroundDark else CardBorder, RoundedCornerShape(8.dp))
                   .clip(RoundedCornerShape(8.dp))
-                  .background(if (todayHabitsViewMode == "GRID") PillBackgroundDark else Color.Transparent)
+                  .background(if (isGridHabits) (if (isDarkHabitsView) Color(0x28FFFFFF) else Color(0xEEFFFFFF)) else Color.Transparent)
+                  .border(0.6.dp, if (isGridHabits) (if (isDarkHabitsView) Color(0x38FFFFFF) else Color(0x30000000)) else CardBorder, RoundedCornerShape(8.dp))
                   .bounceClick {
                     val next = if (todayHabitsViewMode == "GRID") "LIST" else "GRID"
                     AppPreferences.setTodayHabitsViewMode(context, next)
@@ -598,7 +608,7 @@ fun HomeScreen(
                   style = TextStyle(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (todayHabitsViewMode == "GRID") PillTextDark else InkSecondary
+                    color = if (isGridHabits) (if (isDarkHabitsView) Color.White else Color(0xFF111113)) else InkSecondary
                   )
                 )
               }

@@ -131,43 +131,50 @@ fun Modifier.paperDotBackground(): Modifier {
   val baseBg = PaperBackground
   val isDark = LocalAppColors.current.isDark
   return this.drawBehind {
-    // 1. Dominant Base Color Fill (75-80% visual base)
-    drawRect(color = baseBg)
-
     if (isDark) {
-      // 2. Subtle Material Depth & Tonal Character (~20% intensity):
-      // Broad large-scale tonal graduation giving physical depth to #080813
+      // 1. Dominant Deep Charcoal Base Fill with Optical Environmental Depth
+      drawRect(
+        brush = Brush.verticalGradient(
+          colors = listOf(
+            Color(0xFF191920), // Subtle top charcoal ambient
+            Color(0xFF141417), // Mid-canvas deep tone
+            Color(0xFF0F0F12)  // Bottom anchor tone
+          )
+        )
+      )
+      // 2. Soft Upper Ambient Luminance Pool (designglass.md Liquid Glass environment):
+      // Provides authentic optical depth so translucent glass surfaces transmit real background light
       drawRect(
         brush = Brush.radialGradient(
           colors = listOf(
-            Color(0x1A141424),
-            Color(0x0A090916),
+            Color(0x22323242),
+            Color(0x0A1E1E26),
             Color.Transparent
           ),
-          center = Offset(size.width * 0.22f, size.height * 0.16f),
+          center = Offset(size.width * 0.32f, size.height * 0.14f),
           radius = size.maxDimension * 0.85f
         )
       )
+      // 3. Lower ambient reflection pool
       drawRect(
         brush = Brush.radialGradient(
           colors = listOf(
-            Color(0x1210101E),
+            Color(0x1420202A),
             Color.Transparent
           ),
-          center = Offset(size.width * 0.82f, size.height * 0.78f),
-          radius = size.maxDimension * 0.72f
+          center = Offset(size.width * 0.78f, size.height * 0.82f),
+          radius = size.maxDimension * 0.70f
         )
       )
     } else {
-      // Light Mode: subtle soft large-scale tonal variation
+      // Light Mode: subtle soft tonal variation
       drawRect(
-        brush = Brush.radialGradient(
+        brush = Brush.verticalGradient(
           colors = listOf(
-            Color(0x09000000),
-            Color.Transparent
-          ),
-          center = Offset(size.width * 0.5f, 0f),
-          radius = size.maxDimension * 0.65f
+            Color(0xFFF9F9FB),
+            Color(0xFFF2F2F6),
+            Color(0xFFEBEBF0)
+          )
         )
       )
     }
@@ -177,12 +184,12 @@ fun Modifier.paperDotBackground(): Modifier {
 /**
  * Inset-aware dynamic content bottom clearance for all scrolling screens above the floating navigation dock.
  * Calculates clearance from dock height (64dp), vertical dock padding (16dp), system navigation/gesture inset,
- * and an intentional content clearance gap (24dp) ensuring the bottom-most CTA / card is 100% visible and interactable.
+ * and an intentional content clearance gap (48dp) ensuring the bottom-most CTA / card is 100% visible and interactable.
  */
 val FloatingNavContentBottomPadding: Dp
   @Composable get() {
     val navInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    return 64.dp + 16.dp + navInsets + 24.dp
+    return 64.dp + 16.dp + navInsets + 48.dp
   }
 
 /**
@@ -709,8 +716,8 @@ fun SketchCard(
   cornerRadius: Dp = 16.dp,
   backgroundColor: Color = CardBackground,
   borderColor: Color = CardBorder,
-  borderWidth: Dp = 1.dp,
-  elevation: Dp = 4.dp,
+  borderWidth: Dp = 0.75.dp,
+  elevation: Dp = 2.dp,
   onClick: (() -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
@@ -720,10 +727,10 @@ fun SketchCard(
   Box(
     modifier = modifier
       .shadow(
-        elevation = elevation,
+        elevation = if (isDark) 2.dp else 1.5.dp,
         shape = RoundedCornerShape(cornerRadius),
-        ambientColor = if (isDark) Color(0x60000000) else Color(0x14000000),
-        spotColor = if (isDark) Color(0x40000000) else Color(0x0E000000)
+        ambientColor = if (isDark) Color(0x28000000) else Color(0x0C000000),
+        spotColor = if (isDark) Color(0x18000000) else Color(0x06000000)
       )
       .then(
         if (onClick != null) {
@@ -734,40 +741,28 @@ fun SketchCard(
           )
         } else Modifier
       )
-      .background(resolvedBg, RoundedCornerShape(cornerRadius))
+      .clip(RoundedCornerShape(cornerRadius))
+      .background(resolvedBg)
       .border(
         width = borderWidth,
         brush = Brush.verticalGradient(
           colors = if (isDark) {
-            listOf(Color(0x35FFFFFF), Color(0x0EFFFFFF))
+            listOf(Color(0x24FFFFFF), Color(0x08FFFFFF))
           } else {
-            listOf(Color(0x20000000), Color(0x10000000))
+            listOf(Color(0x55FFFFFF), Color(0x12000000))
           }
         ),
         shape = RoundedCornerShape(cornerRadius)
       )
-      .drawBehind {
-        // Specular top highlight sheen for physical Apple-style Liquid Glass
-        drawRoundRect(
-          brush = Brush.verticalGradient(
-            colors = listOf(
-              if (isDark) Color(0x28FFFFFF) else Color(0x35FFFFFF),
-              Color.Transparent
-            ),
-            startY = 0f,
-            endY = size.height * 0.45f
-          ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius.toPx(), cornerRadius.toPx())
-        )
-      }
-      .clip(RoundedCornerShape(cornerRadius))
   ) {
     content()
   }
 }
 
 /**
- * Canonical GlassCard composable implementing Apple Liquid Glass material.
+ * Canonical GlassCard composable implementing authentic Apple Liquid Glass material.
+ * Completely free of opaque painted metallic shine and chrome bevels.
+ * Optical translucency lets background environment softly illuminate content.
  */
 @Composable
 fun GlassCard(
@@ -775,8 +770,8 @@ fun GlassCard(
   cornerRadius: Dp = 18.dp,
   backgroundColor: Color = CardBackground,
   borderColor: Color = CardBorder,
-  borderWidth: Dp = 1.dp,
-  elevation: Dp = 4.dp,
+  borderWidth: Dp = 0.75.dp,
+  elevation: Dp = 2.dp,
   onClick: (() -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
@@ -795,7 +790,7 @@ fun GlassCard(
 /**
  * Apple-Style Liquid Glass Button — Icon with Visible Label Pattern.
  * Mandatory pattern: <GlassButton icon={<PlusIcon />}>Add Task</GlassButton>
- * Renders a tactile translucent stadium pill with specular sheen and spring press.
+ * Renders an authentic optical translucent glass stadium pill with spring press.
  */
 @Composable
 fun GlassButton(
@@ -812,40 +807,26 @@ fun GlassButton(
         if (enabled) onClick()
       }
       .shadow(
-        elevation = if (isDark) 4.dp else 2.dp,
+        elevation = if (isDark) 2.dp else 1.5.dp,
         shape = CircleShape,
-        ambientColor = if (isDark) Color(0x60000000) else Color(0x15000000),
-        spotColor = if (isDark) Color(0x40000000) else Color(0x0E000000)
+        ambientColor = if (isDark) Color(0x28000000) else Color(0x0C000000),
+        spotColor = if (isDark) Color(0x18000000) else Color(0x06000000)
       )
       .clip(CircleShape)
       .background(
-        color = if (isDark) com.example.ui.theme.CanonicalGlassFillBaseDark else com.example.ui.theme.CanonicalGlassFillBaseLight
+        color = if (isDark) Color(0x2BFFFFFF) else Color(0xEEFFFFFF)
       )
       .border(
-        width = 1.dp,
+        width = 0.75.dp,
         brush = Brush.verticalGradient(
           colors = if (isDark) {
-            listOf(com.example.ui.theme.CanonicalGlassBorderTopDark, com.example.ui.theme.CanonicalGlassBorderBottomDark)
+            listOf(Color(0x38FFFFFF), Color(0x12FFFFFF))
           } else {
-            listOf(com.example.ui.theme.CanonicalGlassBorderTopLight, com.example.ui.theme.CanonicalGlassBorderBottomLight)
+            listOf(Color(0x60FFFFFF), Color(0x1A000000))
           }
         ),
         shape = CircleShape
       )
-      .drawBehind {
-        // Specular top highlight sheen
-        drawRoundRect(
-          brush = Brush.verticalGradient(
-            colors = listOf(
-              if (isDark) com.example.ui.theme.CanonicalGlassSheenTopDark else com.example.ui.theme.CanonicalGlassSheenTopLight,
-              Color.Transparent
-            ),
-            startY = 0f,
-            endY = size.height * 0.45f
-          ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
-        )
-      }
       .padding(horizontal = 14.dp, vertical = 8.dp),
     contentAlignment = Alignment.Center
   ) {
@@ -882,39 +863,26 @@ fun GlassButton(
       .size(resolvedSize)
       .bounceClick(scaleDown = 0.92f) { onClick() }
       .shadow(
-        elevation = if (isDark) 6.dp else 3.dp,
+        elevation = if (isDark) 2.dp else 1.5.dp,
         shape = CircleShape,
-        ambientColor = if (isDark) Color(0x70000000) else Color(0x18000000),
-        spotColor = if (isDark) Color(0x4D000000) else Color(0x10000000)
+        ambientColor = if (isDark) Color(0x28000000) else Color(0x0C000000),
+        spotColor = if (isDark) Color(0x18000000) else Color(0x06000000)
       )
       .clip(CircleShape)
       .background(
-        color = if (isDark) com.example.ui.theme.CanonicalGlassFillBaseDark else com.example.ui.theme.CanonicalGlassFillBaseLight
+        color = if (isDark) Color(0x28FFFFFF) else Color(0xEEFFFFFF)
       )
       .border(
-        width = 1.dp,
+        width = 0.75.dp,
         brush = Brush.verticalGradient(
           colors = if (isDark) {
-            listOf(com.example.ui.theme.CanonicalGlassBorderTopDark, com.example.ui.theme.CanonicalGlassBorderBottomDark)
+            listOf(Color(0x38FFFFFF), Color(0x12FFFFFF))
           } else {
-            listOf(com.example.ui.theme.CanonicalGlassBorderTopLight, com.example.ui.theme.CanonicalGlassBorderBottomLight)
+            listOf(Color(0x60FFFFFF), Color(0x1A000000))
           }
         ),
         shape = CircleShape
-      )
-      .drawBehind {
-        drawRoundRect(
-          brush = Brush.verticalGradient(
-            colors = listOf(
-              if (isDark) com.example.ui.theme.CanonicalGlassSheenTopDark else com.example.ui.theme.CanonicalGlassSheenTopLight,
-              Color.Transparent
-            ),
-            startY = 0f,
-            endY = this.size.height * 0.45f
-          ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(this.size.height / 2, this.size.height / 2)
-        )
-      },
+      ),
     contentAlignment = Alignment.Center
   ) {
     icon()
@@ -939,17 +907,18 @@ fun GlassMenu(
         modifier = modifier
           .widthIn(min = 180.dp, max = 280.dp)
           .shadow(
-            elevation = 16.dp,
+            elevation = 8.dp,
             shape = RoundedCornerShape(18.dp),
-            ambientColor = Color.Black.copy(alpha = 0.6f),
-            spotColor = Color.Black.copy(alpha = 0.4f)
+            ambientColor = Color(0x35000000),
+            spotColor = Color(0x20000000)
           )
           .clip(RoundedCornerShape(18.dp))
-          .background(if (isDark) Color(0xEE202024) else Color(0xF5FFFFFF))
+          .background(if (isDark) Color(0xD81C1C22) else Color(0xF5FFFFFF))
           .border(
-            1.dp,
+            0.75.dp,
             Brush.verticalGradient(
-              listOf(Color(0x60FFFFFF), Color(0x15FFFFFF))
+              if (isDark) listOf(Color(0x30FFFFFF), Color(0x10FFFFFF))
+              else listOf(Color(0x50FFFFFF), Color(0x15000000))
             ),
             RoundedCornerShape(18.dp)
           )
@@ -1042,8 +1011,8 @@ fun GlassSegmented(
 
 /**
  * Apple-Style Liquid Glass Switch Toggle.
- * Features a translucent rounded track with a 1px glass border,
- * specular highlight, and a spring-animated white glass thumb.
+ * Features a translucent rounded track with a hairline glass border
+ * and a spring-animated white glass thumb.
  */
 @Composable
 fun GlassSwitch(
@@ -1057,8 +1026,8 @@ fun GlassSwitch(
   val density = LocalDensity.current
 
   val trackWidth = 50.dp
-  val trackHeight = 30.dp
-  val thumbSize = 24.dp
+  val trackHeight = 28.dp
+  val thumbSize = 22.dp
   val thumbPadding = 3.dp
 
   val maxThumbOffset = with(density) { (trackWidth - thumbSize - (thumbPadding * 2)).toPx() }
@@ -1075,9 +1044,9 @@ fun GlassSwitch(
 
   val trackBgColor by animateColorAsState(
     targetValue = if (checked) {
-      if (isDark) Color(0xCC3A3A40) else Color(0xE01C1C1E)
+      if (isDark) Color(0x40FFFFFF) else Color(0xEE1C1C1E)
     } else {
-      if (isDark) Color(0x80252528) else Color(0x308E8E93)
+      if (isDark) Color(0x24181820) else Color(0x258E8E93)
     },
     animationSpec = tween(180),
     label = "glassSwitchTrackBg"
@@ -1089,12 +1058,12 @@ fun GlassSwitch(
       .clip(CircleShape)
       .background(trackBgColor)
       .border(
-        width = 1.dp,
+        width = 0.75.dp,
         brush = Brush.verticalGradient(
           colors = if (isDark) {
-            listOf(Color(0x55FFFFFF), Color(0x15FFFFFF))
+            listOf(Color(0x30FFFFFF), Color(0x0CFFFFFF))
           } else {
-            listOf(Color(0x80FFFFFF), Color(0x20000000))
+            listOf(Color(0x60FFFFFF), Color(0x15000000))
           }
         ),
         shape = CircleShape
@@ -1111,38 +1080,28 @@ fun GlassSwitch(
         .graphicsLayer { translationX = animatedOffset }
         .size(thumbSize)
         .shadow(
-          elevation = if (isDark) 4.dp else 2.dp,
+          elevation = if (isDark) 2.dp else 1.dp,
           shape = CircleShape,
-          ambientColor = Color.Black.copy(alpha = 0.4f),
-          spotColor = Color.Black.copy(alpha = 0.25f)
+          ambientColor = Color(0x25000000),
+          spotColor = Color(0x15000000)
         )
         .clip(CircleShape)
         .background(if (checked && !isDark) Color.White else Color(0xFFF5F5F7))
         .border(
-          width = 0.8.dp,
+          width = 0.6.dp,
           brush = Brush.verticalGradient(
-            listOf(Color(0x60FFFFFF), Color(0x18FFFFFF))
+            listOf(Color(0x50FFFFFF), Color(0x14FFFFFF))
           ),
           shape = CircleShape
         )
-        .drawBehind {
-          drawRoundRect(
-            brush = Brush.verticalGradient(
-              colors = listOf(Color(0x50FFFFFF), Color.Transparent),
-              startY = 0f,
-              endY = size.height * 0.45f
-            ),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
-          )
-        }
     )
   }
 }
 
 /**
  * Apple-Style Liquid Glass Continuous Slider.
- * Provides a translucent glass track, filled progress with specular sheen,
- * and an optional tactile circular glass thumb.
+ * Provides a translucent glass track, filled progress,
+ * and a tactile circular glass thumb.
  */
 @Composable
 fun GlassSlider(
@@ -1173,11 +1132,12 @@ fun GlassSlider(
         .fillMaxWidth()
         .height(trackHeight)
         .clip(CircleShape)
-        .background(if (isDark) Color(0x80222226) else Color(0x25000000))
+        .background(if (isDark) Color(0x25181820) else Color(0x18000000))
         .border(
-          width = 1.dp,
+          width = 0.75.dp,
           brush = Brush.verticalGradient(
-            listOf(Color(0x40FFFFFF), Color(0x10FFFFFF))
+            if (isDark) listOf(Color(0x25FFFFFF), Color(0x0AFFFFFF))
+            else listOf(Color(0x40FFFFFF), Color(0x10000000))
           ),
           shape = CircleShape
         )
@@ -1187,23 +1147,13 @@ fun GlassSlider(
           .fillMaxWidth(fraction)
           .fillMaxHeight()
           .clip(CircleShape)
-          .background(if (isDark) Color(0xEEFFFFFF) else Color(0xEE1C1C1E))
-          .drawBehind {
-            drawRoundRect(
-              brush = Brush.verticalGradient(
-                listOf(Color(0x50FFFFFF), Color.Transparent),
-                startY = 0f,
-                endY = size.height * 0.5f
-              ),
-              cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
-            )
-          }
+          .background(if (isDark) Color(0xCCFFFFFF) else Color(0xEE1C1C1E))
       )
     }
 
     if (showThumb) {
       val density = LocalDensity.current
-      val thumbSize = 24.dp
+      val thumbSize = 22.dp
       val maxPx = with(density) { (totalWidth - thumbSize).toPx() }
       val currentPx = maxPx * fraction
 
@@ -1211,10 +1161,10 @@ fun GlassSlider(
         modifier = Modifier
           .graphicsLayer { translationX = currentPx }
           .size(thumbSize)
-          .shadow(4.dp, CircleShape)
+          .shadow(2.dp, CircleShape)
           .clip(CircleShape)
           .background(if (isDark) Color(0xFFF5F5F7) else Color.White)
-          .border(1.dp, Color(0x30FFFFFF), CircleShape)
+          .border(0.6.dp, Color(0x30FFFFFF), CircleShape)
       )
     }
   }
@@ -1223,7 +1173,7 @@ fun GlassSlider(
 /**
  * Apple-Style Liquid Glass Input Field.
  * Supports text, search, and form inputs with a translucent glass background,
- * subtle 1px specular bevel, clear focus state, and clear button.
+ * subtle hairline specular bevel, and clear focus state.
  */
 @Composable
 fun GlassInput(
@@ -1245,29 +1195,21 @@ fun GlassInput(
       .height(46.dp)
       .clip(RoundedCornerShape(14.dp))
       .background(
-        if (isDark) Color(0xCC1A1A1E) else Color(0xE5FFFFFF)
+        if (isDark) Color(0x32181822) else Color(0xEEFFFFFF)
       )
       .border(
-        width = 1.dp,
+        width = 0.75.dp,
         brush = Brush.verticalGradient(
           if (isFocused) {
-            listOf(Color(0x90FFFFFF), Color(0x40FFFFFF))
+            if (isDark) listOf(Color(0x60FFFFFF), Color(0x25FFFFFF))
+            else listOf(Color(0x80000000), Color(0x40000000))
           } else {
-            listOf(Color(0x40FFFFFF), Color(0x10FFFFFF))
+            if (isDark) listOf(Color(0x24FFFFFF), Color(0x0AFFFFFF))
+            else listOf(Color(0x45FFFFFF), Color(0x12000000))
           }
         ),
         shape = RoundedCornerShape(14.dp)
       )
-      .drawBehind {
-        drawRoundRect(
-          brush = Brush.verticalGradient(
-            listOf(Color(0x18FFFFFF), Color.Transparent),
-            startY = 0f,
-            endY = size.height * 0.45f
-          ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx(), 14.dp.toPx())
-        )
-      }
       .padding(horizontal = 14.dp),
     contentAlignment = Alignment.CenterStart
   ) {
@@ -1333,7 +1275,7 @@ fun GlassInput(
 /**
  * Apple-Style Liquid Glass Bottom Sheet / Modal.
  * Renders a floating modal sheet with translucent glass material,
- * top specular bevel, centered drag handle pill, and back-press handling.
+ * centered drag handle pill, and back-press handling.
  */
 @Composable
 fun GlassSheet(
@@ -1349,30 +1291,21 @@ fun GlassSheet(
         modifier = modifier
           .fillMaxWidth()
           .shadow(
-            elevation = 20.dp,
+            elevation = 12.dp,
             shape = RoundedCornerShape(22.dp),
-            ambientColor = Color.Black.copy(alpha = 0.65f),
-            spotColor = Color.Black.copy(alpha = 0.45f)
+            ambientColor = Color(0x40000000),
+            spotColor = Color(0x25000000)
           )
           .clip(RoundedCornerShape(22.dp))
-          .background(if (isDark) Color(0xF01E1E22) else Color(0xF8FFFFFF))
+          .background(if (isDark) Color(0xD8181820) else Color(0xF5FFFFFF))
           .border(
-            width = 1.2.dp,
+            width = 0.75.dp,
             brush = Brush.verticalGradient(
-              listOf(Color(0x65FFFFFF), Color(0x18FFFFFF))
+              if (isDark) listOf(Color(0x30FFFFFF), Color(0x10FFFFFF))
+              else listOf(Color(0x60FFFFFF), Color(0x15000000))
             ),
             shape = RoundedCornerShape(22.dp)
           )
-          .drawBehind {
-            drawRoundRect(
-              brush = Brush.verticalGradient(
-                listOf(Color(0x28FFFFFF), Color.Transparent),
-                startY = 0f,
-                endY = size.height * 0.35f
-              ),
-              cornerRadius = androidx.compose.ui.geometry.CornerRadius(22.dp.toPx(), 22.dp.toPx())
-            )
-          }
           .padding(20.dp)
       ) {
         Column(
@@ -1384,7 +1317,7 @@ fun GlassSheet(
             modifier = Modifier
               .size(width = 38.dp, height = 4.dp)
               .clip(CircleShape)
-              .background(if (isDark) Color(0x40FFFFFF) else Color(0x30000000))
+              .background(if (isDark) Color(0x35FFFFFF) else Color(0x30000000))
           )
           Spacer(modifier = Modifier.height(16.dp))
           content()
@@ -1529,6 +1462,10 @@ fun SketchCircularIconButton(
 /**
  * Standardized Filter Chip across Tasks, Habits, Tools, Calendar.
  */
+/**
+ * Standardized Liquid Glass Filter Chip across Tasks, Habits, Tools, Calendar.
+ * Understated, refined translucent glass stadium pill with hairline rim and crisp text.
+ */
 @Composable
 fun SketchFilterChip(
   label: String,
@@ -1539,27 +1476,45 @@ fun SketchFilterChip(
   testTag: String? = null
 ) {
   val active = selected || isSelected
+  val isDark = LocalAppColors.current.isDark
+
   val bg by animateColorAsState(
-    targetValue = if (active) PillBackgroundDark else Color.Transparent,
+    targetValue = if (active) {
+      if (isDark) Color(0x28FFFFFF) else Color(0xEEFFFFFF)
+    } else {
+      if (isDark) Color(0x1F181822) else Color(0x12000000)
+    },
     animationSpec = tween(180, easing = FastOutSlowInEasing),
     label = "chipBg"
   )
   val textCol by animateColorAsState(
-    targetValue = if (active) PillTextDark else InkPrimary,
+    targetValue = if (active) {
+      if (isDark) Color.White else Color(0xFF111113)
+    } else InkSecondary,
     animationSpec = tween(180, easing = FastOutSlowInEasing),
     label = "chipText"
   )
-  val borderCol = if (active) PillBackgroundDark else CardBorder
+  val borderBrush = if (active) {
+    Brush.verticalGradient(
+      if (isDark) listOf(Color(0x3EFFFFFF), Color(0x14FFFFFF))
+      else listOf(Color(0x70FFFFFF), Color(0x20000000))
+    )
+  } else {
+    Brush.verticalGradient(
+      if (isDark) listOf(Color(0x1CFFFFFF), Color(0x08FFFFFF))
+      else listOf(Color(0x30FFFFFF), Color(0x0C000000))
+    )
+  }
 
   Box(
     modifier = modifier
       .height(34.dp)
-      .border(1.dp, borderCol, RoundedCornerShape(10.dp))
-      .clip(RoundedCornerShape(10.dp))
+      .clip(CircleShape)
       .background(bg)
+      .border(0.7.dp, borderBrush, CircleShape)
       .elasticStretchPress(
-        horizontalStretch = 1.06f,
-        verticalSquash = 0.93f,
+        horizontalStretch = 1.05f,
+        verticalSquash = 0.94f,
         onClick = onClick
       )
       .padding(horizontal = 14.dp)
@@ -1571,7 +1526,7 @@ fun SketchFilterChip(
       style = TextStyle(
         fontFamily = SFProFontFamily,
         fontSize = 13.sp,
-        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+        fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
         color = textCol
       )
     )
@@ -1807,10 +1762,19 @@ fun SketchSegmentedControl(
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
 
-  SketchCard(
-    modifier = modifier.fillMaxWidth(),
-    cornerRadius = 14.dp,
-    borderWidth = 1.dp
+  Box(
+    modifier = modifier
+      .fillMaxWidth()
+      .clip(RoundedCornerShape(14.dp))
+      .background(if (isDark) Color(0x2C16161E) else Color(0x14000000))
+      .border(
+        width = 0.75.dp,
+        brush = Brush.verticalGradient(
+          if (isDark) listOf(Color(0x20FFFFFF), Color(0x08FFFFFF))
+          else listOf(Color(0x40FFFFFF), Color(0x10000000))
+        ),
+        shape = RoundedCornerShape(14.dp)
+      )
   ) {
     androidx.compose.foundation.layout.BoxWithConstraints(
       modifier = Modifier
@@ -1849,18 +1813,26 @@ fun SketchSegmentedControl(
         label = "segmentOffset"
       )
 
-      // 1. Single Continuous Physical Sliding Indicator Capsule
+      // 1. Single Continuous Optical Translucent Floating Glass Lens
       Box(
         modifier = Modifier
           .offset(x = animatedOffset)
           .width(segmentWidth)
           .height(34.dp)
+          .shadow(
+            elevation = if (isDark) 2.dp else 1.dp,
+            shape = RoundedCornerShape(10.dp),
+            ambientColor = Color(0x20000000)
+          )
           .clip(RoundedCornerShape(10.dp))
-          .background(PillBackgroundDark)
+          .background(if (isDark) Color(0x28FFFFFF) else Color.White)
           .border(
-            1.dp,
-            PillBackgroundDark,
-            RoundedCornerShape(10.dp)
+            width = 0.7.dp,
+            brush = Brush.verticalGradient(
+              if (isDark) listOf(Color(0x3EFFFFFF), Color(0x14FFFFFF))
+              else listOf(Color(0x60FFFFFF), Color(0x18000000))
+            ),
+            shape = RoundedCornerShape(10.dp)
           )
       )
 
@@ -1873,7 +1845,7 @@ fun SketchSegmentedControl(
           val isSelected = index == selectedIndex
           val animatedTextColor by animateColorAsState(
             targetValue = if (isSelected) {
-              PillTextDark
+              if (isDark) Color.White else Color(0xFF111113)
             } else InkSecondary,
             animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
             label = "segText_$index"
@@ -1988,8 +1960,8 @@ fun SketchInputField(
 }
 
 /**
- * Standardized, production-grade Search Bar component.
- * Fixes fake cursor bug, overlay displacement, and provides smooth focus state & clear action.
+ * Standardized Liquid Glass Search Bar component.
+ * Uses refined translucent glass input surface with smooth focus state and clear action.
  */
 @Composable
 fun SketchSearchBar(
@@ -2000,88 +1972,15 @@ fun SketchSearchBar(
   onClear: () -> Unit = { onQueryChange("") },
   leadingIcon: @Composable (() -> Unit)? = null
 ) {
-  var isFocused by remember { mutableStateOf(false) }
-  val borderColor by animateColorAsState(
-    targetValue = if (isFocused) InkPrimary else CardBorder,
-    animationSpec = tween(180, easing = FastOutSlowInEasing),
-    label = "searchBorder"
+  GlassInput(
+    value = query,
+    onValueChange = onQueryChange,
+    modifier = modifier,
+    placeholder = placeholder,
+    isSearch = true,
+    leadingIcon = leadingIcon,
+    onClear = onClear
   )
-
-  SketchCard(
-    modifier = modifier.fillMaxWidth(),
-    cornerRadius = 14.dp,
-    borderColor = borderColor,
-    borderWidth = 1.dp
-  ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 14.dp, vertical = 8.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      if (leadingIcon != null) {
-        leadingIcon()
-        Spacer(modifier = Modifier.width(10.dp))
-      } else {
-        Icon(
-          imageVector = Icons.Default.Search,
-          contentDescription = "Search",
-          tint = if (isFocused) InkPrimary else InkSecondary,
-          modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-      }
-
-      Box(
-        modifier = Modifier.weight(1f),
-        contentAlignment = Alignment.CenterStart
-      ) {
-        if (query.isEmpty()) {
-          Text(
-            text = placeholder,
-            style = TextStyle(
-              fontFamily = SFProFontFamily,
-              fontSize = 15.sp,
-              color = InkMuted
-            )
-          )
-        }
-        BasicTextField(
-          value = query,
-          onValueChange = onQueryChange,
-          singleLine = true,
-          textStyle = TextStyle(
-            fontFamily = SFProFontFamily,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            color = InkPrimary
-          ),
-          cursorBrush = SolidColor(InkPrimary),
-          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-          modifier = Modifier
-            .fillMaxWidth()
-            .onFocusChanged { isFocused = it.isFocused }
-            .testTag("search_text_input")
-        )
-      }
-
-      if (query.isNotEmpty()) {
-        Box(
-          modifier = Modifier
-            .size(24.dp)
-            .bounceClick { onClear() },
-          contentAlignment = Alignment.Center
-        ) {
-          Icon(
-            imageVector = Icons.Default.Clear,
-            contentDescription = "Clear search",
-            tint = InkSecondary,
-            modifier = Modifier.size(18.dp)
-          )
-        }
-      }
-    }
-  }
 }
 
 /**

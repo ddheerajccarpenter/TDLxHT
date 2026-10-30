@@ -1292,54 +1292,38 @@ fun SketchBottomNavigationBar(
       .padding(horizontal = 16.dp, vertical = 8.dp),
     contentAlignment = Alignment.Center
   ) {
-    // Liquid Glass Floating Stadium Pill Navigation Dock (APK Exclusive)
+    // Liquid Glass Floating Stadium Pill Navigation Dock (Apple-Style Optical Material)
     Box(
       modifier = Modifier
         .fillMaxWidth()
         .height(64.dp)
         .shadow(
-          elevation = if (isDark) 18.dp else 12.dp,
+          elevation = if (isDark) 8.dp else 5.dp,
           shape = CircleShape,
-          ambientColor = if (isDark) Color(0x99000000) else Color(0x22000000),
-          spotColor = if (isDark) Color(0x75000000) else Color(0x18000000)
+          ambientColor = if (isDark) Color(0x30000000) else Color(0x10000000),
+          spotColor = if (isDark) Color(0x20000000) else Color(0x0A000000)
         )
         .clip(CircleShape)
         .background(
           color = if (isDark) com.example.ui.theme.CanonicalGlassFillElevatedDark else com.example.ui.theme.CanonicalGlassFillElevatedLight
         )
         .border(
-          width = 1.2.dp,
+          width = 0.75.dp,
           brush = Brush.verticalGradient(
             colors = if (isDark) {
               listOf(
                 com.example.ui.theme.CanonicalGlassBorderTopDark,
-                Color(0x18FFFFFF),
                 com.example.ui.theme.CanonicalGlassBorderBottomDark
               )
             } else {
               listOf(
                 com.example.ui.theme.CanonicalGlassBorderTopLight,
-                Color(0x22000000),
                 com.example.ui.theme.CanonicalGlassBorderBottomLight
               )
             }
           ),
           shape = CircleShape
-        )
-        .drawBehind {
-          // Top specular arc sheen - authentic visionOS / iOS 18 liquid glass refraction depth
-          drawRoundRect(
-            brush = Brush.verticalGradient(
-              colors = listOf(
-                if (isDark) com.example.ui.theme.CanonicalGlassSheenTopDark else com.example.ui.theme.CanonicalGlassSheenTopLight,
-                Color.Transparent
-              ),
-              startY = 0f,
-              endY = size.height * 0.45f
-            ),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
-          )
-        },
+        ),
       contentAlignment = Alignment.Center
     ) {
       Row(
@@ -1533,22 +1517,22 @@ private fun LiquidGlassNavItem(
             scaleY = liquidScale
           }
           .shadow(
-            elevation = if (isDark) 4.dp else 3.dp,
+            elevation = if (isDark) 2.dp else 1.dp,
             shape = CircleShape,
-            ambientColor = if (isDark) Color(0x60000000) else Color(0x18000000),
-            spotColor = if (isDark) Color(0x40000000) else Color(0x10000000)
+            ambientColor = Color(0x20000000),
+            spotColor = Color(0x10000000)
           )
           .clip(CircleShape)
           .background(
-            color = if (isDark) Color(0x2EFFFFFF) else Color(0x16000000)
+            color = if (isDark) Color(0x26FFFFFF) else Color(0x14000000)
           )
           .border(
-            width = 1.dp,
+            width = 0.6.dp,
             brush = Brush.verticalGradient(
               colors = if (isDark) {
-                listOf(Color(0x55FFFFFF), Color(0x15FFFFFF))
+                listOf(Color(0x38FFFFFF), Color(0x10FFFFFF))
               } else {
-                listOf(Color(0x35000000), Color(0x10000000))
+                listOf(Color(0x30000000), Color(0x0C000000))
               }
             ),
             shape = CircleShape

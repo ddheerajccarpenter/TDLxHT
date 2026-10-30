@@ -102,7 +102,7 @@ fun ReportsScreen(
     Box(modifier = modifier.fillMaxSize().paperDotBackground()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 24.dp)
+            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
         ) {
             // Header
             item {
@@ -533,11 +533,8 @@ private fun AiProductivitySection(
     val isDark = com.example.ui.theme.LocalAppColors.current.isDark
     val advisorAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
 
-    SketchCard(
+    GlassCard(
         modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 40),
-        backgroundColor = CardBackground,
-        borderColor = if (isDark) PrimaryAccentLime.copy(alpha = 0.45f) else CardBorder,
-        borderWidth = 1.dp,
         cornerRadius = 16.dp
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
@@ -620,24 +617,16 @@ private fun AiProductivitySection(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                PillBackgroundDark,
-                                RoundedCornerShape(8.dp)
-                            )
-                            .clip(RoundedCornerShape(8.dp))
-                            .bounceClick {
-                                onActionSuggestionClick?.invoke()
-                            }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    GlassButton(
+                        onClick = { onActionSuggestionClick?.invoke() }
                     ) {
                         Text(
                             text = actionSuggestion,
                             style = TextStyle(
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PillTextDark
+                                fontFamily = SFProFontFamily,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = InkPrimary
                             )
                         )
                     }
