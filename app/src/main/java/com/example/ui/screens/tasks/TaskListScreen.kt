@@ -357,7 +357,7 @@ fun TaskListScreen(
       } else {
         LazyColumn(
           modifier = Modifier.fillMaxWidth().weight(1f),
-          contentPadding = PaddingValues(bottom = com.example.ui.components.FloatingNavContentBottomPadding),
+          contentPadding = PaddingValues(bottom = com.example.ui.components.FloatingNavContentBottomPadding + 48.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
           items(filteredTasks, key = { it.id }) { task ->

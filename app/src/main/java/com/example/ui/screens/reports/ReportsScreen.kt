@@ -102,7 +102,7 @@ fun ReportsScreen(
     Box(modifier = modifier.fillMaxSize().paperDotBackground()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 32.dp)
+            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 24.dp)
         ) {
             // Header
             item {
@@ -208,7 +208,6 @@ fun ReportsScreen(
                     onGenerate = { viewModel.generateNapkinVisual() },
                     onRegenerate = { viewModel.generateNapkinVisual(forceRegenerate = true) }
                 )
-                Spacer(Modifier.height(32.dp))
             }
         }
     }

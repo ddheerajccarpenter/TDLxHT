@@ -71,6 +71,7 @@ import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.SketchCard
 import com.example.ui.components.SketchCheckbox
+import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.SketchFilterChip
 import com.example.ui.components.SketchSearchBar
 import com.example.ui.components.bounceClick
@@ -384,7 +385,7 @@ fun HabitListScreen(
       } else {
         LazyColumn(
           modifier = Modifier.fillMaxWidth().weight(1f),
-          contentPadding = PaddingValues(bottom = 155.dp),
+          contentPadding = PaddingValues(bottom = FloatingNavContentBottomPadding + 48.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
           items(filteredHabits, key = { it.id }) { habit ->

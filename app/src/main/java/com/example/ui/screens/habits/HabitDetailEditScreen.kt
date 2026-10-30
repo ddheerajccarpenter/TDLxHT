@@ -89,6 +89,7 @@ fun HabitDetailEditScreen(
   val completionRecords by viewModel.completionRecords.collectAsStateWithLifecycle()
 
   var name by remember { mutableStateOf(existingHabit?.name ?: "") }
+  var nameError by remember { mutableStateOf<String?>(null) }
   var description by remember { mutableStateOf(existingHabit?.description ?: "") }
 
   val defaultCategoryTags = listOf("Study", "Health", "Fitness", "Mindfulness", "Personal", "Productivity")
@@ -174,9 +175,11 @@ fun HabitDetailEditScreen(
               onClick = {
                 if (isSaving) return@GlassButton
                 if (name.isBlank()) {
+                  nameError = "Habit name is required"
                   Toast.makeText(context, "Please enter a habit name", Toast.LENGTH_SHORT).show()
                   return@GlassButton
                 }
+                nameError = null
                 isSaving = true
 
                 val finalCategory = if (selectedCategory == "Other") {
@@ -188,7 +191,7 @@ fun HabitDetailEditScreen(
                 val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
                 val finalReminderTime = reminderTimes.take(maxOf(1, targetValue.toInt())).joinToString(",")
 
-                if (isEditing && existingHabit != null) {
+                if (existingHabit != null) {
                   val updated = existingHabit.copy(
                     name = name.trim(),
                     description = description.trim(),
@@ -249,11 +252,23 @@ fun HabitDetailEditScreen(
 
         SketchInputField(
           value = name,
-          onValueChange = { name = it },
+          onValueChange = {
+            name = it
+            if (it.isNotBlank()) nameError = null
+          },
           placeholder = "Habit name (e.g. Daily Reading)",
           textStyle = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary),
           modifier = Modifier.fillMaxWidth()
         )
+
+        if (nameError != null) {
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(
+            text = nameError!!,
+            style = TextStyle(fontSize = 12.sp, color = AccentRed, fontWeight = FontWeight.Medium),
+            modifier = Modifier.padding(start = 4.dp)
+          )
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -761,9 +776,11 @@ fun HabitDetailEditScreen(
           onClick = {
             if (isSaving) return@GlassButton
             if (name.isBlank()) {
+              nameError = "Habit name is required"
               Toast.makeText(context, "Please enter a habit name", Toast.LENGTH_SHORT).show()
               return@GlassButton
             }
+            nameError = null
             isSaving = true
 
             val finalCategory = if (selectedCategory == "Other") {
@@ -775,7 +792,7 @@ fun HabitDetailEditScreen(
             val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             val finalReminderTime = reminderTimes.take(maxOf(1, targetValue.toInt())).joinToString(",")
 
-            if (isEditing && existingHabit != null) {
+            if (existingHabit != null) {
               val updated = existingHabit.copy(
                 name = name.trim(),
                 description = description.trim(),

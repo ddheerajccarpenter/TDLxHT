@@ -643,7 +643,7 @@ private fun MessageBanner(
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             Column {
-                if (isError && error != null) {
+                if (error != null) {
                     Text(
                         text = error.title,
                         style = TextStyle(

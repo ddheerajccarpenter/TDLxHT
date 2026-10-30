@@ -6,23 +6,55 @@ import androidx.compose.ui.graphics.Color
 
 // =========================================================================
 // TDlxHT Monochromatic Apple-Style Liquid Glass Design System
-// Main Background:       #151515 (Deep Charcoal Canvas)
-// Secondary Background:  #202020 (Elevated Panels)
-// Primary Text:          #F5F5F5 (Bright Text / Highlights)
-// Secondary Text:        #B8B8B8 (Muted Descriptions)
-// Muted Icons:           #969696 (Inactive Controls)
-// Glass Surface Fill:    #222226 with Translucency
-// Glass Border:          #FFFFFF with 20% alpha
+// Canonical tokens from designglass.md
+// Dark Canvas:           #151515 (Deep Charcoal Canvas)
+// Dark Secondary:        #1C1C1E (Elevated Panels)
+// Dark Glass Base:       rgba(37, 37, 42, 0.82)
+// Dark Text Primary:     #F5F5F7 (Bright Text / Highlights)
+// Dark Text Secondary:   #B0B0B8 (Muted Descriptions)
+// Dark Text Muted:       #7C7C85 (Inactive Controls)
 // =========================================================================
 
-val BrandCharcoalDark = Color(0xFF151515)
-val BrandCharcoalElevated = Color(0xFF202020)
-val BrandGlassSurface = Color(0xCC222226) // 80% opacity translucent charcoal
-val BrandTextPrimary = Color(0xFFF5F5F5)
-val BrandTextSecondary = Color(0xFFB8B8B8)
-val BrandTextMuted = Color(0xFF969696)
-val BrandGlassBorder = Color(0x38FFFFFF) // 22% white highlight border
-val BrandGlassHighlight = Color(0x4DFFFFFF) // Specular top rim
+// Canonical Dark Tokens (designglass.md)
+val CanonicalCanvasDark = Color(0xFF151515)
+val CanonicalCanvasSecondaryDark = Color(0xFF1C1C1E)
+val CanonicalGlassFillBaseDark = Color(0xD125252A) // rgba(37, 37, 42, 0.82)
+val CanonicalGlassFillElevatedDark = Color(0xE0303037) // rgba(48, 48, 55, 0.88)
+val CanonicalGlassFillSubtleDark = Color(0xA619191C) // rgba(25, 25, 28, 0.65)
+val CanonicalGlassBorderTopDark = Color(0x47FFFFFF) // rgba(255, 255, 255, 0.28)
+val CanonicalGlassBorderBottomDark = Color(0x0FFFFFFF) // rgba(255, 255, 255, 0.06)
+val CanonicalGlassSheenTopDark = Color(0x33FFFFFF) // rgba(255, 255, 255, 0.20)
+val CanonicalTextPrimaryDark = Color(0xFFF5F5F7)
+val CanonicalTextSecondaryDark = Color(0xFFB0B0B8)
+val CanonicalTextMutedDark = Color(0xFF7C7C85)
+val CanonicalDividerDark = Color(0x1AFFFFFF) // rgba(255, 255, 255, 0.10)
+val CanonicalAccentActionDark = Color(0xFFFFFFFF)
+val CanonicalDestructiveDark = Color(0xFFE05D5D)
+
+// Canonical Light Tokens (designglass.md)
+val CanonicalCanvasLight = Color(0xFFF5F5F7)
+val CanonicalCanvasSecondaryLight = Color(0xFFEBEBF0)
+val CanonicalGlassFillBaseLight = Color(0xD9FFFFFF) // rgba(255, 255, 255, 0.85)
+val CanonicalGlassFillElevatedLight = Color(0xF0FFFFFF) // rgba(255, 255, 255, 0.94)
+val CanonicalGlassFillSubtleLight = Color(0xB3F0F0F5) // rgba(240, 240, 245, 0.70)
+val CanonicalGlassBorderTopLight = Color(0xCCFFFFFF) // rgba(255, 255, 255, 0.80)
+val CanonicalGlassBorderBottomLight = Color(0x1F000000) // rgba(0, 0, 0, 0.12)
+val CanonicalGlassSheenTopLight = Color(0x73FFFFFF) // rgba(255, 255, 255, 0.45)
+val CanonicalTextPrimaryLight = Color(0xFF111113)
+val CanonicalTextSecondaryLight = Color(0xFF55555C)
+val CanonicalTextMutedLight = Color(0xFF8E8E93)
+val CanonicalDividerLight = Color(0x14000000) // rgba(0, 0, 0, 0.08)
+val CanonicalAccentActionLight = Color(0xFF000000)
+val CanonicalDestructiveLight = Color(0xFFD32F2F)
+
+val BrandCharcoalDark = CanonicalCanvasDark
+val BrandCharcoalElevated = CanonicalCanvasSecondaryDark
+val BrandGlassSurface = CanonicalGlassFillBaseDark
+val BrandTextPrimary = CanonicalTextPrimaryDark
+val BrandTextSecondary = CanonicalTextSecondaryDark
+val BrandTextMuted = CanonicalTextMutedDark
+val BrandGlassBorder = CanonicalGlassBorderTopDark
+val BrandGlassHighlight = CanonicalGlassSheenTopDark
 
 // Aliases for system compatibility
 val BrandDarkGrey = BrandCharcoalDark
@@ -42,7 +74,7 @@ val PaletteMintLeaf = BrandTextPrimary
 val GrapeCanvasDark = BrandCharcoalDark
 val GrapeSurfaceSoft = BrandCharcoalElevated
 val GrapeSurfaceCard = BrandGlassSurface
-val GrapeSurfaceElevated = Color(0xD92A2A2E)
+val GrapeSurfaceElevated = CanonicalGlassFillElevatedDark
 val GrapeHairline = BrandGlassBorder
 val GrapeHairlineStrong = Color(0x4DFFFFFF)
 
@@ -65,34 +97,34 @@ val BugattiMutedSoft = BrandTextMuted
 val BugattiLink = BrandTextPrimary
 val BugattiWarning = BrandTextPrimary
 val BugattiSuccess = BrandTextPrimary
-val BugattiDanger = Color(0xFFE05D5D)
+val BugattiDanger = CanonicalDestructiveDark
 
 // --- Light Mode Tokens (Clean White Canvas & Translucent Soft Surfaces) ---
-val LightCanvas = Color(0xFFFAFAFC)
-val LightCanvasSoft = Color(0xFFF0F0F3)
-val LightSurfaceCard = Color(0xEEFFFFFF)
-val LightHairline = Color(0x28000000)
-val LightHairlineStrong = Color(0x40000000)
+val LightCanvas = CanonicalCanvasLight
+val LightCanvasSoft = CanonicalCanvasSecondaryLight
+val LightSurfaceCard = CanonicalGlassFillBaseLight
+val LightHairline = CanonicalDividerLight
+val LightHairlineStrong = Color(0x30000000)
 
-val LightInkPrimary = Color(0xFF151515)
-val LightInkSecondary = Color(0xFF6E6E73)
-val LightInkMuted = Color(0xFF86868B)
+val LightInkPrimary = CanonicalTextPrimaryLight
+val LightInkSecondary = CanonicalTextSecondaryLight
+val LightInkMuted = CanonicalTextMutedLight
 
 val MobbinCanvas = LightCanvas
 val MobbinCanvasSoft = LightCanvasSoft
-val MobbinField = Color(0xFFEAEAEA)
+val MobbinField = Color(0xFFEBEBF0)
 val MobbinHairline = LightHairline
-val MobbinHairlineSoft = Color(0x18000000)
+val MobbinHairlineSoft = Color(0x10000000)
 
 val MobbinInk = LightInkPrimary
 val MobbinInkSoft = LightInkSecondary
 val MobbinTextMuted = LightInkMuted
 val MobbinTextFaint = Color(0xFFA1A1A6)
-val MobbinAccent = LightInkPrimary
+val MobbinAccent = CanonicalAccentActionLight
 
 val MobbinSuccess = LightInkPrimary
 val MobbinWarning = LightInkPrimary
-val MobbinDanger = Color(0xFFD32F2F)
+val MobbinDanger = CanonicalDestructiveLight
 
 data class AppColors(
   val paperBackground: Color,

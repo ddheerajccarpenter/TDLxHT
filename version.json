@@ -1,9 +1,9 @@
 {
-  "version": "2.4.3",
-  "versionCode": 30,
-  "filename": "TDLxHT.2.4.3.apk",
-  "apkUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.3/TDLxHT.2.4.3.apk",
+  "version": "2.4.4",
+  "versionCode": 31,
+  "filename": "TDLxHT.2.4.4.apk",
+  "apkUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.4/TDLxHT.2.4.4.apk",
   "fallbackUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/latest/download/TDlxHT.apk",
-  "githubReleaseUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.4.3",
+  "githubReleaseUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.4.4",
   "releaseDate": "2026-10-30"
 }

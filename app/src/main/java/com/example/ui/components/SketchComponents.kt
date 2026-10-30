@@ -32,6 +32,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -172,10 +175,15 @@ fun Modifier.paperDotBackground(): Modifier {
 }
 
 /**
- * Standard content bottom clearance for all scrolling screens above the floating navigation dock.
- * Ensures the last card/item is 100% visible and interactable.
+ * Inset-aware dynamic content bottom clearance for all scrolling screens above the floating navigation dock.
+ * Calculates clearance from dock height (64dp), vertical dock padding (16dp), system navigation/gesture inset,
+ * and an intentional content clearance gap (24dp) ensuring the bottom-most CTA / card is 100% visible and interactable.
  */
-val FloatingNavContentBottomPadding: Dp = 155.dp
+val FloatingNavContentBottomPadding: Dp
+  @Composable get() {
+    val navInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    return 64.dp + 16.dp + navInsets + 24.dp
+  }
 
 /**
  * Coherent physical motion specifications.
@@ -811,15 +819,15 @@ fun GlassButton(
       )
       .clip(CircleShape)
       .background(
-        color = if (isDark) Color(0xD825252A) else Color(0xE8FFFFFF)
+        color = if (isDark) com.example.ui.theme.CanonicalGlassFillBaseDark else com.example.ui.theme.CanonicalGlassFillBaseLight
       )
       .border(
         width = 1.dp,
         brush = Brush.verticalGradient(
           colors = if (isDark) {
-            listOf(Color(0x50FFFFFF), Color(0x18FFFFFF))
+            listOf(com.example.ui.theme.CanonicalGlassBorderTopDark, com.example.ui.theme.CanonicalGlassBorderBottomDark)
           } else {
-            listOf(Color(0x65FFFFFF), Color(0x20000000))
+            listOf(com.example.ui.theme.CanonicalGlassBorderTopLight, com.example.ui.theme.CanonicalGlassBorderBottomLight)
           }
         ),
         shape = CircleShape
@@ -829,7 +837,7 @@ fun GlassButton(
         drawRoundRect(
           brush = Brush.verticalGradient(
             colors = listOf(
-              if (isDark) Color(0x2EFFFFFF) else Color(0x45FFFFFF),
+              if (isDark) com.example.ui.theme.CanonicalGlassSheenTopDark else com.example.ui.theme.CanonicalGlassSheenTopLight,
               Color.Transparent
             ),
             startY = 0f,
@@ -881,15 +889,15 @@ fun GlassButton(
       )
       .clip(CircleShape)
       .background(
-        color = if (isDark) Color(0xD825252A) else Color(0xEBFFFFFF)
+        color = if (isDark) com.example.ui.theme.CanonicalGlassFillBaseDark else com.example.ui.theme.CanonicalGlassFillBaseLight
       )
       .border(
         width = 1.dp,
         brush = Brush.verticalGradient(
           colors = if (isDark) {
-            listOf(Color(0x55FFFFFF), Color(0x18FFFFFF))
+            listOf(com.example.ui.theme.CanonicalGlassBorderTopDark, com.example.ui.theme.CanonicalGlassBorderBottomDark)
           } else {
-            listOf(Color(0x80FFFFFF), Color(0x22000000))
+            listOf(com.example.ui.theme.CanonicalGlassBorderTopLight, com.example.ui.theme.CanonicalGlassBorderBottomLight)
           }
         ),
         shape = CircleShape
@@ -898,7 +906,7 @@ fun GlassButton(
         drawRoundRect(
           brush = Brush.verticalGradient(
             colors = listOf(
-              if (isDark) Color(0x33FFFFFF) else Color(0x50FFFFFF),
+              if (isDark) com.example.ui.theme.CanonicalGlassSheenTopDark else com.example.ui.theme.CanonicalGlassSheenTopLight,
               Color.Transparent
             ),
             startY = 0f,

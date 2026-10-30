@@ -99,6 +99,7 @@ fun TaskDetailEditScreen(
   val isEditing = existingTask != null
 
   var title by remember { mutableStateOf(existingTask?.title ?: "") }
+  var titleError by remember { mutableStateOf<String?>(null) }
   var notes by remember { mutableStateOf(existingTask?.notes ?: "") }
   var isShortTerm by remember { mutableStateOf(existingTask?.isShortTerm ?: initialIsShortTerm) }
 
@@ -165,9 +166,11 @@ fun TaskDetailEditScreen(
               onClick = {
                 if (isSaving) return@GlassButton
                 if (title.isBlank()) {
+                  titleError = "Task name is required"
                   Toast.makeText(context, "Please enter a task name", Toast.LENGTH_SHORT).show()
                   return@GlassButton
                 }
+                titleError = null
                 isSaving = true
 
                 val finalCategory = if (selectedCategory == "Other") {
@@ -179,7 +182,7 @@ fun TaskDetailEditScreen(
                 val dueDateStr = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
                 val finalReminder = if (reminderEnabled) reminderOption else ReminderOption.NONE
 
-                if (isEditing && existingTask != null) {
+                if (existingTask != null) {
                   val updated = existingTask.copy(
                     title = title.trim(),
                     notes = notes.trim(),
@@ -246,11 +249,23 @@ fun TaskDetailEditScreen(
 
         SketchInputField(
           value = title,
-          onValueChange = { title = it },
+          onValueChange = {
+            title = it
+            if (it.isNotBlank()) titleError = null
+          },
           placeholder = "Task name",
           textStyle = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary),
           modifier = Modifier.fillMaxWidth()
         )
+
+        if (titleError != null) {
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(
+            text = titleError!!,
+            style = TextStyle(fontSize = 12.sp, color = AccentRed, fontWeight = FontWeight.Medium),
+            modifier = Modifier.padding(start = 4.dp)
+          )
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
 

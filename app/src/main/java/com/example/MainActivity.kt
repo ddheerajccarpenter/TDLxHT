@@ -1305,22 +1305,22 @@ fun SketchBottomNavigationBar(
         )
         .clip(CircleShape)
         .background(
-          color = if (isDark) Color(0xD8202022) else Color(0xDEFAFBFD)
+          color = if (isDark) com.example.ui.theme.CanonicalGlassFillElevatedDark else com.example.ui.theme.CanonicalGlassFillElevatedLight
         )
         .border(
           width = 1.2.dp,
           brush = Brush.verticalGradient(
             colors = if (isDark) {
               listOf(
-                Color(0x66FFFFFF),
-                Color(0x1EFFFFFF),
-                Color(0x08FFFFFF)
+                com.example.ui.theme.CanonicalGlassBorderTopDark,
+                Color(0x18FFFFFF),
+                com.example.ui.theme.CanonicalGlassBorderBottomDark
               )
             } else {
               listOf(
-                Color(0xC0FFFFFF),
-                Color(0x35000000),
-                Color(0x18000000)
+                com.example.ui.theme.CanonicalGlassBorderTopLight,
+                Color(0x22000000),
+                com.example.ui.theme.CanonicalGlassBorderBottomLight
               )
             }
           ),
@@ -1331,7 +1331,7 @@ fun SketchBottomNavigationBar(
           drawRoundRect(
             brush = Brush.verticalGradient(
               colors = listOf(
-                if (isDark) Color(0x28FFFFFF) else Color(0x40FFFFFF),
+                if (isDark) com.example.ui.theme.CanonicalGlassSheenTopDark else com.example.ui.theme.CanonicalGlassSheenTopLight,
                 Color.Transparent
               ),
               startY = 0f,

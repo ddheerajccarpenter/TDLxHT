@@ -120,6 +120,7 @@ class ShakeDetectionService : Service() {
 
         val activityOptions = android.app.ActivityOptions.makeBasic()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            @Suppress("DEPRECATION")
             activityOptions.setPendingIntentBackgroundActivityStartMode(
                 android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
             )

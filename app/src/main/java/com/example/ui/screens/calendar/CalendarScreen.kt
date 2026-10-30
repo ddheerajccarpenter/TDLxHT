@@ -67,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.HabitCompletionRecord
 import com.example.data.model.Task
+import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.SketchCard
@@ -173,7 +174,7 @@ fun CalendarScreen(
       modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp),
-      contentPadding = PaddingValues(top = 16.dp, bottom = 155.dp)
+      contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
     ) {
       // Header: Unified AppHeader
       item {
