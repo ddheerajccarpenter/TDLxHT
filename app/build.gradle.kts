@@ -60,6 +60,7 @@ android {
     }
   }
   compileOptions {
+    isCoreLibraryDesugaringEnabled = true
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
   }
@@ -145,6 +146,8 @@ dependencies {
   implementation(libs.kotlinx.serialization.json)
   // DataStore for settings persistence
   implementation(libs.androidx.datastore.preferences)
+  // Core library desugaring
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
   // Lottie Compose for Iconly & Flaticon animated icons
   implementation("com.airbnb.android:lottie-compose:6.6.2")
   testImplementation(libs.androidx.compose.ui.test.junit4)
