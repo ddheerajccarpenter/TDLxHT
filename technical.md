@@ -464,3 +464,4 @@ npm run release
   - Added `FloatingNavContentBottomPadding + 32.dp` content padding in `ReportsScreen.kt`.
   - Appended a 32dp trailing spacer at the bottom of the report view.
   - Converted the "Generate Visual Report" CTA to a standard `GlassButton`.
+
