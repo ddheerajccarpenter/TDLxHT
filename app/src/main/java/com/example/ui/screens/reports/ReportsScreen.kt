@@ -61,6 +61,8 @@ import com.example.data.service.AiProductivityInsight
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
 import com.example.ui.components.SketchSegmentedControl
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
@@ -100,7 +102,7 @@ fun ReportsScreen(
     Box(modifier = modifier.fillMaxSize().paperDotBackground()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding)
+            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 32.dp)
         ) {
             // Header
             item {
@@ -206,6 +208,7 @@ fun ReportsScreen(
                     onGenerate = { viewModel.generateNapkinVisual() },
                     onRegenerate = { viewModel.generateNapkinVisual(forceRegenerate = true) }
                 )
+                Spacer(Modifier.height(32.dp))
             }
         }
     }
@@ -439,21 +442,25 @@ private fun NapkinVisualSection(
 
 @Composable
 private fun GenerateButton(label: String, onClick: () -> Unit) {
-    Box(
+    GlassButton(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(46.dp)
-            .background(PillBackgroundDark, RoundedCornerShape(12.dp))
-            .border(1.5.dp, CardBorder, RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .bounceClick { onClick() }
+            .height(48.dp)
             .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.AutoAwesome, null, tint = PillTextDark, modifier = Modifier.size(18.dp))
-            Text(label, style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = PillTextDark))
+        icon = {
+            Icon(Icons.Default.AutoAwesome, null, tint = InkPrimary, modifier = Modifier.size(18.dp))
         }
+    ) {
+        Text(
+            text = label,
+            style = TextStyle(
+                fontFamily = SFProFontFamily,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = InkPrimary
+            )
+        )
     }
 }
 

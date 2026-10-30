@@ -57,6 +57,9 @@ import com.example.data.model.HabitFrequency
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassSwitch
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.bounceClick
 import com.example.ui.components.paperDotBackground
@@ -165,7 +168,67 @@ fun HabitDetailEditScreen(
       item {
         AppHeader(
           title = if (isEditing) "Edit Habit" else "New Habit",
-          onBack = onDismiss
+          onBack = onDismiss,
+          rightContent = {
+            GlassButton(
+              onClick = {
+                if (isSaving) return@GlassButton
+                if (name.isBlank()) {
+                  Toast.makeText(context, "Please enter a habit name", Toast.LENGTH_SHORT).show()
+                  return@GlassButton
+                }
+                isSaving = true
+
+                val finalCategory = if (selectedCategory == "Other") {
+                  if (customCategoryText.isNotBlank()) customCategoryText.trim() else "Other"
+                } else {
+                  selectedCategory
+                }
+
+                val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val finalReminderTime = reminderTimes.take(maxOf(1, targetValue.toInt())).joinToString(",")
+
+                if (isEditing && existingHabit != null) {
+                  val updated = existingHabit.copy(
+                    name = name.trim(),
+                    description = description.trim(),
+                    category = finalCategory,
+                    frequency = frequency,
+                    targetValue = targetValue,
+                    targetUnit = targetUnit,
+                    reminderTime = finalReminderTime,
+                    reminderEnabled = reminderEnabled
+                  )
+                  viewModel.updateHabit(updated)
+                } else {
+                  viewModel.createHabit(
+                    name = name.trim(),
+                    description = description.trim(),
+                    category = finalCategory,
+                    frequency = frequency,
+                    customDays = emptyList(),
+                    targetValue = targetValue,
+                    targetUnit = targetUnit,
+                    startDate = todayStr,
+                    reminderTime = finalReminderTime,
+                    reminderEnabled = reminderEnabled
+                  )
+                }
+                onDismiss()
+              },
+              modifier = Modifier.testTag("save_habit_header_btn")
+            ) {
+              Text(
+                text = "Save",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 15.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
+              )
+            }
+          }
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -433,15 +496,9 @@ fun HabitDetailEditScreen(
                 }
               }
 
-              Switch(
+              GlassSwitch(
                 checked = reminderEnabled,
                 onCheckedChange = { reminderEnabled = it },
-                colors = SwitchDefaults.colors(
-                  checkedThumbColor = PillTextDark,
-                  checkedTrackColor = PillBackgroundDark,
-                  uncheckedThumbColor = InkSecondary,
-                  uncheckedTrackColor = CardBorder.copy(alpha = 0.35f)
-                ),
                 modifier = Modifier.testTag("habit_reminder_switch")
               )
             }
@@ -480,15 +537,9 @@ fun HabitDetailEditScreen(
                   }
                 }
 
-                Switch(
+                GlassSwitch(
                   checked = reminderEnabled,
                   onCheckedChange = { reminderEnabled = it },
-                  colors = SwitchDefaults.colors(
-                    checkedThumbColor = PillTextDark,
-                    checkedTrackColor = PillBackgroundDark,
-                    uncheckedThumbColor = InkSecondary,
-                    uncheckedTrackColor = CardBorder.copy(alpha = 0.35f)
-                  ),
                   modifier = Modifier.testTag("habit_reminder_switch")
                 )
               }
@@ -704,70 +755,66 @@ fun HabitDetailEditScreen(
         }
       }
 
-      // SAVE HABIT BUTTON (Matching screenshot 7)
+      // SAVE HABIT BUTTON — Apple Liquid Glass Button
       item {
-        Box(
+        GlassButton(
+          onClick = {
+            if (isSaving) return@GlassButton
+            if (name.isBlank()) {
+              Toast.makeText(context, "Please enter a habit name", Toast.LENGTH_SHORT).show()
+              return@GlassButton
+            }
+            isSaving = true
+
+            val finalCategory = if (selectedCategory == "Other") {
+              if (customCategoryText.isNotBlank()) customCategoryText.trim() else "Other"
+            } else {
+              selectedCategory
+            }
+
+            val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+            val finalReminderTime = reminderTimes.take(maxOf(1, targetValue.toInt())).joinToString(",")
+
+            if (isEditing && existingHabit != null) {
+              val updated = existingHabit.copy(
+                name = name.trim(),
+                description = description.trim(),
+                category = finalCategory,
+                frequency = frequency,
+                targetValue = targetValue,
+                targetUnit = targetUnit,
+                reminderTime = finalReminderTime,
+                reminderEnabled = reminderEnabled
+              )
+              viewModel.updateHabit(updated)
+            } else {
+              viewModel.createHabit(
+                name = name.trim(),
+                description = description.trim(),
+                category = finalCategory,
+                frequency = frequency,
+                customDays = emptyList(),
+                targetValue = targetValue,
+                targetUnit = targetUnit,
+                startDate = todayStr,
+                reminderTime = finalReminderTime,
+                reminderEnabled = reminderEnabled
+              )
+            }
+            onDismiss()
+          },
           modifier = Modifier
             .fillMaxWidth()
-            .height(54.dp)
-            .background(PillBackgroundDark, RoundedCornerShape(16.dp))
-            .border(1.5.dp, CardBorder, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
-            .bounceClick {
-              if (isSaving) return@bounceClick
-              if (name.isBlank()) {
-                Toast.makeText(context, "Please enter a habit name", Toast.LENGTH_SHORT).show()
-                return@bounceClick
-              }
-              isSaving = true
-
-              val finalCategory = if (selectedCategory == "Other") {
-                if (customCategoryText.isNotBlank()) customCategoryText.trim() else "Other"
-              } else {
-                selectedCategory
-              }
-
-              val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-              val finalReminderTime = reminderTimes.take(maxOf(1, targetValue.toInt())).joinToString(",")
-
-              if (isEditing && existingHabit != null) {
-                val updated = existingHabit.copy(
-                  name = name.trim(),
-                  description = description.trim(),
-                  category = finalCategory,
-                  frequency = frequency,
-                  targetValue = targetValue,
-                  targetUnit = targetUnit,
-                  reminderTime = finalReminderTime,
-                  reminderEnabled = reminderEnabled
-                )
-                viewModel.updateHabit(updated)
-              } else {
-                viewModel.createHabit(
-                  name = name.trim(),
-                  description = description.trim(),
-                  category = finalCategory,
-                  frequency = frequency,
-                  customDays = emptyList(),
-                  targetValue = targetValue,
-                  targetUnit = targetUnit,
-                  startDate = todayStr,
-                  reminderTime = finalReminderTime,
-                  reminderEnabled = reminderEnabled
-                )
-              }
-              onDismiss()
-            }
-            .testTag("save_habit_btn"),
-          contentAlignment = Alignment.Center
+            .height(50.dp)
+            .testTag("save_habit_btn")
         ) {
           Text(
             text = "Save Habit",
             style = TextStyle(
               fontFamily = SFProFontFamily,
-              fontSize = 24.sp,
+              fontSize = 16.sp,
               fontWeight = FontWeight.Bold,
-              color = PillTextDark
+              color = InkPrimary
             )
           )
         }
@@ -778,15 +825,12 @@ fun HabitDetailEditScreen(
       // Delete Habit Button (if editing)
       if (isEditing) {
         item {
-          Box(
+          GlassButton(
+            onClick = { showDeleteDialog = true },
             modifier = Modifier
               .fillMaxWidth()
               .height(48.dp)
-              .border(1.5.dp, AccentRed, RoundedCornerShape(14.dp))
-              .clip(RoundedCornerShape(14.dp))
-              .bounceClick(scaleDown = 0.96f) { showDeleteDialog = true }
-              .testTag("delete_habit_btn"),
-            contentAlignment = Alignment.Center
+              .testTag("delete_habit_btn")
           ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Icon(
@@ -800,7 +844,7 @@ fun HabitDetailEditScreen(
                 text = "Delete Habit",
                 style = TextStyle(
                   fontFamily = SFProFontFamily,
-                  fontSize = 18.sp,
+                  fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = AccentRed
                 )

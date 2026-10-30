@@ -131,6 +131,7 @@ import com.example.ui.components.AnimatedDialogContent
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassSheet
 import com.example.ui.components.bounceClick
 import com.example.ui.components.elasticStretchPress
 import com.example.ui.screens.auth.AuthenticationScreen
@@ -595,202 +596,191 @@ fun MainApp(
     }
   }
 
-  // Quick Create Sheet for Global Quick Add "+"
-  if (isQuickAddSheetOpen) {
+  // Quick Create Sheet for Global Quick Add "+" — Apple Liquid Glass Sheet
+  GlassSheet(
+    visible = isQuickAddSheetOpen,
+    onDismissRequest = { isQuickAddSheetOpen = false }
+  ) {
     val isDark = com.example.ui.theme.LocalAppColors.current.isDark
     val optionIconAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
 
-    Dialog(onDismissRequest = { isQuickAddSheetOpen = false }) {
-      AnimatedDialogContent {
-        SketchCard(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        cornerRadius = 20.dp,
-        borderWidth = 1.dp,
-        backgroundColor = CardBackground,
-        borderColor = CardBorder
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(
+        text = "Quick Create",
+        style = TextStyle(
+          fontFamily = SFProFontFamily,
+          fontSize = 20.sp,
+          fontWeight = FontWeight.Bold,
+          color = InkPrimary
+        )
+      )
+
+      GlassButton(
+        onClick = { isQuickAddSheetOpen = false },
+        contentDescription = "Close",
+        size = 34.dp
       ) {
-        Column(
+        Icon(
+          Icons.Default.Close,
+          contentDescription = null,
+          tint = InkPrimary,
+          modifier = Modifier.size(16.dp)
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(18.dp))
+
+    // Option 1: New Task
+    GlassCard(
+      modifier = Modifier
+        .fillMaxWidth()
+        .bounceClick {
+          isQuickAddSheetOpen = false
+          isCreatingTask = true
+        },
+      cornerRadius = 16.dp,
+      elevation = 2.dp
+    ) {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Box(
           modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(optionIconAccent.copy(alpha = 0.14f))
+            .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+          contentAlignment = Alignment.Center
         ) {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Text(
-              text = "Quick Create",
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = InkPrimary
-              )
+          AnimatedIcon(
+            resId = R.raw.anim_productivity,
+            isSelected = true,
+            tint = optionIconAccent,
+            size = 24.dp
+          )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(
+          text = "New Task",
+          style = TextStyle(
+            fontFamily = SFProFontFamily,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = InkPrimary
+          )
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    // Option 2: New Habit
+    GlassCard(
+      modifier = Modifier
+        .fillMaxWidth()
+        .bounceClick {
+          isQuickAddSheetOpen = false
+          isCreatingHabit = true
+        },
+      cornerRadius = 16.dp,
+      elevation = 2.dp
+    ) {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Box(
+          modifier = Modifier
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(optionIconAccent.copy(alpha = 0.14f))
+            .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+          contentAlignment = Alignment.Center
+        ) {
+          AnimatedIcon(
+            resId = R.raw.anim_today,
+            isSelected = true,
+            tint = optionIconAccent,
+            size = 24.dp
+          )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(
+          text = "New Habit",
+          style = TextStyle(
+            fontFamily = SFProFontFamily,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = InkPrimary
+          )
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    // Option 3: Short-term Task (Auto-removes upon completion, local record only)
+    GlassCard(
+      modifier = Modifier
+        .fillMaxWidth()
+        .bounceClick {
+          isQuickAddSheetOpen = false
+          isCreatingShortTermTask = true
+          isCreatingTask = true
+        },
+      cornerRadius = 16.dp,
+      elevation = 2.dp
+    ) {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Box(
+          modifier = Modifier
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(optionIconAccent.copy(alpha = 0.14f))
+            .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+          contentAlignment = Alignment.Center
+        ) {
+          Icon(
+            imageVector = Icons.Default.Check,
+            contentDescription = null,
+            tint = optionIconAccent,
+            modifier = Modifier.size(22.dp)
+          )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column {
+          Text(
+            text = "Short-term Task",
+            style = TextStyle(
+              fontFamily = SFProFontFamily,
+              fontSize = 16.sp,
+              fontWeight = FontWeight.Bold,
+              color = InkPrimary
             )
-
-            Box(
-              modifier = Modifier
-                .size(36.dp)
-                .border(1.dp, CardBorder, CircleShape)
-                .clip(CircleShape)
-                .background(CardBackground)
-                .bounceClick { isQuickAddSheetOpen = false },
-              contentAlignment = Alignment.Center
-            ) {
-              Icon(
-                Icons.Default.Close,
-                contentDescription = "Close",
-                tint = InkPrimary,
-                modifier = Modifier.size(17.dp)
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(18.dp))
-
-          // Option 1: New Task
-          Box(
-            modifier = Modifier
-              .fillMaxWidth()
-              .border(1.2.dp, CardBorder, RoundedCornerShape(14.dp))
-              .clip(RoundedCornerShape(14.dp))
-              .background(if (isDark) BrandSand.copy(alpha = 0.08f) else BrandCyprus.copy(alpha = 0.04f))
-              .bounceClick {
-                isQuickAddSheetOpen = false
-                isCreatingTask = true
-              }
-              .padding(14.dp)
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                modifier = Modifier
-                  .size(42.dp)
-                  .clip(CircleShape)
-                  .background(optionIconAccent.copy(alpha = 0.14f))
-                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
-                contentAlignment = Alignment.Center
-              ) {
-                AnimatedIcon(
-                  resId = R.raw.anim_productivity,
-                  isSelected = true,
-                  tint = optionIconAccent,
-                  size = 24.dp
-                )
-              }
-              Spacer(modifier = Modifier.width(14.dp))
-              Text(
-                text = "New Task",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
-                )
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          // Option 2: New Habit
-          Box(
-            modifier = Modifier
-              .fillMaxWidth()
-              .border(1.2.dp, CardBorder, RoundedCornerShape(14.dp))
-              .clip(RoundedCornerShape(14.dp))
-              .background(if (isDark) BrandSand.copy(alpha = 0.08f) else BrandCyprus.copy(alpha = 0.04f))
-              .bounceClick {
-                isQuickAddSheetOpen = false
-                isCreatingHabit = true
-              }
-              .padding(14.dp)
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                modifier = Modifier
-                  .size(42.dp)
-                  .clip(CircleShape)
-                  .background(optionIconAccent.copy(alpha = 0.14f))
-                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
-                contentAlignment = Alignment.Center
-              ) {
-                AnimatedIcon(
-                  resId = R.raw.anim_today,
-                  isSelected = true,
-                  tint = optionIconAccent,
-                  size = 24.dp
-                )
-              }
-              Spacer(modifier = Modifier.width(14.dp))
-              Text(
-                text = "New Habit",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
-                )
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          // Option 3: Short-term Task (Auto-removes upon completion, local record only)
-          Box(
-            modifier = Modifier
-              .fillMaxWidth()
-              .border(1.2.dp, CardBorder, RoundedCornerShape(14.dp))
-              .clip(RoundedCornerShape(14.dp))
-              .background(if (isDark) BrandSand.copy(alpha = 0.08f) else BrandCyprus.copy(alpha = 0.04f))
-              .bounceClick {
-                isQuickAddSheetOpen = false
-                isCreatingShortTermTask = true
-                isCreatingTask = true
-              }
-              .padding(14.dp)
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                modifier = Modifier
-                  .size(42.dp)
-                  .clip(CircleShape)
-                  .background(optionIconAccent.copy(alpha = 0.14f))
-                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
-                contentAlignment = Alignment.Center
-              ) {
-                Icon(
-                  imageVector = Icons.Default.Check,
-                  contentDescription = null,
-                  tint = optionIconAccent,
-                  modifier = Modifier.size(22.dp)
-                )
-              }
-              Spacer(modifier = Modifier.width(14.dp))
-              Column {
-                Text(
-                  text = "Short-term Task",
-                  style = TextStyle(
-                    fontFamily = SFProFontFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = InkPrimary
-                  )
-                )
-                Text(
-                  text = "Auto-removes when done • Local record only",
-                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
-                )
-              }
-            }
-          }
+          )
+          Text(
+            text = "Auto-removes when done • Local record only",
+            style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+          )
         }
       }
     }
-  }
+    Spacer(modifier = Modifier.height(8.dp))
   }
 
   // Single-time first launch permission dialog

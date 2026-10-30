@@ -1033,6 +1033,360 @@ fun GlassSegmented(
 }
 
 /**
+ * Apple-Style Liquid Glass Switch Toggle.
+ * Features a translucent rounded track with a 1px glass border,
+ * specular highlight, and a spring-animated white glass thumb.
+ */
+@Composable
+fun GlassSwitch(
+  checked: Boolean,
+  onCheckedChange: (Boolean) -> Unit,
+  modifier: Modifier = Modifier,
+  enabled: Boolean = true
+) {
+  val isDark = LocalAppColors.current.isDark
+  val context = LocalContext.current
+  val density = LocalDensity.current
+
+  val trackWidth = 50.dp
+  val trackHeight = 30.dp
+  val thumbSize = 24.dp
+  val thumbPadding = 3.dp
+
+  val maxThumbOffset = with(density) { (trackWidth - thumbSize - (thumbPadding * 2)).toPx() }
+  val targetOffset = if (checked) maxThumbOffset else 0f
+
+  val animatedOffset by animateFloatAsState(
+    targetValue = targetOffset,
+    animationSpec = spring(
+      dampingRatio = 0.75f,
+      stiffness = 500f
+    ),
+    label = "glassSwitchOffset"
+  )
+
+  val trackBgColor by animateColorAsState(
+    targetValue = if (checked) {
+      if (isDark) Color(0xCC3A3A40) else Color(0xE01C1C1E)
+    } else {
+      if (isDark) Color(0x80252528) else Color(0x308E8E93)
+    },
+    animationSpec = tween(180),
+    label = "glassSwitchTrackBg"
+  )
+
+  Box(
+    modifier = modifier
+      .size(width = trackWidth, height = trackHeight)
+      .clip(CircleShape)
+      .background(trackBgColor)
+      .border(
+        width = 1.dp,
+        brush = Brush.verticalGradient(
+          colors = if (isDark) {
+            listOf(Color(0x55FFFFFF), Color(0x15FFFFFF))
+          } else {
+            listOf(Color(0x80FFFFFF), Color(0x20000000))
+          }
+        ),
+        shape = CircleShape
+      )
+      .clickable(enabled = enabled) {
+        VibrationHelper.tick(context)
+        onCheckedChange(!checked)
+      }
+      .padding(thumbPadding),
+    contentAlignment = Alignment.CenterStart
+  ) {
+    Box(
+      modifier = Modifier
+        .graphicsLayer { translationX = animatedOffset }
+        .size(thumbSize)
+        .shadow(
+          elevation = if (isDark) 4.dp else 2.dp,
+          shape = CircleShape,
+          ambientColor = Color.Black.copy(alpha = 0.4f),
+          spotColor = Color.Black.copy(alpha = 0.25f)
+        )
+        .clip(CircleShape)
+        .background(if (checked && !isDark) Color.White else Color(0xFFF5F5F7))
+        .border(
+          width = 0.8.dp,
+          brush = Brush.verticalGradient(
+            listOf(Color(0x60FFFFFF), Color(0x18FFFFFF))
+          ),
+          shape = CircleShape
+        )
+        .drawBehind {
+          drawRoundRect(
+            brush = Brush.verticalGradient(
+              colors = listOf(Color(0x50FFFFFF), Color.Transparent),
+              startY = 0f,
+              endY = size.height * 0.45f
+            ),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
+          )
+        }
+    )
+  }
+}
+
+/**
+ * Apple-Style Liquid Glass Continuous Slider.
+ * Provides a translucent glass track, filled progress with specular sheen,
+ * and an optional tactile circular glass thumb.
+ */
+@Composable
+fun GlassSlider(
+  value: Float,
+  onValueChange: (Float) -> Unit,
+  modifier: Modifier = Modifier,
+  valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+  showThumb: Boolean = true,
+  enabled: Boolean = true
+) {
+  val isDark = LocalAppColors.current.isDark
+  val clampedValue = value.coerceIn(valueRange.start, valueRange.endInclusive)
+  val fraction = if (valueRange.endInclusive > valueRange.start) {
+    (clampedValue - valueRange.start) / (valueRange.endInclusive - valueRange.start)
+  } else 0f
+
+  BoxWithConstraints(
+    modifier = modifier
+      .fillMaxWidth()
+      .height(if (showThumb) 36.dp else 24.dp),
+    contentAlignment = Alignment.CenterStart
+  ) {
+    val totalWidth = maxWidth
+    val trackHeight = if (showThumb) 8.dp else 18.dp
+
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(trackHeight)
+        .clip(CircleShape)
+        .background(if (isDark) Color(0x80222226) else Color(0x25000000))
+        .border(
+          width = 1.dp,
+          brush = Brush.verticalGradient(
+            listOf(Color(0x40FFFFFF), Color(0x10FFFFFF))
+          ),
+          shape = CircleShape
+        )
+    ) {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth(fraction)
+          .fillMaxHeight()
+          .clip(CircleShape)
+          .background(if (isDark) Color(0xEEFFFFFF) else Color(0xEE1C1C1E))
+          .drawBehind {
+            drawRoundRect(
+              brush = Brush.verticalGradient(
+                listOf(Color(0x50FFFFFF), Color.Transparent),
+                startY = 0f,
+                endY = size.height * 0.5f
+              ),
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2, size.height / 2)
+            )
+          }
+      )
+    }
+
+    if (showThumb) {
+      val density = LocalDensity.current
+      val thumbSize = 24.dp
+      val maxPx = with(density) { (totalWidth - thumbSize).toPx() }
+      val currentPx = maxPx * fraction
+
+      Box(
+        modifier = Modifier
+          .graphicsLayer { translationX = currentPx }
+          .size(thumbSize)
+          .shadow(4.dp, CircleShape)
+          .clip(CircleShape)
+          .background(if (isDark) Color(0xFFF5F5F7) else Color.White)
+          .border(1.dp, Color(0x30FFFFFF), CircleShape)
+      )
+    }
+  }
+}
+
+/**
+ * Apple-Style Liquid Glass Input Field.
+ * Supports text, search, and form inputs with a translucent glass background,
+ * subtle 1px specular bevel, clear focus state, and clear button.
+ */
+@Composable
+fun GlassInput(
+  value: String,
+  onValueChange: (String) -> Unit,
+  modifier: Modifier = Modifier,
+  placeholder: String = "",
+  isSearch: Boolean = false,
+  leadingIcon: (@Composable () -> Unit)? = null,
+  trailingIcon: (@Composable () -> Unit)? = null,
+  onClear: (() -> Unit)? = null
+) {
+  val isDark = LocalAppColors.current.isDark
+  var isFocused by remember { mutableStateOf(false) }
+
+  Box(
+    modifier = modifier
+      .fillMaxWidth()
+      .height(46.dp)
+      .clip(RoundedCornerShape(14.dp))
+      .background(
+        if (isDark) Color(0xCC1A1A1E) else Color(0xE5FFFFFF)
+      )
+      .border(
+        width = 1.dp,
+        brush = Brush.verticalGradient(
+          if (isFocused) {
+            listOf(Color(0x90FFFFFF), Color(0x40FFFFFF))
+          } else {
+            listOf(Color(0x40FFFFFF), Color(0x10FFFFFF))
+          }
+        ),
+        shape = RoundedCornerShape(14.dp)
+      )
+      .drawBehind {
+        drawRoundRect(
+          brush = Brush.verticalGradient(
+            listOf(Color(0x18FFFFFF), Color.Transparent),
+            startY = 0f,
+            endY = size.height * 0.45f
+          ),
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(14.dp.toPx(), 14.dp.toPx())
+        )
+      }
+      .padding(horizontal = 14.dp),
+    contentAlignment = Alignment.CenterStart
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+      if (leadingIcon != null) {
+        leadingIcon()
+      } else if (isSearch) {
+        Icon(
+          imageVector = Icons.Default.Search,
+          contentDescription = null,
+          tint = InkMuted,
+          modifier = Modifier.size(18.dp)
+        )
+      }
+
+      Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+        if (value.isEmpty()) {
+          Text(
+            text = placeholder,
+            style = TextStyle(
+              fontFamily = SFProFontFamily,
+              fontSize = 15.sp,
+              color = InkMuted
+            )
+          )
+        }
+        BasicTextField(
+          value = value,
+          onValueChange = onValueChange,
+          textStyle = TextStyle(
+            fontFamily = SFProFontFamily,
+            fontSize = 15.sp,
+            color = InkPrimary
+          ),
+          cursorBrush = SolidColor(if (isDark) Color.White else Color.Black),
+          singleLine = true,
+          modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { isFocused = it.isFocused }
+        )
+      }
+
+      if (value.isNotEmpty() && onClear != null) {
+        Icon(
+          imageVector = Icons.Default.Clear,
+          contentDescription = "Clear",
+          tint = InkMuted,
+          modifier = Modifier
+            .size(18.dp)
+            .bounceClick { onClear() }
+        )
+      } else if (trailingIcon != null) {
+        trailingIcon()
+      }
+    }
+  }
+}
+
+/**
+ * Apple-Style Liquid Glass Bottom Sheet / Modal.
+ * Renders a floating modal sheet with translucent glass material,
+ * top specular bevel, centered drag handle pill, and back-press handling.
+ */
+@Composable
+fun GlassSheet(
+  visible: Boolean,
+  onDismissRequest: () -> Unit,
+  modifier: Modifier = Modifier,
+  content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+  if (visible) {
+    Dialog(onDismissRequest = onDismissRequest) {
+      val isDark = LocalAppColors.current.isDark
+      Box(
+        modifier = modifier
+          .fillMaxWidth()
+          .shadow(
+            elevation = 20.dp,
+            shape = RoundedCornerShape(22.dp),
+            ambientColor = Color.Black.copy(alpha = 0.65f),
+            spotColor = Color.Black.copy(alpha = 0.45f)
+          )
+          .clip(RoundedCornerShape(22.dp))
+          .background(if (isDark) Color(0xF01E1E22) else Color(0xF8FFFFFF))
+          .border(
+            width = 1.2.dp,
+            brush = Brush.verticalGradient(
+              listOf(Color(0x65FFFFFF), Color(0x18FFFFFF))
+            ),
+            shape = RoundedCornerShape(22.dp)
+          )
+          .drawBehind {
+            drawRoundRect(
+              brush = Brush.verticalGradient(
+                listOf(Color(0x28FFFFFF), Color.Transparent),
+                startY = 0f,
+                endY = size.height * 0.35f
+              ),
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(22.dp.toPx(), 22.dp.toPx())
+            )
+          }
+          .padding(20.dp)
+      ) {
+        Column(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+          // Drag handle pill
+          Box(
+            modifier = Modifier
+              .size(width = 38.dp, height = 4.dp)
+              .clip(CircleShape)
+              .background(if (isDark) Color(0x40FFFFFF) else Color(0x30000000))
+          )
+          Spacer(modifier = Modifier.height(16.dp))
+          content()
+        }
+      }
+    }
+  }
+}
+
+/**
  * Unified Top Header System across all TDlxHT screens.
  * Strict structure: [Left Action (Back / Nav)] [Page Title (Centered / Anchored)] [Right Action (Primary Action)]
  * Guarantees identical typography (28.sp Bold), vertical rhythm, baseline alignment, and touch targets everywhere.

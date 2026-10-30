@@ -64,6 +64,9 @@ import com.example.data.model.TaskPriority
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassSwitch
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.bounceClick
@@ -158,22 +161,14 @@ fun TaskDetailEditScreen(
           title = if (isEditing) "Edit Task" else "New Task",
           onBack = onDismiss,
           rightContent = {
-            Text(
-              text = "Save",
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = AccentTerracotta
-              ),
-              modifier = Modifier
-                .bounceClick {
-                  if (isSaving) return@bounceClick
-                  if (title.isBlank()) {
-                    Toast.makeText(context, "Please enter a task name", Toast.LENGTH_SHORT).show()
-                    return@bounceClick
-                  }
-                  isSaving = true
+            GlassButton(
+              onClick = {
+                if (isSaving) return@GlassButton
+                if (title.isBlank()) {
+                  Toast.makeText(context, "Please enter a task name", Toast.LENGTH_SHORT).show()
+                  return@GlassButton
+                }
+                isSaving = true
 
                 val finalCategory = if (selectedCategory == "Other") {
                   if (customCategoryText.isNotBlank()) customCategoryText.trim() else "Other"
@@ -217,10 +212,20 @@ fun TaskDetailEditScreen(
                   )
                 }
                 onDismiss()
-              }
-              .testTag("task_save_btn")
-          )
-        }
+              },
+              modifier = Modifier.testTag("task_save_btn")
+            ) {
+              Text(
+                text = "Save",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 15.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
+              )
+            }
+          }
       )
 
       Spacer(modifier = Modifier.height(14.dp))
@@ -744,15 +749,9 @@ fun TaskDetailEditScreen(
                 style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium, color = InkPrimary)
               )
 
-              Switch(
+              GlassSwitch(
                 checked = reminderEnabled,
-                onCheckedChange = { reminderEnabled = it },
-                colors = SwitchDefaults.colors(
-                  checkedThumbColor = PillTextDark,
-                  checkedTrackColor = PillBackgroundDark,
-                  uncheckedThumbColor = InkSecondary,
-                  uncheckedTrackColor = CardBorder.copy(alpha = 0.35f)
-                )
+                onCheckedChange = { reminderEnabled = it }
               )
             }
           }

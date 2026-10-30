@@ -206,21 +206,17 @@ fun ToolsScreen(
                 )
               }
 
-              Box(
-                modifier = Modifier
-                  .border(1.dp, if (isReorderMode) PillBackgroundDark else CardBorder, RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .background(if (isReorderMode) PillBackgroundDark else Color.Transparent)
-                  .bounceClick { isReorderMode = !isReorderMode }
-                  .padding(horizontal = 10.dp, vertical = 6.dp)
+              GlassButton(
+                onClick = { isReorderMode = !isReorderMode },
+                modifier = Modifier.padding(horizontal = 2.dp)
               ) {
                 Text(
                   text = if (isReorderMode) "Done" else "Reorder",
                   style = TextStyle(
                     fontFamily = SFProFontFamily,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isReorderMode) PillTextDark else InkSecondary
+                    color = InkPrimary
                   )
                 )
               }
@@ -293,7 +289,7 @@ fun ToolsScreen(
           val isFav = favoriteToolIds.contains(tool.id)
           val toolIndex = filteredTools.indexOf(tool)
           Box(modifier = Modifier.animateItem().staggeredEntrance(index = toolIndex)) {
-            SketchCard(
+            GlassCard(
               modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
@@ -303,7 +299,8 @@ fun ToolsScreen(
                   }
                 }
                 .testTag("tool_card_${tool.id}"),
-              borderColor = if (isFav) AccentTerracotta.copy(alpha = 0.6f) else CardBorder
+              borderColor = if (isFav) AccentTerracotta.copy(alpha = 0.6f) else CardBorder,
+              cornerRadius = 18.dp
             ) {
               Row(
                 modifier = Modifier
@@ -606,7 +603,7 @@ fun ToolRunnerModal(
       exit = slideOutVertically(targetOffsetY = { it / 3 }, animationSpec = tween(180, easing = FastOutSlowInEasing)) +
         fadeOut(animationSpec = tween(180, easing = FastOutSlowInEasing))
     ) {
-      SketchCard(
+      GlassCard(
         modifier = Modifier
           .fillMaxWidth()
           .padding(12.dp)
@@ -616,8 +613,8 @@ fun ToolRunnerModal(
           ) {
             // Consume clicks inside the card so tapping inside does not dismiss the sheet
           },
-        cornerRadius = 20.dp,
-        borderWidth = 2.dp
+        cornerRadius = 22.dp,
+        borderWidth = 1.2.dp
       ) {
       Column(
         modifier = Modifier
@@ -672,20 +669,16 @@ fun ToolRunnerModal(
             }
           }
 
-          Box(
-            modifier = Modifier
-              .size(34.dp)
-              .border(1.dp, CardBorder, CircleShape)
-              .clip(CircleShape)
-              .background(CardBackground)
-              .bounceClick { onDismiss() },
-            contentAlignment = Alignment.Center
+          GlassButton(
+            onClick = { onDismiss() },
+            contentDescription = "Close",
+            size = 34.dp
           ) {
             Icon(
               imageVector = Icons.Default.Close,
-              contentDescription = "Close",
+              contentDescription = null,
               tint = InkPrimary,
-              modifier = Modifier.size(18.dp)
+              modifier = Modifier.size(16.dp)
             )
           }
         }

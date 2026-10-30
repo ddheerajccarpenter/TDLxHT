@@ -80,6 +80,9 @@ import com.example.reminder.ReminderScheduler
 import com.example.ui.components.AppHeader
 import com.example.ui.components.InteractionLevel
 import com.example.ui.components.SketchCard
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassSwitch
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.bounceClick
 import com.example.ui.components.staggeredEntrance
@@ -431,7 +434,7 @@ fun SettingsScreen(
                 }
               }
 
-              Switch(
+              GlassSwitch(
                 checked = settings.dailySummaryEnabled,
                 onCheckedChange = { checked ->
                   val updated = settings.copy(dailySummaryEnabled = checked)
@@ -441,13 +444,7 @@ fun SettingsScreen(
                     ReminderScheduler.cancelDailySummary(context)
                   }
                   viewModel.updateSettings(updated)
-                },
-                colors = SwitchDefaults.colors(
-                  checkedThumbColor = PillTextDark,
-                  checkedTrackColor = PillBackgroundDark,
-                  uncheckedThumbColor = InkSecondary,
-                  uncheckedTrackColor = CardBorder.copy(alpha = 0.35f)
-                )
+                }
               )
             }
           }
@@ -1104,15 +1101,9 @@ fun SettingsToggleRow(
       }
     }
 
-    Switch(
+    GlassSwitch(
       checked = checked,
-      onCheckedChange = onCheckedChange,
-      colors = SwitchDefaults.colors(
-        checkedThumbColor = PillTextDark,
-        checkedTrackColor = PillBackgroundDark,
-        uncheckedThumbColor = InkSecondary,
-        uncheckedTrackColor = CardBorder.copy(alpha = 0.35f)
-      )
+      onCheckedChange = onCheckedChange
     )
   }
 }
