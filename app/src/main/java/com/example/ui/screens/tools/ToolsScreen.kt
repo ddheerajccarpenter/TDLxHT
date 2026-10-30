@@ -41,6 +41,9 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.Calculate
@@ -48,15 +51,12 @@ import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Grade
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.LocalOffer
-import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Percent
 import androidx.compose.material.icons.outlined.PriceChange
 import androidx.compose.material.icons.outlined.Receipt
-import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -991,19 +991,19 @@ private fun getToolIcon(toolId: String): ImageVector {
   return when (toolId) {
     "loan_emi" -> Icons.Outlined.AccountBalance
     "split_bill" -> Icons.Outlined.Receipt
-    "gst_tax" -> Icons.Outlined.ReceiptLong
+    "gst_tax" -> Icons.AutoMirrored.Outlined.ReceiptLong
     "margin_markup" -> Icons.Outlined.PriceChange
     "attendance_planner" -> Icons.Outlined.School
     "cgpa_converter" -> Icons.Outlined.Grade
     "exam_countdown" -> Icons.Outlined.HourglassEmpty
     "profit_loss" -> Icons.Outlined.AttachMoney
     "discount_savings" -> Icons.Outlined.LocalOffer
-    "break_even" -> Icons.Outlined.TrendingUp
+    "break_even" -> Icons.AutoMirrored.Outlined.TrendingUp
     "date_difference" -> Icons.Outlined.CalendarToday
     "percentage_change" -> Icons.Outlined.Percent
     "unit_converter" -> Icons.Outlined.SwapHoriz
     "pomodoro_planner" -> Icons.Outlined.Timer
-    "reading_estimator" -> Icons.Outlined.MenuBook
+    "reading_estimator" -> Icons.AutoMirrored.Outlined.MenuBook
     else -> Icons.Outlined.Calculate
   }
 }
