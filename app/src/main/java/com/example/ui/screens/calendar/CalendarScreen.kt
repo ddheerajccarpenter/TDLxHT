@@ -8,9 +8,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import com.example.ui.components.PhysicalMotionSpecs
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -566,9 +569,22 @@ fun MonthViewCard(
           AnimatedContent(
             targetState = displayMonth,
             transitionSpec = {
-              (fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing)) +
-                scaleIn(initialScale = 0.96f, animationSpec = tween(180, easing = FastOutSlowInEasing)))
-                .togetherWith(fadeOut(animationSpec = tween(120, easing = FastOutSlowInEasing)))
+              val isForward = targetState > initialState
+              if (isForward) {
+                (slideInHorizontally(animationSpec = PhysicalMotionSpecs.MotionScreenEnterOffset) { it / 3 } +
+                  fadeIn(animationSpec = PhysicalMotionSpecs.MotionScreenEnter))
+                  .togetherWith(
+                    slideOutHorizontally(animationSpec = PhysicalMotionSpecs.MotionScreenExitOffset) { -it / 3 } +
+                      fadeOut(animationSpec = PhysicalMotionSpecs.MotionScreenExit)
+                  )
+              } else {
+                (slideInHorizontally(animationSpec = PhysicalMotionSpecs.MotionScreenEnterOffset) { -it / 3 } +
+                  fadeIn(animationSpec = PhysicalMotionSpecs.MotionScreenEnter))
+                  .togetherWith(
+                    slideOutHorizontally(animationSpec = PhysicalMotionSpecs.MotionScreenExitOffset) { it / 3 } +
+                      fadeOut(animationSpec = PhysicalMotionSpecs.MotionScreenExit)
+                  )
+              }
             },
             label = "monthYearAnim"
           ) { month ->

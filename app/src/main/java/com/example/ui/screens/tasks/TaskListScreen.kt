@@ -22,6 +22,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.example.ui.components.motionBlurOnScroll
+import com.example.ui.components.UndoConfirmationPill
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -109,6 +116,26 @@ fun TaskListScreen(
   var isMultiSelectMode by remember { mutableStateOf(false) }
   var selectedTaskIds by remember { mutableStateOf(setOf<String>()) }
   var showBatchDeleteDialog by remember { mutableStateOf(false) }
+
+  val listState = rememberLazyListState()
+  val coroutineScope = rememberCoroutineScope()
+  var showUndoPill by remember { mutableStateOf(false) }
+  var lastCompletedTaskId by remember { mutableStateOf<String?>(null) }
+  var undoDismissJob by remember { mutableStateOf<Job?>(null) }
+
+  val handleTaskToggle: (Task) -> Unit = { task ->
+    val willBeCompleted = !task.isCompleted
+    viewModel.toggleTaskCompletion(task.id)
+    if (willBeCompleted) {
+      lastCompletedTaskId = task.id
+      showUndoPill = true
+      undoDismissJob?.cancel()
+      undoDismissJob = coroutineScope.launch {
+        delay(3500)
+        showUndoPill = false
+      }
+    }
+  }
 
   val totalSelectedCount = selectedTaskIds.size
 
@@ -232,8 +259,10 @@ fun TaskListScreen(
               Text(
                 text = "$totalSelectedCount selected",
                 style = TextStyle(
+                  fontFamily = SFProFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
+                  fontFeatureSettings = "tnum",
                   color = AccentTerracotta
                 )
               )
@@ -241,8 +270,10 @@ fun TaskListScreen(
               Text(
                 text = if (allSelected) "Deselect All" else "Select All (${filteredTasks.size})",
                 style = TextStyle(
+                  fontFamily = SFProFontFamily,
                   fontSize = 12.sp,
                   fontWeight = FontWeight.SemiBold,
+                  fontFeatureSettings = "tnum",
                   color = InkSecondary,
                   textDecoration = TextDecoration.Underline
                 ),
@@ -302,8 +333,10 @@ fun TaskListScreen(
                   Text(
                     text = "Delete ($totalSelectedCount)",
                     style = TextStyle(
+                      fontFamily = SFProFontFamily,
                       fontSize = 13.sp,
                       fontWeight = FontWeight.Bold,
+                      fontFeatureSettings = "tnum",
                       color = Color.White
                     )
                   )
@@ -356,7 +389,11 @@ fun TaskListScreen(
         }
       } else {
         LazyColumn(
-          modifier = Modifier.fillMaxWidth().weight(1f),
+          state = listState,
+          modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+            .motionBlurOnScroll(listState.isScrollInProgress),
           contentPadding = PaddingValues(bottom = com.example.ui.components.FloatingNavContentBottomPadding + 64.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -441,7 +478,7 @@ fun TaskListScreen(
                   subtasksCount = subtasks.size,
                   subtasksDone = subtasksDone,
                   is24Hour = settings.timeFormat24Hour,
-                  onToggle = { viewModel.toggleTaskCompletion(task.id) },
+                  onToggle = { handleTaskToggle(task) },
                   onClick = { onTaskClick(task) },
                   onLongClick = {
                     isMultiSelectMode = true
@@ -483,5 +520,20 @@ fun TaskListScreen(
         onDismiss = { showBatchDeleteDialog = false }
       )
     }
+
+    // Floating Undo Confirmation Pill (Liquid Glass elevation)
+    UndoConfirmationPill(
+      visible = showUndoPill,
+      message = "Task completed",
+      onUndo = {
+        lastCompletedTaskId?.let { id ->
+          viewModel.toggleTaskCompletion(id)
+        }
+        showUndoPill = false
+      },
+      modifier = Modifier
+        .align(Alignment.BottomCenter)
+        .padding(bottom = com.example.ui.components.FloatingNavContentBottomPadding + 8.dp)
+    )
   }
 }

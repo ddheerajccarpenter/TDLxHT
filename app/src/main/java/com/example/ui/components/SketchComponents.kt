@@ -1,6 +1,10 @@
 package com.example.ui.components
 
 import android.content.Context
+import android.os.Build
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.unit.IntOffset
 import com.example.ui.theme.SFProFontFamily
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -193,58 +197,88 @@ val FloatingNavContentBottomPadding: Dp
   }
 
 /**
- * Coherent physical motion specifications.
+ * Centralized Physical Motion Token System (20 Standardized Tokens).
  * Fast, responsive, subtle, physically believable, and purposeful.
  * Free of cartoon wobbles, multiple oscillations, and artificial delays.
  */
 object PhysicalMotionSpecs {
-  val TactilePress = spring<Float>(
-    dampingRatio = 0.65f,
-    stiffness = 500f
-  )
-  val SpatialSlide = spring<Float>(
-    dampingRatio = 0.75f,
-    stiffness = 380f
-  )
-  val SpatialSlideDp = spring<Dp>(
-    dampingRatio = 0.75f,
-    stiffness = 380f
-  )
-  val Settle = spring<Float>(
-    dampingRatio = 0.80f,
-    stiffness = 320f
-  )
-  // GSAP-style physics curves for responsive bounces and pops
-  val SpringPop = spring<Float>(
-    dampingRatio = 0.50f,
-    stiffness = 420f
-  )
-  val SpringElastic = spring<Float>(
-    dampingRatio = Spring.DampingRatioMediumBouncy,
-    stiffness = Spring.StiffnessMediumLow
-  )
-  val ModalSheetEntrance = spring<Float>(
-    dampingRatio = 0.80f,
-    stiffness = 380f
-  )
-  val DialogPopEntrance = spring<Float>(
-    dampingRatio = 0.68f,
-    stiffness = 440f
-  )
-  // Kern Society kinetic elastic curves (Priority 2)
-  val KernKineticOvershoot = spring<Float>(
-    dampingRatio = 0.54f,
-    stiffness = 450f
-  )
-  val KernSquashSnap = spring<Float>(
-    dampingRatio = 0.48f,
-    stiffness = 480f
-  )
-  // Dheeraj Carpenter tactile tilt spring (Priority 1)
-  val DheerajTiltSpring = spring<Float>(
-    dampingRatio = 0.68f,
-    stiffness = 380f
-  )
+  // 1. Tactile Micro-Interactions (toggles, chips, small micro-states)
+  val MotionMicro = spring<Float>(dampingRatio = 0.85f, stiffness = 800f)
+
+  // 2. Button Press (touch down elastic compression)
+  val MotionButtonPress = spring<Float>(dampingRatio = 0.65f, stiffness = 500f)
+
+  // 3. Button Release (Kern Society snappy elastic rebound)
+  val MotionButtonRelease = spring<Float>(dampingRatio = 0.54f, stiffness = 450f)
+
+  // 4. Icon Morph (plus-to-X rotation, star favorite pop, filter tilt)
+  val MotionIconMorph = spring<Float>(dampingRatio = 0.60f, stiffness = 420f)
+
+  // 5. Selection (fluid segmented pill & tab sliding indicator)
+  val MotionSelection = spring<Float>(dampingRatio = 0.72f, stiffness = 400f)
+  val MotionSelectionDp = spring<Dp>(dampingRatio = 0.72f, stiffness = 400f)
+
+  // 6. Navigation (Horizontal pager screen transitions)
+  val MotionNavigation = spring<Float>(dampingRatio = 0.78f, stiffness = 420f)
+
+  // 7. Screen Enter
+  val MotionScreenEnter = tween<Float>(durationMillis = 220, easing = FastOutSlowInEasing)
+  val MotionScreenEnterOffset = tween<IntOffset>(durationMillis = 220, easing = FastOutSlowInEasing)
+
+  // 8. Screen Exit
+  val MotionScreenExit = tween<Float>(durationMillis = 180, easing = FastOutSlowInEasing)
+  val MotionScreenExitOffset = tween<IntOffset>(durationMillis = 180, easing = FastOutSlowInEasing)
+
+  // 9. Sheet Enter (modal bottom sheet slide-up)
+  val MotionSheetEnter = spring<Float>(dampingRatio = 0.80f, stiffness = 380f)
+  val MotionSheetEnterOffset = spring<IntOffset>(dampingRatio = 0.80f, stiffness = 380f)
+
+  // 10. Sheet Exit (modal bottom sheet slide-down)
+  val MotionSheetExit = tween<Float>(durationMillis = 200, easing = FastOutSlowInEasing)
+  val MotionSheetExitOffset = tween<IntOffset>(durationMillis = 200, easing = FastOutSlowInEasing)
+
+  // 11. List Insert (item addition with slide-up and fade)
+  val MotionListInsert = spring<Float>(dampingRatio = 0.75f, stiffness = 380f)
+
+  // 12. List Remove (item removal height collapse)
+  val MotionListRemove = tween<Float>(durationMillis = 180, easing = FastOutSlowInEasing)
+
+  // 13. Completion (checkmark drawing and pop)
+  val MotionCompletion = spring<Float>(dampingRatio = 0.52f, stiffness = 440f)
+
+  // 14. Progress (progress bar and circular gauge fill)
+  val MotionProgress = spring<Float>(dampingRatio = 0.82f, stiffness = 320f)
+
+  // 15. Counter (streak and count numeric increment pop)
+  val MotionCounter = spring<Float>(dampingRatio = 0.48f, stiffness = 480f)
+
+  // 16. Expand (accordion and dropdown expansion)
+  val MotionExpand = spring<Float>(dampingRatio = 0.78f, stiffness = 360f)
+
+  // 17. Collapse (accordion and dropdown collapse)
+  val MotionCollapse = tween<Float>(durationMillis = 180, easing = FastOutSlowInEasing)
+
+  // 18. Refresh (continuous linear rotation strictly while refreshing)
+  val MotionRefresh = tween<Float>(durationMillis = 750, easing = LinearEasing)
+
+  // 19. Success (one-shot checkmark or copy badge confirmation)
+  val MotionSuccess = spring<Float>(dampingRatio = 0.55f, stiffness = 420f)
+
+  // 20. Error (shake / validation warning)
+  val MotionError = spring<Float>(dampingRatio = 0.45f, stiffness = 600f)
+
+  // Backward-compatible aliases for existing components
+  val TactilePress = MotionButtonPress
+  val SpatialSlide = MotionNavigation
+  val SpatialSlideDp = MotionSelectionDp
+  val Settle = spring<Float>(dampingRatio = 0.80f, stiffness = 320f)
+  val SpringPop = MotionSuccess
+  val SpringElastic = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)
+  val ModalSheetEntrance = MotionSheetEnter
+  val DialogPopEntrance = spring<Float>(dampingRatio = 0.68f, stiffness = 440f)
+  val KernKineticOvershoot = MotionButtonRelease
+  val KernSquashSnap = MotionCounter
+  val DheerajTiltSpring = spring<Float>(dampingRatio = 0.68f, stiffness = 380f)
 }
 
 // Backward-compatible alias
@@ -516,6 +550,248 @@ fun Modifier.bounceClick(
           onClick?.invoke()
         }
       )
+  }
+}
+
+/**
+ * Universal Bouncy Press Modifier (Hallmark & Apple Liquid Glass).
+ * Immediate tactile compression (0.95f) on touch down with MotionButtonPress,
+ * and snappy elastic rebound (1.0f) on release with MotionButtonRelease.
+ * Uses GPU graphicsLayer to prevent relayout / remeasurement churn.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+fun Modifier.bouncyPress(
+  scaleDown: Float = 0.95f,
+  enabled: Boolean = true,
+  onLongClick: (() -> Unit)? = null,
+  onClick: (() -> Unit)? = null
+): Modifier = composed {
+  if (!enabled || (onClick == null && onLongClick == null)) return@composed this
+  val context = LocalContext.current
+  val isReduced = remember { isReducedMotionEnabled(context) }
+  val targetScale = if (isReduced) 1.0f else scaleDown
+
+  val interactionSource = remember { MutableInteractionSource() }
+  val isPressed by interactionSource.collectIsPressedAsState()
+
+  val scale by animateFloatAsState(
+    targetValue = if (isPressed) targetScale else 1f,
+    animationSpec = if (isPressed) PhysicalMotionSpecs.MotionButtonPress else PhysicalMotionSpecs.MotionButtonRelease,
+    label = "bouncyPressScale"
+  )
+  val alpha by animateFloatAsState(
+    targetValue = if (isPressed) 0.92f else 1f,
+    animationSpec = PhysicalMotionSpecs.MotionMicro,
+    label = "bouncyPressAlpha"
+  )
+
+  this
+    .graphicsLayer {
+      scaleX = scale
+      scaleY = scale
+      this.alpha = alpha
+    }
+    .combinedClickable(
+      interactionSource = interactionSource,
+      indication = null,
+      enabled = enabled,
+      onLongClick = onLongClick?.let { action ->
+        {
+          VibrationHelper.tick(context)
+          action()
+        }
+      },
+      onClick = {
+        onClick?.let { action ->
+          VibrationHelper.tick(context)
+          action()
+        }
+      }
+    )
+}
+
+/**
+ * 5% - 10% Optical Motion Blur on Fast Scrolling.
+ * Applied during high-velocity flings to produce filmic, intentional motion,
+ * instantly resolving to zero blur when motion pauses or settles.
+ */
+@Composable
+fun Modifier.motionBlurOnScroll(
+  isScrollInProgress: Boolean,
+  velocityFraction: Float = 0f
+): Modifier {
+  val context = LocalContext.current
+  val isReduced = remember { isReducedMotionEnabled(context) }
+  if (isReduced) return this
+
+  val targetBlur = if (isScrollInProgress) 2.2f else 0f
+  val animatedBlur by animateFloatAsState(
+    targetValue = targetBlur,
+    animationSpec = spring(dampingRatio = 0.85f, stiffness = 600f),
+    label = "motionBlur"
+  )
+
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && animatedBlur > 0.4f) {
+    this.graphicsLayer {
+      renderEffect = android.graphics.RenderEffect.createBlurEffect(
+        0f,
+        animatedBlur,
+        android.graphics.Shader.TileMode.CLAMP
+      ).asComposeRenderEffect()
+    }
+  } else if (animatedBlur > 0.4f) {
+    this.graphicsLayer {
+      alpha = 0.94f
+    }
+  } else {
+    this
+  }
+}
+
+/**
+ * Animated Checkmark Icon.
+ * Renders an animated stroke draw (0f to 1f) and spring scale pop upon task/habit completion.
+ */
+@Composable
+fun AnimatedCheckmarkIcon(
+  isCompleted: Boolean,
+  tint: Color,
+  modifier: Modifier = Modifier
+) {
+  val strokeProgress by animateFloatAsState(
+    targetValue = if (isCompleted) 1f else 0f,
+    animationSpec = PhysicalMotionSpecs.MotionCompletion,
+    label = "checkmarkProgress"
+  )
+  val checkScale by animateFloatAsState(
+    targetValue = if (isCompleted) 1f else 0.35f,
+    animationSpec = PhysicalMotionSpecs.MotionCompletion,
+    label = "checkmarkScale"
+  )
+
+  Canvas(
+    modifier = modifier
+      .size(20.dp)
+      .graphicsLayer {
+        scaleX = checkScale
+        scaleY = checkScale
+      }
+  ) {
+    if (strokeProgress > 0.05f) {
+      val w = size.width
+      val h = size.height
+
+      val p1 = Offset(w * 0.22f, h * 0.52f)
+      val p2 = Offset(w * 0.42f, h * 0.74f)
+      val p3 = Offset(w * 0.78f, h * 0.28f)
+
+      val seg1 = kotlin.math.hypot(p2.x - p1.x, p2.y - p1.y)
+      val seg2 = kotlin.math.hypot(p3.x - p2.x, p3.y - p2.y)
+      val total = seg1 + seg2
+      val currentLen = total * strokeProgress
+      val strokeWidth = 2.2.dp.toPx()
+
+      if (currentLen <= seg1) {
+        val f = currentLen / seg1
+        drawLine(
+          color = tint,
+          start = p1,
+          end = Offset(p1.x + (p2.x - p1.x) * f, p1.y + (p2.y - p1.y) * f),
+          strokeWidth = strokeWidth,
+          cap = StrokeCap.Round
+        )
+      } else {
+        drawLine(
+          color = tint,
+          start = p1,
+          end = p2,
+          strokeWidth = strokeWidth,
+          cap = StrokeCap.Round
+        )
+        val f2 = (currentLen - seg1) / seg2
+        drawLine(
+          color = tint,
+          start = p2,
+          end = Offset(p2.x + (p3.x - p2.x) * f2, p2.y + (p3.y - p2.y) * f2),
+          strokeWidth = strokeWidth,
+          cap = StrokeCap.Round
+        )
+      }
+    }
+  }
+}
+
+/**
+ * Lightweight Floating Undo Confirmation Pill.
+ * Pops up after completing or deleting a task, offering instant restore before auto-dismissing.
+ */
+@Composable
+fun UndoConfirmationPill(
+  visible: Boolean,
+  message: String = "Task completed",
+  onUndo: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  androidx.compose.animation.AnimatedVisibility(
+    visible = visible,
+    enter = androidx.compose.animation.slideInVertically(
+      initialOffsetY = { it },
+      animationSpec = PhysicalMotionSpecs.MotionSheetEnterOffset
+    ) + androidx.compose.animation.fadeIn(animationSpec = PhysicalMotionSpecs.MotionScreenEnter),
+    exit = androidx.compose.animation.slideOutVertically(
+      targetOffsetY = { it },
+      animationSpec = PhysicalMotionSpecs.MotionSheetExitOffset
+    ) + androidx.compose.animation.fadeOut(animationSpec = PhysicalMotionSpecs.MotionScreenExit),
+    modifier = modifier
+  ) {
+    Box(
+      modifier = Modifier
+        .padding(horizontal = 20.dp, vertical = 12.dp)
+        .fluidLensedGlass(
+          shape = CircleShape,
+          elevation = 10.dp,
+          borderWidth = 0.75.dp,
+          isElevated = true
+        )
+        .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        Icon(
+          imageVector = Icons.Default.Check,
+          contentDescription = null,
+          tint = InkPrimary,
+          modifier = Modifier.size(16.dp)
+        )
+        Text(
+          text = message,
+          style = TextStyle(
+            fontFamily = SFProFontFamily,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = InkPrimary
+          )
+        )
+        Box(
+          modifier = Modifier
+            .bouncyPress(onClick = onUndo)
+            .background(Color(0x22FFFFFF), CircleShape)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+          Text(
+            text = "Undo",
+            style = TextStyle(
+              fontFamily = SFProFontFamily,
+              fontSize = 12.sp,
+              fontWeight = FontWeight.Bold,
+              color = AccentTerracotta
+            )
+          )
+        }
+      }
+    }
   }
 }
 

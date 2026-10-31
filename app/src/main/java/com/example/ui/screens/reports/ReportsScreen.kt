@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.example.ui.components.motionBlurOnScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -98,10 +100,15 @@ fun ReportsScreen(
     val coroutineScope = rememberCoroutineScope()
     val aiEngine = remember { AiIntelligenceEngine.instance }
     var isRefreshingAi by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
 
     Box(modifier = modifier.fillMaxSize().paperDotBackground()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .motionBlurOnScroll(listState.isScrollInProgress),
             contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
         ) {
             // Header

@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPreviewTasks();
   initCalculatorLibrary();
   initVersionSync();
+  initScrollMotionBlur();
 });
 
 // Theme Toggle (Supports both GlassSwitch inputs and legacy buttons)
@@ -302,4 +303,44 @@ async function initVersionSync() {
   } catch (err) {
     console.debug('Version sync note:', err);
   }
+}
+
+
+// 60 FPS Optical Motion Blur on High-Velocity Scrolling
+function initScrollMotionBlur() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const mainContainer = document.querySelector('main') || document.body;
+  mainContainer.classList.add('scroll-blur-container');
+
+  let lastScrollY = window.pageYOffset;
+  let lastTimestamp = performance.now();
+  let blurTimeout = null;
+  let ticking = false;
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const now = performance.now();
+        const currentScrollY = window.pageYOffset;
+        const dt = Math.max(now - lastTimestamp, 8);
+        const dy = Math.abs(currentScrollY - lastScrollY);
+        const velocity = dy / dt; // px per ms
+
+        // 5-10% optical motion blur capped at 2.2px during rapid scroll
+        const targetBlur = Math.min(Math.max((velocity - 0.4) * 1.2, 0), 2.2);
+        document.documentElement.style.setProperty('--scroll-blur', targetBlur.toFixed(2) + 'px');
+
+        lastScrollY = currentScrollY;
+        lastTimestamp = now;
+        ticking = false;
+
+        clearTimeout(blurTimeout);
+        blurTimeout = setTimeout(() => {
+          document.documentElement.style.setProperty('--scroll-blur', '0px');
+        }, 80);
+      });
+      ticking = true;
+    }
+  }, { passive: true });
 }

@@ -195,6 +195,11 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
+    // Enforce rock-solid 60 FPS refresh rate pacing for filmic, jitter-free scrolling cadence
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+      window.attributes.preferredRefreshRate = 60f
+    }
+
     try {
       SupabaseClient.client.handleDeeplinks(intent)
     } catch (_: Exception) {}
@@ -1310,6 +1315,7 @@ fun SketchBottomNavigationBar(
     contentAlignment = Alignment.Center
   ) {
     // Liquid Glass Floating Stadium Pill Navigation Dock (Apple-Style Optical Material)
+    // Layout: Home (0) -> Productivity (1) -> Tools (2) -> Insights (3) -> Plus (Far Right), Icons Only
     Box(
       modifier = Modifier
         .fillMaxWidth()
@@ -1325,7 +1331,7 @@ fun SketchBottomNavigationBar(
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 6.dp),
+          .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
@@ -1373,37 +1379,6 @@ fun SketchBottomNavigationBar(
           }
         )
 
-        // Center Quick Add (+) Button — Apple Liquid Glass Circular Button pattern
-        val fabRotation by animateFloatAsState(
-          targetValue = if (isQuickAddOpen) 45f else 0f,
-          animationSpec = spring(
-            dampingRatio = 0.54f, // Kern Society snappy elastic rebound
-            stiffness = 450f
-          ),
-          label = "fabRotation"
-        )
-
-        GlassButton(
-          onClick = {
-            VibrationHelper.click(context)
-            onQuickAdd()
-          },
-          contentDescription = if (isQuickAddOpen) "Close create sheet" else "Create new item",
-          size = 46.dp,
-          modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .testTag("nav_center_fab")
-        ) {
-          Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = null,
-            tint = if (isDark) com.example.ui.theme.BrandWhite else com.example.ui.theme.BrandDarkGrey,
-            modifier = Modifier
-              .size(24.dp)
-              .graphicsLayer(rotationZ = fabRotation)
-          )
-        }
-
         // Tab 2: Tools (weight 1f)
         LiquidGlassNavItem(
           modifier = Modifier.weight(1f),
@@ -1447,6 +1422,37 @@ fun SketchBottomNavigationBar(
             }
           }
         )
+
+        // Far-Right Quick Add (+) Button — Apple Liquid Glass Circular Button with Kern Elastic Rotation
+        val fabRotation by animateFloatAsState(
+          targetValue = if (isQuickAddOpen) 45f else 0f,
+          animationSpec = spring(
+            dampingRatio = 0.54f, // Kern Society snappy elastic rebound
+            stiffness = 450f
+          ),
+          label = "fabRotation"
+        )
+
+        GlassButton(
+          onClick = {
+            VibrationHelper.click(context)
+            onQuickAdd()
+          },
+          contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create",
+          size = 46.dp,
+          modifier = Modifier
+            .padding(start = 4.dp, end = 2.dp)
+            .testTag("nav_center_fab")
+        ) {
+          Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            tint = if (isDark) com.example.ui.theme.BrandWhite else com.example.ui.theme.BrandDarkGrey,
+            modifier = Modifier
+              .size(24.dp)
+              .graphicsLayer(rotationZ = fabRotation)
+          )
+        }
       }
     }
   }
@@ -1482,14 +1488,14 @@ private fun LiquidGlassNavItem(
     label = "liquidScale"
   )
   val iconScale by animateFloatAsState(
-    targetValue = if (isSelected) 1.08f else 1.0f,
+    targetValue = if (isSelected) 1.10f else 1.0f,
     animationSpec = spring(dampingRatio = 0.58f, stiffness = 450f),
     label = "iconScale"
   )
 
   Box(
     modifier = modifier
-      .height(52.dp)
+      .height(48.dp)
       .clip(CircleShape)
       .elasticStretchPress(
         horizontalStretch = 1.06f,
@@ -1504,7 +1510,7 @@ private fun LiquidGlassNavItem(
       Box(
         modifier = Modifier
           .fillMaxWidth(0.92f)
-          .height(44.dp)
+          .height(42.dp)
           .graphicsLayer {
             alpha = liquidAlpha
             scaleX = liquidScale
@@ -1519,35 +1525,18 @@ private fun LiquidGlassNavItem(
       )
     }
 
-    // 2. Icon + Label (fixed, stable layout with zero reflow)
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center
-    ) {
-      Icon(
-        imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
-        contentDescription = destination.label,
-        tint = if (isSelected) activeColor else inactiveColor,
-        modifier = Modifier
-          .size(20.dp)
-          .graphicsLayer {
-            scaleX = iconScale
-            scaleY = iconScale
-          }
-      )
-      Spacer(modifier = Modifier.height(2.dp))
-      Text(
-        text = destination.label,
-        style = TextStyle(
-          fontFamily = SFProFontFamily,
-          fontSize = 10.5.sp,
-          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-          color = if (isSelected) activeColor else inactiveColor,
-          letterSpacing = 0.1.sp
-        ),
-        maxLines = 1
-      )
-    }
+    // 2. Icon Only (Centered, No text labels, accessible contentDescription)
+    Icon(
+      imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
+      contentDescription = destination.label,
+      tint = if (isSelected) activeColor else inactiveColor,
+      modifier = Modifier
+        .size(23.dp)
+        .graphicsLayer {
+          scaleX = iconScale
+          scaleY = iconScale
+        }
+    )
   }
 }
 

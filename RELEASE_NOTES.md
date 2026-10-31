@@ -1,3 +1,56 @@
+# TDlxHT Release Notes — Version 2.5.0 (Build 37)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.0.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — New Visual Identity, App Logo & Icon System
+
+TDlxHT 2.5.0 introduces the brand's official geometric ribbon monogram icon across all native Android density buckets, launcher shortcuts, and web distribution assets.
+
+### 1. New App Logo & Adaptive Launcher Icons
+* **Geometric Ribbon Monogram:** Upgraded `app_logo.png` (512x512) with the brand's ribbon emblem on a deep `#161616` canvas with normalized OLED contrast.
+* **Full Brand Lockup (`app_logo_full.png`):** Added the complete vertical brand emblem combining the ribbon mark, bold "TDLxHT" wordmark, and "LIGHTWEIGHT PRODUCTIVITY" subtitle.
+* **Multi-Density Adaptive Mipmaps:** Generated squircle `ic_launcher.png` and circular `ic_launcher_round.png` across all density buckets (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) with Android safe-zone centering.
+* **Vector Launcher Background:** Synchronized `ic_launcher_background.xml` to `#161616` for seamless borderless launcher integration.
+
+---
+
+# TDlxHT Release Notes — Version 2.4.9 (Build 36)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.4.9.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Advanced Motion, Liquid Glass Dock Rebuild & 60 FPS Filmic Cadence
+
+TDlxHT 2.4.9 delivers a complete UI/UX, animation, typography, and navigation rework, introducing physical springs, continuous stadium docking, optical motion blur, and filmic 60 FPS pacing.
+
+### 1. Continuous Liquid Glass Bottom Dock Redesign
+* **Layout Structure:** Strict 5-action order: **Home (0) → Productivity (1) → Tools (2) → Insights (3) → Plus / Add (Far Right)**.
+* **Icons Only:** Removed all visible text labels for a clean, distraction-free aesthetic with full accessibility screen-reader content descriptions and min touch targets.
+* **Sliding Lens Droplet:** Internal sliding Liquid Glass lens indicator with 1.10f active scale pop.
+* **Far-Right Plus Action:** Fixed far-right position rotating 45° into an `X` on elastic spring rebound with zero dock layout shifting.
+
+### 2. Motion Engine & Physics Overhaul
+* **Centralized Motion Tokens:** Catalog of 20 physical motion tokens in `PhysicalMotionSpecs` (micro-interactions, bouncy press compression, sheet transitions, stroke draws).
+* **Bouncy Press Modifier (`Modifier.bouncyPress`):** Immediate 0.95f compression on touch down with snappy elastic release on touch up.
+* **Fast-Scroll Optical Motion Blur:** 5–10% hardware-accelerated trailing motion blur on Android 12+ (`RenderEffect.createBlurEffect`), settling to zero when stationary.
+* **60 FPS Cadence:** Enforced `window.attributes.preferredRefreshRate = 60f` for filmic, rock-solid scroll cadence.
+* **Floating Undo Pill:** Liquid Glass stadium undo pill auto-dismissing after 3.5 seconds.
+
+### 3. Typography & Tool Modal Polish
+* **Tabular Figures (`tnum`):** All counters, progress badges, and multi-select tallies formatted with `fontFeatureSettings = "tnum"` for fixed-width grid alignment.
+* **Semantic Tool Icons:** Replaced two-letter initial circles in `ToolRunnerModal` with authentic vector tool glyphs.
+
+---
+
 # TDlxHT Release Notes — Version 2.4.8 (Build 35)
 
 **Release Date:** 2026-10-31  

@@ -660,18 +660,19 @@ fun ToolRunnerModal(
             Box(
               modifier = Modifier
                 .size(40.dp)
-                .background(InkPrimary.copy(alpha = 0.06f), CircleShape)
-                .border(1.2.dp, CardBorder, CircleShape)
-                .clip(CircleShape),
+                .fluidLensedGlass(
+                  shape = CircleShape,
+                  elevation = 2.dp,
+                  borderWidth = 0.75.dp,
+                  isElevated = true
+                ),
               contentAlignment = Alignment.Center
             ) {
-              Text(
-                text = tool.name.take(2).uppercase(),
-                style = TextStyle(
-                  fontSize = 14.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
-                )
+              Icon(
+                imageVector = getToolIcon(tool.id),
+                contentDescription = tool.name,
+                tint = InkPrimary,
+                modifier = Modifier.size(22.dp)
               )
             }
             Spacer(modifier = Modifier.width(10.dp))

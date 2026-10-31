@@ -1790,3 +1790,95 @@ html {
   align-items: center;
   justify-content: space-between;
 }
+
+
+/* ==========================================================================
+   loading-dev Classic Loader (Dark & Light Mode)
+   Dark mode: color="#ffffff" size={48}
+   Light mode: color="#000000" size={48}
+   ========================================================================== */
+:root, [data-theme="light"] {
+  --ld-classic-color: #000000;
+  --scroll-blur: 0px;
+}
+
+[data-theme="dark"] {
+  --ld-classic-color: #ffffff;
+}
+
+.ld-classic {
+  width: var(--ld-size, 48px);
+  height: var(--ld-size, 48px);
+  color: var(--ld-classic-color);
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.ld-classic-inner {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  width: var(--ld-size, 48px);
+  height: var(--ld-size, 48px);
+}
+
+.ld-classic-bar {
+  position: absolute;
+  top: -3.9%;
+  left: -10%;
+  width: 24%;
+  height: 8%;
+  background: currentColor;
+  border-radius: 6px;
+  transform: rotate(calc(var(--ld-step) * 30deg)) translate(146%);
+  animation: ld-classic-fade var(--ld-duration, 1200ms) linear infinite;
+  animation-play-state: var(--ld-play-state, running);
+  animation-delay: calc(var(--ld-duration, 1200ms) * (var(--ld-step) - 12) / 12);
+}
+
+@keyframes ld-classic-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-classic-bar {
+    opacity: 0.5;
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Typography Polish (better-typography) & 60 FPS Optical Motion Blur
+   ========================================================================== */
+.tabular-numbers,
+.stat-value,
+.metric-val,
+.stat-number,
+.calc-result-number,
+.timer-display,
+.countdown,
+.hero-sub-label,
+.download-meta-specs,
+[data-tabular="true"] {
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 5-10% Subtle Optical Motion Blur on High-Velocity Scrolling (60 FPS Pacing) */
+.scroll-blur-container {
+  filter: blur(var(--scroll-blur));
+  will-change: filter;
+  transition: filter 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-blur-container {
+    filter: none !important;
+  }
+}
