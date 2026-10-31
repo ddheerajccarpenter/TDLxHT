@@ -423,6 +423,7 @@ fun MainApp(
         SketchBottomNavigationBar(
           destinations = destinations,
           pagerState = pagerState,
+          isQuickAddOpen = isQuickAddSheetOpen,
           onDestinationSelected = { destination ->
             val targetIndex = destinations.indexOf(destination)
             if (targetIndex >= 0) {
@@ -1293,6 +1294,7 @@ class CenterFabScoopedShape(
 fun SketchBottomNavigationBar(
   destinations: List<AppDestination> = AppDestination.entries,
   pagerState: PagerState,
+  isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
   onQuickAdd: () -> Unit
 ) {
@@ -1372,9 +1374,8 @@ fun SketchBottomNavigationBar(
         )
 
         // Center Quick Add (+) Button — Apple Liquid Glass Circular Button pattern
-        var fabClickKey by remember { mutableIntStateOf(0) }
         val fabRotation by animateFloatAsState(
-          targetValue = if (fabClickKey % 2 == 1) 45f else 0f,
+          targetValue = if (isQuickAddOpen) 45f else 0f,
           animationSpec = spring(
             dampingRatio = 0.54f, // Kern Society snappy elastic rebound
             stiffness = 450f
@@ -1384,11 +1385,10 @@ fun SketchBottomNavigationBar(
 
         GlassButton(
           onClick = {
-            fabClickKey++
             VibrationHelper.click(context)
             onQuickAdd()
           },
-          contentDescription = "Create new item",
+          contentDescription = if (isQuickAddOpen) "Close create sheet" else "Create new item",
           size = 46.dp,
           modifier = Modifier
             .padding(horizontal = 4.dp)

@@ -131,6 +131,7 @@ fun ProductivityScreen(
         items = listOf("Tasks", "Habits", "Calendar"),
         selectedIndex = selectedTab,
         onItemSelected = { selectedTab = it },
+        isElevated = true,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp)

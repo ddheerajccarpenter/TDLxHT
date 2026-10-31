@@ -189,7 +189,7 @@ fun Modifier.paperDotBackground(): Modifier {
 val FloatingNavContentBottomPadding: Dp
   @Composable get() {
     val navInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    return 64.dp + 16.dp + navInsets + 48.dp
+    return 64.dp + 16.dp + navInsets + 32.dp
   }
 
 /**
@@ -791,9 +791,9 @@ fun Modifier.fluidLensedGlass(
             colors = if (isDark) {
               if (isElevated) {
                 listOf(
-                  Color(0x56262634),
-                  Color(0x441C1C24),
-                  Color(0x3A14141C)
+                  Color(0xEE222230), // High optical density (~92% base) for elevated floating dock & modals
+                  Color(0xE4181822),
+                  Color(0xDC14141C)
                 )
               } else {
                 listOf(
@@ -1105,13 +1105,15 @@ fun GlassSegmented(
   items: List<String>,
   selectedIndex: Int,
   onItemSelected: (Int) -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  isElevated: Boolean = false
 ) {
   SketchSegmentedControl(
     items = items,
     selectedIndex = selectedIndex,
     onItemSelected = onItemSelected,
-    modifier = modifier
+    modifier = modifier,
+    isElevated = isElevated
   )
 }
 
@@ -1809,7 +1811,8 @@ fun SketchSegmentedControl(
   items: List<String>,
   selectedIndex: Int,
   onItemSelected: (Int) -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  isElevated: Boolean = false
 ) {
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
@@ -1819,9 +1822,9 @@ fun SketchSegmentedControl(
       .fillMaxWidth()
       .fluidLensedGlass(
         shape = RoundedCornerShape(14.dp),
-        elevation = 0.dp,
+        elevation = if (isElevated) 4.dp else 0.dp,
         borderWidth = 0.75.dp,
-        isElevated = false
+        isElevated = isElevated
       )
   ) {
     androidx.compose.foundation.layout.BoxWithConstraints(
@@ -1963,6 +1966,7 @@ fun SketchInputField(
   singleLine: Boolean = true,
   minLines: Int = 1,
   textStyle: TextStyle? = null,
+  backgroundColor: Color? = null,
   keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
   val style = textStyle ?: TextStyle(fontSize = 16.sp, color = InkPrimary)
@@ -1971,7 +1975,8 @@ fun SketchInputField(
   SketchCard(
     modifier = modifier.fillMaxWidth(),
     cornerRadius = 10.dp,
-    borderWidth = 1.5.dp
+    borderWidth = 0.75.dp,
+    backgroundColor = backgroundColor ?: CardBackground
   ) {
     Box(
       modifier = Modifier

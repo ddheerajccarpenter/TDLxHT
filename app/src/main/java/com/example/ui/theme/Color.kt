@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 val CanonicalCanvasDark = Color(0xFF121215)
 val CanonicalCanvasSecondaryDark = Color(0xFF18181D)
 val CanonicalGlassFillBaseDark = Color(0x4D1A1A24) // Lensed translucent glass (~30% optical density)
-val CanonicalGlassFillElevatedDark = Color(0x6A161622) // Elevated fluid glass for floating dock (~42% optical density)
+val CanonicalGlassFillElevatedDark = Color(0xEB161622) // Elevated fluid glass for floating dock & modals (~92% optical density)
 val CanonicalGlassFillSubtleDark = Color(0x2E14141C) // Subtle translucent track (~18% alpha)
 val CanonicalGlassBorderTopDark = Color(0x38FFFFFF) // Lensed specular hairline top rim (~22% alpha)
 val CanonicalGlassBorderBottomDark = Color(0x0CFFFFFF) // Bottom edge meniscus rim (~5% alpha)

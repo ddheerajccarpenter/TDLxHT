@@ -1,6 +1,6 @@
 {
   "name": "tdlxht",
-  "version": "2.4.7",
+  "version": "2.4.8",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
     "vite": "^6.2.0"
   },
   "dependencies": {
+    "@sentdm/sentdm": "^0.48.1",
     "@supabase/supabase-js": "^2.118.0",
     "@zakisheriff/liquid-glass": "^0.3.6",
     "animejs": "^4.5.0",

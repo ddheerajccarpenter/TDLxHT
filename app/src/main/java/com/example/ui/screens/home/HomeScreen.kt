@@ -446,15 +446,32 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
           ) {
-            Text(
-              text = "TODAY'S TASKS",
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = InkPrimary
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                text = "Today's Tasks",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 18.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
               )
-            )
+              if (todayTasks.isNotEmpty()) {
+                Spacer(modifier = Modifier.width(8.dp))
+                val isDarkTasksView = com.example.ui.theme.LocalAppColors.current.isDark
+                Box(
+                  modifier = Modifier
+                    .clip(CircleShape)
+                    .background(if (isDarkTasksView) Color(0x18FFFFFF) else Color(0x10000000))
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                  Text(
+                    text = "${todayTasks.count { it.isCompleted }}/${todayTasks.size}",
+                    style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = InkSecondary)
+                  )
+                }
+              }
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
               // Independent View Switcher (List / Grid)
@@ -586,15 +603,32 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
           ) {
-            Text(
-              text = "TODAY'S HABITS",
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = InkPrimary
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                text = "Today's Habits",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 18.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
               )
-            )
+              if (todayHabits.isNotEmpty()) {
+                Spacer(modifier = Modifier.width(8.dp))
+                val isDarkHabitsView = com.example.ui.theme.LocalAppColors.current.isDark
+                Box(
+                  modifier = Modifier
+                    .clip(CircleShape)
+                    .background(if (isDarkHabitsView) Color(0x18FFFFFF) else Color(0x10000000))
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                  Text(
+                    text = "${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}",
+                    style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = InkSecondary)
+                  )
+                }
+              }
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
               // Independent View Switcher (List / Grid)
@@ -775,8 +809,8 @@ fun TaskItemCard(
       .animateContentSize(animationSpec = spring(dampingRatio = 0.75f, stiffness = 420f))
       .bounceClick(scaleDown = 0.98f, onLongClick = onLongClick) { onClick() }
       .testTag("task_card_${task.id}"),
-    cornerRadius = 12.dp,
-    borderWidth = 1.5.dp
+    cornerRadius = 14.dp,
+    borderWidth = 0.75.dp
   ) {
     Row(
       modifier = Modifier
@@ -927,8 +961,8 @@ fun TaskGridCard(
       .animateContentSize(animationSpec = spring(dampingRatio = 0.75f, stiffness = 420f))
       .bounceClick(scaleDown = 0.98f, onLongClick = onLongClick) { onClick() }
       .testTag("task_grid_card_${task.id}"),
-    cornerRadius = 12.dp,
-    borderWidth = 1.5.dp
+    cornerRadius = 14.dp,
+    borderWidth = 0.75.dp
   ) {
     Column(
       modifier = Modifier
@@ -1020,8 +1054,8 @@ fun HabitGridCard(
       .fillMaxWidth()
       .alpha(cardAlpha)
       .bounceClick(scaleDown = 0.98f) { onClick() },
-    cornerRadius = 12.dp,
-    borderWidth = 1.5.dp
+    cornerRadius = 14.dp,
+    borderWidth = 0.75.dp
   ) {
     Column(
       modifier = Modifier
@@ -1176,8 +1210,8 @@ fun HabitItemCard(
       .animateContentSize(animationSpec = spring(dampingRatio = 0.75f, stiffness = 420f))
       .bounceClick(scaleDown = 0.98f) { onClick() }
       .testTag("habit_card_${habit.id}"),
-    cornerRadius = 12.dp,
-    borderWidth = 1.5.dp
+    cornerRadius = 14.dp,
+    borderWidth = 0.75.dp
   ) {
     Row(
       modifier = Modifier

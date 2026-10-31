@@ -1,0 +1,112 @@
+# TDlxHT Release Notes — Version 2.4.8 (Build 35)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.4.8.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Visual Polish, Taste Skill Directives & Multi-Channel Messaging
+
+TDlxHT 2.4.8 delivers comprehensive UI bug fixes across calendar, navigation dock, tool runners, and task cards, incorporating anti-slop frontend taste skill standards and `@sentdm/sentdm` integration.
+
+### 1. Visual Defect Resolutions
+* **Calendar Overlap Fix:** Stripped duplicate productivity analytics and visual graph sections from `CalendarScreen.kt`. Added dedicated bottom content clearance (`FloatingNavContentBottomPadding + 64.dp`) ensuring agenda tasks scroll completely above the productivity segmented control and floating dock.
+* **Quick-Add FAB Rotation State:** Bound center FAB's 45° rotation state strictly to `isQuickAddSheetOpen`, guaranteeing a clean `+` icon when closed and morphing to `X` only when open.
+* **Floating Dock Optical Density (~92%):** Elevated floating dock base opacity to `0xEE222230` with convex caustic lensing, completely eliminating text bleed-through when scrolling in Tools and Insights.
+* **Tools Modal High-Contrast Surface:** Upgraded `ToolRunnerModal` with a 78% scrim, elevated lensed glass, solid input troughs (`#15151B`), and a solid result card (`#1B1B24`) with subtle 40% terracotta border.
+
+### 2. Taste Skill Polish (`Leonxlnx/taste-skill`)
+* Standardized card borders to `0.75.dp` hairlines (`1.0.dp` for multi-selection) with `14.dp` corners.
+* Replaced uppercase scream headers with clean Title Case (`Today's Tasks`, `Today's Habits`) and dynamic count badges (`completed/total`).
+
+### 3. Multi-Channel Messaging Integration
+* Integrated `@sentdm/sentdm@0.48.1` with `api/sent-messaging.js` supporting SMS, WhatsApp, and RCS reminders.
+
+---
+
+# TDlxHT Release Notes — Version 2.4.6 (Build 33)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.4.6.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Fluid / Lensed Glass Engine Architecture
+
+TDlxHT 2.4.6 completes the transition from flat, hollow "clear glass" outlines and dark metallic plastic to authentic **Fluid / Lensed Glass** across native Jetpack Compose and the Web companion.
+
+### 1. Dedicated `Modifier.fluidLensedGlass` Rendering Engine
+* **Active Optical Convex Lensing:** Rather than flat, see-through 2D windowpanes or solid opaque gray rectangles, components are rendered with multi-stop optical refraction bodies (`Color(0x4422222E)` to `Color(0x2C12121A)`) simulating physical light transmission through sculpted optical glass.
+* **Overhead Radial Caustic Dome:** A soft radial caustic highlight (`Brush.radialGradient` centered at `(0.5w, -0.12h)`) bends overhead ambient environmental illumination across the lens curvature, providing authentic 3D optical convexity without artificial painted chrome streaks.
+* **Dual-Boundary Fresnel Meniscus Rim:** Restrained 0.75dp specular hairline outer boundary paired with an internal edge reflection simulating physical glass thickness and liquid meniscus.
+* **Subtle Bottom Ambient Bounce:** Soft lower radial bounce refraction (`(0.5w, 1.15h)`) captures ambient light reflecting through the base of the glass lens.
+
+### 2. Fluid Droplet Dynamics & Volume-Conserving Kinetics
+* **Fluid Gliding Tab Indicator:** `SketchSegmentedControl` and `GlassSegmented` now render the sliding indicator as an optical fluid glass lens that smoothly glides beneath active tabs with physical spring dynamics (`SpatialSlideDp`). Replaces stark opaque white sticker blocks with an authentic refracting fluid lens.
+* **Elastic Squash & Stretch Press:** Interactive glass controls (`GlassButton`, `SketchFilterChip`, view switchers) respond to touch with volume-conserving fluid compression (`scaleX = 1.04f, scaleY = 0.96f` on press, snapping back with `spring(dampingRatio = 0.62f, stiffness = 420f)`).
+* **Floating Stadium Pill Dock:** `SketchBottomNavigationBar` and `LiquidGlassNavItem` upgraded to fluid lensed glass with active tab droplet lenses.
+
+### 3. Web Companion Architecture Overhaul
+* **Elimination of `--clear` hollow styles:** Removed all `lg-button--clear` classes from secondary buttons, theme toggles, and sort menu triggers in `web/js/liquid-glass.js` and `web/index.html`.
+* **CSS Fluid Lensed Styling:** Added radial caustic lens domes, optical body fills, `backdrop-filter: blur(28px) saturate(190%)`, and spring-press micro-interactions across all web glass components.
+
+### 4. Verification & Testing
+* **100% Automated Unit Test Pass Rate:** All 34 automated unit tests passing (`./gradlew testDebugUnitTest`).
+* **Clean Release Build & Signing:** Zero compiler warnings or errors (`./gradlew syncReleaseApk`).
+
+---
+
+# TDlxHT Release Notes — Version 2.4.5 (Build 32)
+
+**Release Date:** 2026-10-30  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.4.5.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Critical Liquid Glass Architecture Correction
+
+TDlxHT 2.4.5 delivers a fundamental overhaul of the underlying Liquid Glass material and rendering foundation, resolving real-device visual defects where elements previously appeared as "dark metallic plastic, glossy charcoal buttons, beveled surfaces, and gradient-filled cards."
+
+### 1. Authentic Optical Translucency (Overcoming Opaque Metallic Plastic)
+* **Translucent Glass Fills:** Reduced opaque gray pigment from 82%–88% down to authentic translucent obsidian glass (`Color(0x40181820)` ~25% alpha for content cards; `Color(0x5E14141C)` ~37% alpha for the floating dock).
+* **Elimination of Painted Metallic Chrome Sheens:** Completely stripped the artificial 45% white-to-transparent gradient arcs (`drawRoundRect`) that gave components the look of curved plastic bumpers.
+* **Hairline Refractive Edges:** Replaced thick 1.2dp–1.5dp borders with ultra-fine 0.75dp hairlines (`listOf(Color(0x24FFFFFF), Color(0x08FFFFFF))`), eliminating the "silver marker outline" look.
+* **Soft Ambient Lighting:** Replaced heavy black drop shadows (`elevation = 18.dp`, 60% black) with soft, natural ambient lighting (`elevation = 2.dp`–`3.dp`, 16% black).
+* **Optical Environmental Canvas:** Upgraded `paperDotBackground` with subtle multi-stop vertical graduation and ambient charcoal luminance pools, giving glass surfaces real underlying light to bend and transmit.
+
+### 2. Optical Lens Segmented Controls & Cohesive Glass Pills
+* **Floating Optical Lens Indicator:** Segmented controls (`SketchSegmentedControl`) no longer render active selections as stark, solid white blocks (`#F5F5F7`). Instead, the active indicator is an authentic translucent floating glass lens (`Color(0x28FFFFFF)` with a 0.7dp hairline border `Color(0x3EFFFFFF)`) with crisp white typography.
+* **Glass Filter Chips:** Rebuilt `SketchFilterChip` into refined translucent glass stadium pills (`CircleShape`) with hairline rims, harmonizing Tasks, Tools, Habits, and Search.
+* **Refined Glass Buttons:** Add Task, Add Habit, and action buttons converted into tactile translucent glass pills (`GlassButton`) free of painted surface gloss.
+
+### 3. Screen-Specific Improvements & Overlap Fixes
+* **Tools Screen Redesign:**
+  - Replaced heavy dark slabs with clean, lightweight translucent `GlassCard` surfaces.
+  - Replaced aggressive 44dp circular abbreviation badges ("AT", "BR", "CG", etc.) with refined 38dp rounded glass squircles containing contextually mapped Material Outlined vector icons.
+  - Expanded `contentPadding` bottom clearance to `FloatingNavContentBottomPadding + 48.dp`, ensuring "Loan & EMI Calculator" and all 15 utilities scroll comfortably above the dock.
+* **Insights / Reports Screen Redesign:**
+  - Rebuilt AI Productivity Advisor card and AI Visual Report card into clean translucent glass surfaces.
+  - Resolved the critical CTA overlap where "Generate Visual Report" was covered by the navigation dock. Increased bottom clearance to `FloatingNavContentBottomPadding + 48.dp` so all interactive elements remain 100% visible and unobstructed.
+* **Floating Navigation Dock:**
+  - Converted the floating dock from a dark metallic bumper into a truly translucent stadium pill dock with 0.75dp hairline rim and soft 8dp elevation. Content scrolling beneath is perceived softly through translucent obsidian glass.
+
+### 4. Verification & Testing
+* **Automated Unit Testing:** 34 of 34 automated unit tests passing (`./gradlew testDebugUnitTest`).
+* **Deprecation Resolution:** Migrated deprecated icons to `Icons.AutoMirrored.Outlined` equivalents in `ToolsScreen.kt`.
+* **Synchronized Web Companion:** Rebuilt static web bundle and updated version manifests (`npm run build`).
+
+---
+
+## 📦 Deliverables & Verification
+
+* **Versioned Release APK:** `TDLxHT.2.4.4.apk` (17.3 MB / 17,337,160 bytes)
+* **Root APK:** `TDlxHT.apk` (17.3 MB / 17,337,160 bytes)
+* **Distribution APK:** `dist/apk/app-liquid-glass-updated.apk` (17.3 MB / 17,337,160 bytes)
+* **Signing Schemes:** APK Signature Scheme v1, v2 (Full APK block), and v3 (Key rotation support) verified.
+

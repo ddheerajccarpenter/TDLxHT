@@ -523,7 +523,7 @@ fun SearchTaskCard(
       .testTag("search_task_${task.id}"),
     backgroundColor = if (isSelected) AccentTerracotta.copy(alpha = 0.14f) else CardBackground,
     borderColor = if (isSelected) AccentTerracotta else CardBorder,
-    borderWidth = if (isSelected) 2.dp else 1.5.dp,
+    borderWidth = if (isSelected) 1.dp else 0.75.dp,
     cornerRadius = 14.dp
   ) {
     Row(
@@ -648,7 +648,7 @@ fun SearchHabitCard(
       .testTag("search_habit_${habit.id}"),
     backgroundColor = if (isSelected) AccentTerracotta.copy(alpha = 0.14f) else CardBackground,
     borderColor = if (isSelected) AccentTerracotta else CardBorder,
-    borderWidth = if (isSelected) 2.dp else 1.5.dp,
+    borderWidth = if (isSelected) 1.dp else 0.75.dp,
     cornerRadius = 14.dp
   ) {
     Row(

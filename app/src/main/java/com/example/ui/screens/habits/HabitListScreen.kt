@@ -385,7 +385,7 @@ fun HabitListScreen(
       } else {
         LazyColumn(
           modifier = Modifier.fillMaxWidth().weight(1f),
-          contentPadding = PaddingValues(bottom = FloatingNavContentBottomPadding + 48.dp),
+          contentPadding = PaddingValues(bottom = FloatingNavContentBottomPadding + 64.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
           items(filteredHabits, key = { it.id }) { habit ->
@@ -408,7 +408,7 @@ fun HabitListScreen(
                     },
                   backgroundColor = if (isSelected) AccentTerracotta.copy(alpha = 0.12f) else CardBackground,
                   borderColor = if (isSelected) AccentTerracotta else CardBorder,
-                  borderWidth = if (isSelected) 2.dp else 1.5.dp,
+                  borderWidth = if (isSelected) 1.dp else 0.75.dp,
                   cornerRadius = 14.dp
                 ) {
                   Row(

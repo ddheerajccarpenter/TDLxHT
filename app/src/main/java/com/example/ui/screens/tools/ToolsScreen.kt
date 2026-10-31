@@ -608,7 +608,7 @@ fun ToolRunnerModal(
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .background(Color.Black.copy(alpha = 0.55f))
+      .background(Color.Black.copy(alpha = 0.78f))
       .clickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null
@@ -626,18 +626,22 @@ fun ToolRunnerModal(
       exit = slideOutVertically(targetOffsetY = { it / 3 }, animationSpec = tween(180, easing = FastOutSlowInEasing)) +
         fadeOut(animationSpec = tween(180, easing = FastOutSlowInEasing))
     ) {
-      GlassCard(
+      Box(
         modifier = Modifier
           .fillMaxWidth()
           .padding(12.dp)
+          .fluidLensedGlass(
+            shape = RoundedCornerShape(22.dp),
+            elevation = 16.dp,
+            borderWidth = 0.75.dp,
+            isElevated = true
+          )
           .clickable(
             interactionSource = remember { MutableInteractionSource() },
             indication = null
           ) {
             // Consume clicks inside the card so tapping inside does not dismiss the sheet
-          },
-        cornerRadius = 22.dp,
-        borderWidth = 1.2.dp
+          }
       ) {
       Column(
         modifier = Modifier
@@ -861,11 +865,13 @@ fun ToolRunnerModal(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Result Card (Tactile highlight)
+        // Result Card (Tactile highlight with solid contrast)
+        val isDarkTheme = com.example.ui.theme.LocalAppColors.current.isDark
+        val resultCardBg = if (isDarkTheme) Color(0xFF1B1B24) else Color(0xFFF3F3F7)
         SketchCard(
           modifier = Modifier.fillMaxWidth(),
-          backgroundColor = AccentTerracotta.copy(alpha = 0.08f),
-          borderColor = AccentTerracotta,
+          backgroundColor = resultCardBg,
+          borderColor = AccentTerracotta.copy(alpha = 0.40f),
           borderWidth = 1.dp,
           cornerRadius = 14.dp
         ) {
@@ -1006,6 +1012,8 @@ fun ToolInputField(
   onValueChange: (String) -> Unit,
   keyboardType: KeyboardType = KeyboardType.Decimal
 ) {
+  val isDarkTheme = com.example.ui.theme.LocalAppColors.current.isDark
+  val inputTrough = if (isDarkTheme) Color(0xFF15151B) else Color(0xFFEBEBF0)
   Column {
     Text(
       text = label,
@@ -1021,6 +1029,7 @@ fun ToolInputField(
       value = value,
       onValueChange = onValueChange,
       placeholder = "0",
+      backgroundColor = inputTrough,
       keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
       modifier = Modifier.fillMaxWidth()
     )
