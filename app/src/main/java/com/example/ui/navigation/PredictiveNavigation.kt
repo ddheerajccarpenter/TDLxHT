@@ -3,6 +3,8 @@ package com.example.ui.navigation
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -103,9 +105,11 @@ class PredictiveNavController(
   val initialDestination: AppNavDestination = AppNavDestination.Main(0)
 ) {
   val backStack = mutableStateListOf<AppNavDestination>(initialDestination)
+  var selectedTab by mutableIntStateOf(0)
   var activeOverlay by mutableStateOf<AppNavOverlay?>(null)
   val gestureState = PredictiveBackGestureState()
   var isTransitioning by mutableStateOf(false)
+  var skipNextTransition by mutableStateOf(false)
 
   // Tracks navigation direction for AnimatedContent transitions (true = forward, false = backward)
   var isForwardNavigation by mutableStateOf(true)
@@ -118,10 +122,19 @@ class PredictiveNavController(
     get() = if (backStack.size > 1) backStack[backStack.size - 2] else null
 
   val canNavigateBack: Boolean
-    get() = activeOverlay != null || backStack.size > 1 || (currentDestination is AppNavDestination.Main && (currentDestination as AppNavDestination.Main).tabIndex != 0)
+    get() = activeOverlay != null || backStack.size > 1 || selectedTab != 0
 
   val canPredictiveBack: Boolean
     get() = activeOverlay == null && backStack.size > 1 && !isTransitioning
+
+  /**
+   * Switch the active primary tab immediately without recreating or animating the root shell.
+   */
+  fun switchTab(index: Int) {
+    if (selectedTab == index) return
+    isForwardNavigation = index >= selectedTab
+    selectedTab = index
+  }
 
   /**
    * Navigate forward to a new destination or open an overlay.
@@ -186,9 +199,9 @@ class PredictiveNavController(
       isForwardNavigation = false
       backStack.removeAt(backStack.size - 1)
       return true
-    } else if (currentDestination is AppNavDestination.Main && (currentDestination as AppNavDestination.Main).tabIndex != 0) {
+    } else if (selectedTab != 0) {
       isForwardNavigation = false
-      backStack[0] = AppNavDestination.Main(0)
+      selectedTab = 0
       return true
     }
     return false
@@ -200,6 +213,7 @@ class PredictiveNavController(
   fun popBackStackDirect(): Boolean {
     if (backStack.size > 1) {
       isForwardNavigation = false
+      skipNextTransition = true
       backStack.removeAt(backStack.size - 1)
       return true
     }
@@ -219,6 +233,7 @@ class PredictiveNavController(
   fun popToRoot() {
     activeOverlay = null
     isForwardNavigation = false
+    selectedTab = 0
     backStack.clear()
     backStack.add(AppNavDestination.Main(0))
   }
@@ -372,52 +387,58 @@ fun PredictiveNavigationHost(
       AnimatedContent(
         targetState = currentDest,
         transitionSpec = {
-          if (navController.isForwardNavigation) {
-            // Forward Navigation: Destination enters with subtle slide & elevation scale
-            (slideInHorizontally(
-              initialOffsetX = { fullWidth -> fullWidth / 4 },
-              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
-            ) + scaleIn(
-              initialScale = 0.96f,
-              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
-            ) + fadeIn(
-              animationSpec = tween(220, easing = FastOutSlowInEasing),
-              initialAlpha = 0.5f
-            )).togetherWith(
-              slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth / 6 },
-                animationSpec = tween(200, easing = FastOutSlowInEasing)
-              ) + scaleOut(
-                targetScale = 0.96f,
-                animationSpec = tween(200, easing = FastOutSlowInEasing)
-              ) + fadeOut(
-                animationSpec = tween(180, easing = FastOutSlowInEasing),
-                targetAlpha = 0.3f
-              )
-            )
+          if (navController.skipNextTransition) {
+            navController.skipNextTransition = false
+            EnterTransition.None togetherWith ExitTransition.None
           } else {
-            // Backward Navigation: Previous destination returns from depth
-            (slideInHorizontally(
-              initialOffsetX = { fullWidth -> -fullWidth / 6 },
-              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
-            ) + scaleIn(
-              initialScale = 0.96f,
-              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
-            ) + fadeIn(
-              animationSpec = tween(220, easing = FastOutSlowInEasing),
-              initialAlpha = 0.5f
-            )).togetherWith(
-              slideOutHorizontally(
-                targetOffsetX = { fullWidth -> fullWidth / 4 },
-                animationSpec = tween(200, easing = FastOutSlowInEasing)
-              ) + scaleOut(
-                targetScale = 0.96f,
-                animationSpec = tween(200, easing = FastOutSlowInEasing)
-              ) + fadeOut(
-                animationSpec = tween(180, easing = FastOutSlowInEasing),
-                targetAlpha = 0.3f
-              )
-            )
+            val zIndex = if (navController.isForwardNavigation) 1f else 0f
+            if (navController.isForwardNavigation) {
+              // Forward Navigation: Destination enters with subtle slide & elevation scale
+              (slideInHorizontally(
+                initialOffsetX = { fullWidth -> fullWidth / 4 },
+                animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
+              ) + scaleIn(
+                initialScale = 0.96f,
+                animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
+              ) + fadeIn(
+                animationSpec = tween(200, easing = FastOutSlowInEasing),
+                initialAlpha = 0f
+              )).togetherWith(
+                slideOutHorizontally(
+                  targetOffsetX = { fullWidth -> -fullWidth / 6 },
+                  animationSpec = tween(180, easing = FastOutSlowInEasing)
+                ) + scaleOut(
+                  targetScale = 0.96f,
+                  animationSpec = tween(180, easing = FastOutSlowInEasing)
+                ) + fadeOut(
+                  animationSpec = tween(160, easing = FastOutSlowInEasing),
+                  targetAlpha = 0f
+                )
+              ).apply { targetContentZIndex = zIndex }
+            } else {
+              // Backward Navigation: Previous destination returns from depth
+              (slideInHorizontally(
+                initialOffsetX = { fullWidth -> -fullWidth / 6 },
+                animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
+              ) + scaleIn(
+                initialScale = 0.96f,
+                animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
+              ) + fadeIn(
+                animationSpec = tween(200, easing = FastOutSlowInEasing),
+                initialAlpha = 0f
+              )).togetherWith(
+                slideOutHorizontally(
+                  targetOffsetX = { fullWidth -> fullWidth / 4 },
+                  animationSpec = tween(180, easing = FastOutSlowInEasing)
+                ) + scaleOut(
+                  targetScale = 0.96f,
+                  animationSpec = tween(180, easing = FastOutSlowInEasing)
+                ) + fadeOut(
+                  animationSpec = tween(160, easing = FastOutSlowInEasing),
+                  targetAlpha = 0f
+                )
+              ).apply { targetContentZIndex = zIndex }
+            }
           }
         },
         label = "predictiveNavHost",

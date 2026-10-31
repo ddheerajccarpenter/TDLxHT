@@ -17,6 +17,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -318,7 +319,7 @@ fun Modifier.staggeredEntrance(
   val density = LocalDensity.current
   val slideOffsetPx = with(density) { slideOffsetDp.dp.toPx() }
 
-  var hasAppeared by remember { mutableStateOf(false) }
+  var hasAppeared by rememberSaveable(index) { mutableStateOf(false) }
   val alpha by animateFloatAsState(
     targetValue = if (hasAppeared) 1f else 0f,
     animationSpec = tween(durationMillis = durationMs, delayMillis = delay, easing = FastOutSlowInEasing),
@@ -352,7 +353,7 @@ fun Modifier.heroEntrance(
   val isReduced = remember { isReducedMotionEnabled(context) }
   if (isReduced) return this
 
-  var hasAppeared by remember { mutableStateOf(false) }
+  var hasAppeared by rememberSaveable { mutableStateOf(false) }
   val scale by animateFloatAsState(
     targetValue = if (hasAppeared) 1f else 0.92f,
     animationSpec = spring(dampingRatio = 0.72f, stiffness = 360f),
@@ -388,7 +389,7 @@ fun Modifier.sectionEntrance(
   val isReduced = remember { isReducedMotionEnabled(context) }
   if (isReduced) return this
 
-  var hasAppeared by remember { mutableStateOf(false) }
+  var hasAppeared by rememberSaveable { mutableStateOf(false) }
   val density = LocalDensity.current
   val slideOffsetPx = with(density) { 16.dp.toPx() }
 
@@ -425,7 +426,7 @@ fun Modifier.pulseEntrance(
   val isReduced = remember { isReducedMotionEnabled(context) }
   if (isReduced) return this
 
-  var hasAppeared by remember { mutableStateOf(false) }
+  var hasAppeared by rememberSaveable { mutableStateOf(false) }
   val scale by animateFloatAsState(
     targetValue = if (hasAppeared) 1f else 0.8f,
     animationSpec = spring(dampingRatio = 0.58f, stiffness = 340f),

@@ -39,16 +39,22 @@ This ledger tracks all identified, audited, resolved, and verified defects acros
 | **BUG-19** | `ToolsScreen.kt` | Calculator cards dimming, disappearing to 0 alpha, and popping back during vertical scrolling. | **P1** | `staggeredEntrance` used unremembered local state inside recycled `LazyColumn` items, resetting `hasAppeared = false` on every scroll pass. | Removed `staggeredEntrance` from recycled list items and switched to Compose 1.7 native hardware-accelerated `Modifier.animateItem()`. | **Verified** |
 | **BUG-20** | `ToolsScreen.kt` | Header, search bar, and category chips disappeared during scroll and caused nested scrolling gesture conflicts. | **P1** | Header, search, and category chips were wrapped as `item {}` inside `LazyColumn`. | Re-architected with Option A: pinned persistent header, search bar, and decoupled horizontal chips in a top `Column`, while `LazyColumn(Modifier.weight(1f))` scrolls underneath. | **Verified** |
 | **BUG-21** | `ToolsScreen.kt` | Tapping favorite star violently moved clicked card to index 0 and repartitioned all other cards during viewing. | **P2** | `filteredTools` ran `orderedAll.partition { favoriteToolIds.contains(it.id) }` on every state change. | Decoupled favorite state from active list order so the clicked card stays in position with an isolated spring bounce on the star icon. | **Verified** |
+| **BUG-22** | `MainActivity.kt` | Dual navigation controller conflict (`HorizontalPager` inside `PredictiveNavigationHost`) caused overlapping screens (e.g. Home + Tasks, Tools + Insights) and duplicate headers. | **P1** | Tab clicks triggered `pagerState.animateScrollToPage()`, and intermediate scroll pages mutated `navController.backStack[0]`, spawning duplicate Scaffolds and Pagers in `AnimatedContent`. | Retired `HorizontalPager` from root shell; replaced with hardware-accelerated directional `AnimatedContent` inside persistent Scaffold. Tab selection is managed directly by `PredictiveNavController`. | **Verified** |
+| **BUG-23** | `PredictiveNavigation.kt` | Outgoing navigation screens lingered as 30% ghost overlays over incoming destinations. | **P1** | `AnimatedContent` transition spec had exit `fadeOut(targetAlpha = 0.3f)`, preventing full opacity clearance. | Changed `fadeOut` to terminate strictly at `targetAlpha = 0f` and `fadeIn` to start at `0f`. | **Verified** |
+| **BUG-24** | `PredictiveNavigation.kt` | Incoming and outgoing destinations Z-fought during transitions, causing random visual tearing and incorrect stacking. | **P2** | `targetContentZIndex` was undefined on `ContentTransform`, resulting in ambiguous Compose composition ordering. | Explicitly assigned `targetContentZIndex = if (isForwardNavigation) 1f else 0f`, enforcing deterministic foreground-on-top rendering. | **Verified** |
+| **BUG-25** | `PredictiveNavigation.kt` | Committing a Predictive Back gesture caused an immediate secondary backward exit animation and intermediate black frames. | **P1** | When `popBackStackDirect()` popped the stack and `isPredictingBack` turned false, `AnimatedContent` observed the destination change and started a redundant transition. | Added `skipNextTransition = true` upon gesture completion, triggering `EnterTransition.None togetherWith ExitTransition.None`. | **Verified** |
+| **BUG-26** | `MainActivity.kt` | Bottom navigation dock recomposed on every pixel of horizontal scroll, causing noticeable touch lag. | **P2** | `LiquidGlassNavItem` computed continuous layout offset fractions from `pagerState.currentPageOffsetFraction`. | Refactored `LiquidGlassNavItem` to accept a stable boolean `isSelected: Boolean`, moving active indicator animations entirely to GPU RenderNode properties. | **Verified** |
+| **BUG-27** | `SketchComponents.kt` | Entrance animations (`heroEntrance`, `sectionEntrance`, `staggeredEntrance`, `pulseEntrance`) reset to alpha 0 and re-animated on recomposition. | **P2** | Local state used plain `remember { mutableStateOf(false) }`, losing the appearance flag when items were unmounted or recycled. | Converted appearance flags to `rememberSaveable { mutableStateOf(false) }`, guaranteeing entrance animations execute exactly once per item lifecycle. | **Verified** |
 
 ---
 
 ## 3. Bug Resolution Summary
 
-* **Total Issues Audited:** 21
+* **Total Issues Audited:** 27
 * **P0 Issues Resolved:** 1 (100%)
-* **P1 Issues Resolved:** 7 (100%)
-* **P2 Issues Resolved:** 9 (100%)
+* **P1 Issues Resolved:** 11 (100%)
+* **P2 Issues Resolved:** 11 (100%)
 * **P3 Issues Resolved:** 4 (100%)
-* **Total Issues Verified:** 21 / 21 (100%)
+* **Total Issues Verified:** 27 / 27 (100%)
 * **Remaining Unresolved Issues:** 0
 

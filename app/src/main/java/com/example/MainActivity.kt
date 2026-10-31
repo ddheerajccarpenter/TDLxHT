@@ -17,7 +17,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -61,9 +65,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -299,27 +300,9 @@ fun MainApp(
     )
   }
 
-  val pagerState = rememberPagerState(initialPage = 0) { destinations.size }
-  val currentDestination = destinations[pagerState.currentPage]
-
   val navController = rememberPredictiveNavController(
     initialDestination = AppNavDestination.Main(0)
   )
-
-  // Keep PagerState and navController root tab index synchronized
-  LaunchedEffect(navController.currentDestination) {
-    val cur = navController.currentDestination
-    if (cur is AppNavDestination.Main && cur.tabIndex != pagerState.currentPage) {
-      pagerState.scrollToPage(cur.tabIndex)
-    }
-  }
-
-  LaunchedEffect(pagerState.currentPage) {
-    val cur = navController.currentDestination
-    if (cur is AppNavDestination.Main && cur.tabIndex != pagerState.currentPage) {
-      navController.backStack[0] = AppNavDestination.Main(pagerState.currentPage)
-    }
-  }
 
   // Remote update check state
   var availableUpdate by remember { mutableStateOf<com.example.util.AppUpdateInfo?>(null) }
@@ -401,34 +384,11 @@ fun MainApp(
     }
   }
 
-  // Tactile swipe vibration when swiping between pages
-  var lastSettledPage by remember { mutableIntStateOf(pagerState.currentPage) }
-  LaunchedEffect(pagerState.currentPage) {
-    if (pagerState.currentPage != lastSettledPage) {
-      lastSettledPage = pagerState.currentPage
-      VibrationHelper.tick(context)
-    }
-  }
-
   // Centralized physical back handling: guards against unexpected application exit
   BackHandler(
-    enabled = navController.activeOverlay != null ||
-      navController.backStack.size > 1 ||
-      pagerState.currentPage != 0
+    enabled = navController.canNavigateBack
   ) {
-    when {
-      navController.activeOverlay != null -> {
-        navController.dismissOverlay()
-      }
-      navController.backStack.size > 1 -> {
-        navController.navigateBack()
-      }
-      pagerState.currentPage != 0 -> {
-        coroutineScope.launch {
-          pagerState.animateScrollToPage(0)
-        }
-      }
-    }
+    navController.navigateBack()
   }
 
   Box(
@@ -448,14 +408,12 @@ fun MainApp(
             bottomBar = {
               SketchBottomNavigationBar(
                 destinations = destinations,
-                pagerState = pagerState,
+                selectedTab = navController.selectedTab,
                 isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
                 onDestinationSelected = { dest ->
                   val targetIndex = destinations.indexOf(dest)
                   if (targetIndex >= 0) {
-                    coroutineScope.launch {
-                      pagerState.animateScrollToPage(targetIndex)
-                    }
+                    navController.switchTab(targetIndex)
                   }
                 },
                 onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) }
@@ -467,12 +425,30 @@ fun MainApp(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
             ) {
-              HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = navController.backStack.size == 1 && navController.activeOverlay == null
-              ) { page ->
-                when (destinations[page]) {
+              AnimatedContent(
+                targetState = navController.selectedTab,
+                transitionSpec = {
+                  val forward = targetState >= initialState
+                  val slideDir = if (forward) 1 else -1
+                  (slideInHorizontally(
+                    initialOffsetX = { fullWidth -> slideDir * (fullWidth / 6) },
+                    animationSpec = spring(dampingRatio = 0.88f, stiffness = 450f)
+                  ) + fadeIn(
+                    animationSpec = tween(180, easing = FastOutSlowInEasing),
+                    initialAlpha = 0f
+                  )).togetherWith(
+                    slideOutHorizontally(
+                      targetOffsetX = { fullWidth -> -slideDir * (fullWidth / 6) },
+                      animationSpec = tween(160, easing = FastOutSlowInEasing)
+                    ) + fadeOut(
+                      animationSpec = tween(140, easing = FastOutSlowInEasing),
+                      targetAlpha = 0f
+                    )
+                  )
+                },
+                label = "mainTabContent"
+              ) { tabIndex ->
+                when (destinations[tabIndex]) {
                   AppDestination.TODAY -> {
                     HomeScreen(
                       viewModel = viewModel,
@@ -491,12 +467,12 @@ fun MainApp(
                       onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
                       onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
                       onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
-                      onBackToHome = { coroutineScope.launch { pagerState.animateScrollToPage(0) } }
+                      onBackToHome = { navController.switchTab(0) }
                     )
                   }
                   AppDestination.TOOLS -> {
                     ToolsScreen(
-                      onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
+                      onBack = { navController.switchTab(0) },
                       onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
                       onCreateTaskFromResult = { title, notes ->
                         navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
@@ -505,7 +481,7 @@ fun MainApp(
                   }
                   AppDestination.INSIGHTS -> {
                     ReportsScreen(
-                      onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
+                      onBack = { navController.switchTab(0) },
                       onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
                     )
                   }
@@ -1313,14 +1289,13 @@ class CenterFabScoopedShape(
 @Composable
 fun SketchBottomNavigationBar(
   destinations: List<AppDestination> = AppDestination.entries,
-  pagerState: PagerState,
+  selectedTab: Int,
   isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
   onQuickAdd: () -> Unit
 ) {
   val context = LocalContext.current
   val isDark = com.example.ui.theme.LocalAppColors.current.isDark
-  val coroutineScope = rememberCoroutineScope()
 
   Box(
     modifier = Modifier
@@ -1354,21 +1329,11 @@ fun SketchBottomNavigationBar(
         LiquidGlassNavItem(
           modifier = Modifier.weight(1f),
           destination = destinations[0],
-          pageIndex = 0,
-          currentPage = pagerState.currentPage,
-          pageOffset = pagerState.currentPageOffsetFraction,
+          isSelected = selectedTab == 0,
           isDark = isDark,
           onClick = {
             VibrationHelper.tick(context)
-            if (pagerState.currentPage != 0) {
-              coroutineScope.launch {
-                pagerState.animateScrollToPage(
-                  page = 0,
-                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
-                )
-              }
-              onDestinationSelected(destinations[0])
-            }
+            onDestinationSelected(destinations[0])
           }
         )
 
@@ -1376,21 +1341,11 @@ fun SketchBottomNavigationBar(
         LiquidGlassNavItem(
           modifier = Modifier.weight(1f),
           destination = destinations[1],
-          pageIndex = 1,
-          currentPage = pagerState.currentPage,
-          pageOffset = pagerState.currentPageOffsetFraction,
+          isSelected = selectedTab == 1,
           isDark = isDark,
           onClick = {
             VibrationHelper.tick(context)
-            if (pagerState.currentPage != 1) {
-              coroutineScope.launch {
-                pagerState.animateScrollToPage(
-                  page = 1,
-                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
-                )
-              }
-              onDestinationSelected(destinations[1])
-            }
+            onDestinationSelected(destinations[1])
           }
         )
 
@@ -1398,21 +1353,11 @@ fun SketchBottomNavigationBar(
         LiquidGlassNavItem(
           modifier = Modifier.weight(1f),
           destination = destinations[2],
-          pageIndex = 2,
-          currentPage = pagerState.currentPage,
-          pageOffset = pagerState.currentPageOffsetFraction,
+          isSelected = selectedTab == 2,
           isDark = isDark,
           onClick = {
             VibrationHelper.tick(context)
-            if (pagerState.currentPage != 2) {
-              coroutineScope.launch {
-                pagerState.animateScrollToPage(
-                  page = 2,
-                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
-                )
-              }
-              onDestinationSelected(destinations[2])
-            }
+            onDestinationSelected(destinations[2])
           }
         )
 
@@ -1420,21 +1365,11 @@ fun SketchBottomNavigationBar(
         LiquidGlassNavItem(
           modifier = Modifier.weight(1f),
           destination = destinations[3],
-          pageIndex = 3,
-          currentPage = pagerState.currentPage,
-          pageOffset = pagerState.currentPageOffsetFraction,
+          isSelected = selectedTab == 3,
           isDark = isDark,
           onClick = {
             VibrationHelper.tick(context)
-            if (pagerState.currentPage != 3) {
-              coroutineScope.launch {
-                pagerState.animateScrollToPage(
-                  page = 3,
-                  animationSpec = spring(dampingRatio = 0.78f, stiffness = 420f)
-                )
-              }
-              onDestinationSelected(destinations[3])
-            }
+            onDestinationSelected(destinations[3])
           }
         )
 
@@ -1477,17 +1412,10 @@ fun SketchBottomNavigationBar(
 private fun LiquidGlassNavItem(
   modifier: Modifier = Modifier,
   destination: AppDestination,
-  pageIndex: Int,
-  currentPage: Int,
-  pageOffset: Float,
+  isSelected: Boolean,
   isDark: Boolean,
   onClick: () -> Unit
 ) {
-  val continuousPosition = (currentPage + pageOffset).coerceIn(0f, 3f)
-  val distance = kotlin.math.abs(continuousPosition - pageIndex).coerceIn(0f, 1f)
-  val proximity = (1f - distance).coerceIn(0f, 1f)
-  val isSelected = proximity > 0.50f
-
   val activeColor = if (isDark) InkWashIvory else InkWashCharcoal
   val inactiveColor = if (isDark) InkWashMist.copy(alpha = 0.50f) else InkWashCharcoal.copy(alpha = 0.45f)
 
