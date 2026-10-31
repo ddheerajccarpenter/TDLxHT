@@ -2,6 +2,7 @@
   "name": "Habit & Task Tracker",
   "description": "Hand-drawn paper style To-Do List and Habit Tracker with streaks, subtasks, scheduling, and calendar agenda.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
-
