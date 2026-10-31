@@ -337,6 +337,8 @@ fun MainApp(
   var isToolModalOpen by remember { mutableStateOf(false) }
   var isQuickAddSheetOpen by remember { mutableStateOf(false) }
   var isCreatingShortTermTask by remember { mutableStateOf(false) }
+  var prefilledTaskTitle by remember { mutableStateOf<String?>(null) }
+  var prefilledTaskNotes by remember { mutableStateOf<String?>(null) }
   var isFocusTimerOpen by remember { mutableStateOf(false) }
   var focusTimerMinutes by remember { mutableIntStateOf(25) }
 
@@ -350,6 +352,8 @@ fun MainApp(
       isCreatingTask -> {
         isCreatingTask = false
         isCreatingShortTermTask = false
+        prefilledTaskTitle = null
+        prefilledTaskNotes = null
       }
       taskToEdit != null -> taskToEdit = null
       isCreatingHabit -> isCreatingHabit = false
@@ -468,7 +472,13 @@ fun MainApp(
           AppDestination.TOOLS -> {
             ToolsScreen(
               onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
-              onToolModalStateChanged = { isOpen -> isToolModalOpen = isOpen }
+              onToolModalStateChanged = { isOpen -> isToolModalOpen = isOpen },
+              onCreateTaskFromResult = { title, notes ->
+                prefilledTaskTitle = title
+                prefilledTaskNotes = notes
+                isToolModalOpen = false
+                isCreatingTask = true
+              }
             )
           }
           AppDestination.INSIGHTS -> {
@@ -501,11 +511,15 @@ fun MainApp(
         TaskDetailEditScreen(
           viewModel = viewModel,
           existingTask = taskToEdit,
+          initialTitle = prefilledTaskTitle ?: "",
+          initialNotes = prefilledTaskNotes ?: "",
           initialIsShortTerm = isCreatingShortTermTask,
           onDismiss = {
             isCreatingTask = false
             isCreatingShortTermTask = false
             taskToEdit = null
+            prefilledTaskTitle = null
+            prefilledTaskNotes = null
           }
         )
       }

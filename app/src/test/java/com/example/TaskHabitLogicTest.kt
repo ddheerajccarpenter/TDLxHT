@@ -282,4 +282,108 @@ class TaskHabitLogicTest {
     assertEquals(1, stats.habitsTotal)
     assertEquals(2, stats.sessionsTotal)
   }
+
+  @Test
+  fun testDataExportAndImportSerialization() {
+    val json = kotlinx.serialization.json.Json { prettyPrint = true; ignoreUnknownKeys = true }
+
+    val task = com.example.data.service.ExportedTask(
+      id = "task-101",
+      title = "Complete Liquid Glass Redesign",
+      notes = "Strict monochromatic optical fluid design",
+      dueDate = "2026-10-31",
+      dueTime = "18:00",
+      isCompleted = false,
+      priority = "HIGH",
+      category = "Work",
+      tags = listOf("android", "design"),
+      repeatRule = "NONE",
+      isShortTerm = true,
+      creationTimestamp = 1730370000000L,
+      updatedTimestamp = 1730370000000L
+    )
+
+    val subtask = com.example.data.service.ExportedSubtask(
+      id = "sub-201",
+      parentTaskId = "task-101",
+      title = "Refactor optics and caustic highlights",
+      isCompleted = true,
+      creationTimestamp = 1730370000000L
+    )
+
+    val habit = com.example.data.service.ExportedHabit(
+      id = "habit-301",
+      name = "Deep Work Session",
+      description = "Two hours of focused coding",
+      category = "Productivity",
+      frequency = "EVERY_DAY",
+      targetValue = 2f,
+      targetUnit = "hours",
+      startDate = "2026-10-01",
+      isActive = true,
+      isArchived = false,
+      creationTimestamp = 1730370000000L
+    )
+
+    val completion = com.example.data.service.ExportedHabitCompletion(
+      habitId = "habit-301",
+      date = "2026-10-31",
+      isCompleted = true,
+      currentValue = 2f,
+      targetValue = 2f
+    )
+
+    val export = com.example.data.service.DataExport(
+      exportVersion = 1,
+      exportedAt = "2026-10-31T12:00:00",
+      tasks = listOf(task),
+      subtasks = listOf(subtask),
+      habits = listOf(habit),
+      habitCompletions = listOf(completion)
+    )
+
+    val serialized = json.encodeToString(com.example.data.service.DataExport.serializer(), export)
+    assertTrue("Serialized JSON must contain task title", serialized.contains("Complete Liquid Glass Redesign"))
+    assertTrue("Serialized JSON must contain subtask title", serialized.contains("Refactor optics and caustic highlights"))
+    assertTrue("Serialized JSON must contain isShortTerm flag", serialized.contains("\"isShortTerm\": true"))
+
+    val deserialized = json.decodeFromString<com.example.data.service.DataExport>(serialized)
+    assertEquals(1, deserialized.tasks.size)
+    assertEquals(1, deserialized.subtasks.size)
+    assertEquals(1, deserialized.habits.size)
+    assertEquals(1, deserialized.habitCompletions.size)
+    assertEquals("task-101", deserialized.tasks[0].id)
+    assertTrue("isShortTerm should be true", deserialized.tasks[0].isShortTerm)
+    assertEquals("sub-201", deserialized.subtasks[0].id)
+    assertEquals("task-101", deserialized.subtasks[0].parentTaskId)
+
+    // Backward compatibility test: JSON without isShortTerm defaults to false
+    val legacyJson = """
+      {
+        "exportVersion": 1,
+        "exportedAt": "2026-10-01T00:00:00",
+        "tasks": [{
+          "id": "legacy-1",
+          "title": "Old Task",
+          "notes": "",
+          "dueDate": "2026-10-01",
+          "dueTime": "09:00",
+          "isCompleted": false,
+          "priority": "LOW",
+          "category": "General",
+          "tags": [],
+          "repeatRule": "NONE",
+          "creationTimestamp": 1000,
+          "updatedTimestamp": 1000
+        }],
+        "subtasks": [],
+        "habits": [],
+        "habitCompletions": []
+      }
+    """.trimIndent()
+
+    val legacyDeserialized = json.decodeFromString<com.example.data.service.DataExport>(legacyJson)
+    assertEquals(1, legacyDeserialized.tasks.size)
+    assertFalse("Default for omitted isShortTerm must be false", legacyDeserialized.tasks[0].isShortTerm)
+  }
 }

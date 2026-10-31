@@ -91,6 +91,8 @@ import java.util.UUID
 fun TaskDetailEditScreen(
   viewModel: MainViewModel,
   existingTask: Task? = null,
+  initialTitle: String = "",
+  initialNotes: String = "",
   initialIsShortTerm: Boolean = false,
   onDismiss: () -> Unit,
   modifier: Modifier = Modifier
@@ -98,9 +100,9 @@ fun TaskDetailEditScreen(
   val context = LocalContext.current
   val isEditing = existingTask != null
 
-  var title by remember { mutableStateOf(existingTask?.title ?: "") }
+  var title by remember { mutableStateOf(existingTask?.title ?: initialTitle) }
   var titleError by remember { mutableStateOf<String?>(null) }
-  var notes by remember { mutableStateOf(existingTask?.notes ?: "") }
+  var notes by remember { mutableStateOf(existingTask?.notes ?: initialNotes) }
   var isShortTerm by remember { mutableStateOf(existingTask?.isShortTerm ?: initialIsShortTerm) }
 
   val defaultCategories = listOf("Work", "Personal", "Urgent!", "Study", "Shopping", "College")

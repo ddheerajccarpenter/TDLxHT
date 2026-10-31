@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.room.withTransaction
 import com.example.data.local.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,6 +27,7 @@ data class ExportedTask(
     val category: String,
     val tags: List<String>,
     val repeatRule: String,
+    val isShortTerm: Boolean = false,
     val creationTimestamp: Long,
     val updatedTimestamp: Long
 )
@@ -95,6 +97,7 @@ class DataExportService(private val db: AppDatabase) {
                     category = e.category,
                     tags = e.tagsJson.split(",").filter { it.isNotBlank() },
                     repeatRule = e.repeatRule,
+                    isShortTerm = e.isShortTerm,
                     creationTimestamp = e.creationTimestamp,
                     updatedTimestamp = e.updatedTimestamp
                 )
@@ -148,76 +151,108 @@ class DataExportService(private val db: AppDatabase) {
             if (export.tasks.size > 10_000) error("Import file too large (max 10,000 tasks)")
             if (export.habits.size > 1_000) error("Import file too large (max 1,000 habits)")
 
-            // Validate and insert tasks
+            // Validate and convert entities
+            val taskEntities = export.tasks.filter { it.id.isNotBlank() && it.title.isNotBlank() }.map { t ->
+                com.example.data.local.TaskEntity(
+                    id = t.id,
+                    title = t.title.take(500),
+                    notes = t.notes.take(5000),
+                    dueDate = t.dueDate,
+                    dueTime = t.dueTime,
+                    isCompleted = t.isCompleted,
+                    priority = t.priority,
+                    category = t.category,
+                    tagsJson = t.tags.joinToString(","),
+                    reminderSetting = "NONE",
+                    customReminderMinutes = 15,
+                    repeatRule = t.repeatRule,
+                    repeatDaysJson = "",
+                    isShortTerm = t.isShortTerm,
+                    creationTimestamp = t.creationTimestamp,
+                    updatedTimestamp = t.updatedTimestamp
+                )
+            }
+
+            val subtaskEntities = export.subtasks.filter { it.id.isNotBlank() && it.parentTaskId.isNotBlank() }.map { s ->
+                com.example.data.local.SubtaskEntity(
+                    id = s.id,
+                    parentTaskId = s.parentTaskId,
+                    title = s.title.take(500),
+                    isCompleted = s.isCompleted,
+                    creationTimestamp = s.creationTimestamp
+                )
+            }
+
+            val habitEntities = export.habits.filter { it.id.isNotBlank() && it.name.isNotBlank() }.map { h ->
+                com.example.data.local.HabitEntity(
+                    id = h.id,
+                    name = h.name.take(500),
+                    description = h.description.take(2000),
+                    category = h.category,
+                    frequency = h.frequency,
+                    customDaysJson = "",
+                    targetValue = h.targetValue,
+                    targetUnit = h.targetUnit,
+                    startDate = h.startDate,
+                    reminderTime = "08:00",
+                    reminderEnabled = false,
+                    isActive = h.isActive,
+                    isPaused = false,
+                    isArchived = h.isArchived,
+                    creationTimestamp = h.creationTimestamp,
+                    updatedTimestamp = h.creationTimestamp
+                )
+            }
+
+            val completionEntities = export.habitCompletions.filter { it.habitId.isNotBlank() }.map { c ->
+                com.example.data.local.HabitCompletionRecordEntity(
+                    id = "${c.habitId}_${c.date}",
+                    habitId = c.habitId,
+                    date = c.date,
+                    isCompleted = c.isCompleted,
+                    currentValue = c.currentValue,
+                    targetValue = c.targetValue,
+                    timestamp = System.currentTimeMillis()
+                )
+            }
+
             var importedTasks = 0
+            var importedSubtasks = 0
             var importedHabits = 0
             var importedCompletions = 0
 
-            export.tasks.filter { it.id.isNotBlank() && it.title.isNotBlank() }.forEach { t ->
-                db.taskDao().upsertAll(listOf(
-                    com.example.data.local.TaskEntity(
-                        id = t.id,
-                        title = t.title.take(500),
-                        notes = t.notes.take(5000),
-                        dueDate = t.dueDate,
-                        dueTime = t.dueTime,
-                        isCompleted = t.isCompleted,
-                        priority = t.priority,
-                        category = t.category,
-                        tagsJson = t.tags.joinToString(","),
-                        reminderSetting = "NONE",
-                        customReminderMinutes = 15,
-                        repeatRule = t.repeatRule,
-                        repeatDaysJson = "",
-                        creationTimestamp = t.creationTimestamp,
-                        updatedTimestamp = t.updatedTimestamp
-                    )
-                ))
-                importedTasks++
+            db.withTransaction {
+                if (taskEntities.isNotEmpty()) {
+                    db.taskDao().upsertAll(taskEntities)
+                    importedTasks = taskEntities.size
+                }
+                if (subtaskEntities.isNotEmpty()) {
+                    db.subtaskDao().upsertAll(subtaskEntities)
+                    importedSubtasks = subtaskEntities.size
+                }
+                if (habitEntities.isNotEmpty()) {
+                    db.habitDao().upsertAll(habitEntities)
+                    importedHabits = habitEntities.size
+                }
+                if (completionEntities.isNotEmpty()) {
+                    db.habitCompletionRecordDao().upsertAll(completionEntities)
+                    importedCompletions = completionEntities.size
+                }
             }
 
-            export.habits.filter { it.id.isNotBlank() && it.name.isNotBlank() }.forEach { h ->
-                db.habitDao().upsertAll(listOf(
-                    com.example.data.local.HabitEntity(
-                        id = h.id,
-                        name = h.name.take(500),
-                        description = h.description.take(2000),
-                        category = h.category,
-                        frequency = h.frequency,
-                        customDaysJson = "",
-                        targetValue = h.targetValue,
-                        targetUnit = h.targetUnit,
-                        startDate = h.startDate,
-                        reminderTime = "08:00",
-                        reminderEnabled = false,
-                        isActive = h.isActive,
-                        isPaused = false,
-                        isArchived = h.isArchived,
-                        creationTimestamp = h.creationTimestamp,
-                        updatedTimestamp = h.creationTimestamp
-                    )
-                ))
-                importedHabits++
-            }
-
-            export.habitCompletions.filter { it.habitId.isNotBlank() }.forEach { c ->
-                db.habitCompletionRecordDao().upsertAll(listOf(
-                    com.example.data.local.HabitCompletionRecordEntity(
-                        id = "${c.habitId}_${c.date}",
-                        habitId = c.habitId,
-                        date = c.date,
-                        isCompleted = c.isCompleted,
-                        currentValue = c.currentValue,
-                        targetValue = c.targetValue,
-                        timestamp = System.currentTimeMillis()
-                    )
-                ))
-                importedCompletions++
-            }
-
-            ImportSummary(importedTasks, importedHabits, importedCompletions)
+            ImportSummary(
+                tasks = importedTasks,
+                subtasks = importedSubtasks,
+                habits = importedHabits,
+                completions = importedCompletions
+            )
         }
     }
 
-    data class ImportSummary(val tasks: Int, val habits: Int, val completions: Int)
+    data class ImportSummary(
+        val tasks: Int,
+        val subtasks: Int,
+        val habits: Int,
+        val completions: Int
+    )
 }

@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DragHandle
@@ -129,6 +130,7 @@ import java.time.LocalDate
 fun ToolsScreen(
   onBack: (() -> Unit)? = null,
   onToolModalStateChanged: ((Boolean) -> Unit)? = null,
+  onCreateTaskFromResult: ((title: String, notes: String) -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -490,6 +492,7 @@ fun ToolsScreen(
         key(tool.id) {
           ToolRunnerModal(
             tool = tool,
+            onCreateTaskFromResult = onCreateTaskFromResult,
             onDismiss = { activeToolId = null }
           )
         }
@@ -501,6 +504,7 @@ fun ToolsScreen(
 @Composable
 fun ToolRunnerModal(
   tool: ToolDefinition,
+  onCreateTaskFromResult: ((title: String, notes: String) -> Unit)? = null,
   onDismiss: () -> Unit
 ) {
   val context = LocalContext.current
@@ -896,27 +900,68 @@ fun ToolRunnerModal(
                 )
               }
 
-              // Copy Button
-              Box(
-                modifier = Modifier
-                  .size(38.dp)
-                  .background(AccentTerracotta, CircleShape)
-                  .clip(CircleShape)
-                  .bounceClick {
-                    val clip = ClipData.newPlainText("Tool Result", "${result.primaryLabel}: ${result.primaryValue}")
-                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    cm.setPrimaryClip(clip)
-                    VibrationHelper.click(context)
-                    Toast.makeText(context, "Copied ${result.primaryValue}", Toast.LENGTH_SHORT).show()
-                  },
-                contentAlignment = Alignment.Center
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
               ) {
-                Icon(
-                  imageVector = Icons.Default.ContentCopy,
-                  contentDescription = "Copy Result",
-                  tint = Color.White,
-                  modifier = Modifier.size(18.dp)
-                )
+                // Add as Task Button
+                if (onCreateTaskFromResult != null && result.primaryValue != "—" && result.primaryValue != "Ready" && result.primaryValue != "Invalid Input") {
+                  Box(
+                    modifier = Modifier
+                      .height(38.dp)
+                      .background(InkPrimary.copy(alpha = 0.08f), CircleShape)
+                      .border(1.dp, CardBorder, CircleShape)
+                      .clip(CircleShape)
+                      .bounceClick {
+                        val taskTitle = "${tool.name}: ${result.primaryLabel} ${result.primaryValue}"
+                        val detailsText = if (result.secondaryDetails.isNotEmpty()) {
+                          "\n" + result.secondaryDetails.joinToString("\n") { "${it.first}: ${it.second}" }
+                        } else ""
+                        val taskNotes = "Generated from ${tool.name} tool.${detailsText}\n${result.summaryNotes ?: ""}".trim()
+                        onCreateTaskFromResult(taskTitle, taskNotes)
+                        onDismiss()
+                      }
+                      .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                      Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add as Task",
+                        tint = InkPrimary,
+                        modifier = Modifier.size(16.dp)
+                      )
+                      Spacer(modifier = Modifier.width(4.dp))
+                      Text(
+                        text = "Add as Task",
+                        style = TextStyle(fontFamily = SFProFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                      )
+                    }
+                  }
+                }
+
+                // Copy Button
+                Box(
+                  modifier = Modifier
+                    .size(38.dp)
+                    .background(AccentTerracotta, CircleShape)
+                    .clip(CircleShape)
+                    .bounceClick {
+                      val clip = ClipData.newPlainText("Tool Result", "${result.primaryLabel}: ${result.primaryValue}")
+                      val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                      cm.setPrimaryClip(clip)
+                      VibrationHelper.click(context)
+                      Toast.makeText(context, "Copied ${result.primaryValue}", Toast.LENGTH_SHORT).show()
+                    },
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = "Copy Result",
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                  )
+                }
               }
             }
 

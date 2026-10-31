@@ -3,6 +3,7 @@ package com.example.ui.screens.settings
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import com.example.ui.theme.SFProFontFamily
@@ -781,11 +782,34 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(20.dp))
       }
 
-      // Data & Privacy Card (JSON Export)
+      // Data & Privacy Card (JSON Export & Import)
       item {
         val exportService = remember { com.example.data.service.DataExportService(HabitTaskApplication.instance.database) }
         val coroutineScope = rememberCoroutineScope()
         var isExporting by remember { mutableStateOf(false) }
+        var isImporting by remember { mutableStateOf(false) }
+
+        val importLauncher = rememberLauncherForActivityResult(
+          contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+          if (uri != null) {
+            isImporting = true
+            coroutineScope.launch {
+              val result = exportService.importFromJson(context, uri)
+              isImporting = false
+              result.onSuccess { summary ->
+                Toast.makeText(
+                  context,
+                  "Restored ${summary.tasks} tasks, ${summary.subtasks} subtasks, ${summary.habits} habits",
+                  Toast.LENGTH_LONG
+                ).show()
+              }.onFailure { err ->
+                SafeLog.w("SettingsScreen", "Import failed", err)
+                Toast.makeText(context, "Import failed: ${err.localizedMessage ?: "Invalid file"}", Toast.LENGTH_LONG).show()
+              }
+            }
+          }
+        }
 
         Text(
           text = "DATA & PRIVACY",
@@ -803,12 +827,12 @@ fun SettingsScreen(
               .padding(16.dp)
           ) {
             Text(
-              text = "Export Data",
+              text = "Backup & Restore",
               style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-              text = "Download a clean JSON archive of tasks & habits.",
+              text = "Export clean JSON archives or restore your tasks & habits anytime.",
               style = TextStyle(fontSize = 12.sp, color = InkSecondary)
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -820,7 +844,7 @@ fun SettingsScreen(
                 .background(PillBackgroundDark, RoundedCornerShape(10.dp))
                 .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
                 .clip(RoundedCornerShape(10.dp))
-                .bounceClick(enabled = !isExporting) {
+                .bounceClick(enabled = !isExporting && !isImporting) {
                   isExporting = true
                   coroutineScope.launch {
                     val result = exportService.exportToJson(context)
@@ -846,6 +870,30 @@ fun SettingsScreen(
                 Text(
                   text = "Export Data (JSON)",
                   style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = PillTextDark)
+                )
+              }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Box(
+              modifier = Modifier
+                .fillMaxWidth()
+                .height(42.dp)
+                .background(CardBackground, RoundedCornerShape(10.dp))
+                .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .bounceClick(enabled = !isExporting && !isImporting) {
+                  importLauncher.launch("*/*")
+                },
+              contentAlignment = Alignment.Center
+            ) {
+              if (isImporting) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = InkPrimary, strokeWidth = 2.dp)
+              } else {
+                Text(
+                  text = "Import & Restore (JSON)",
+                  style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
                 )
               }
             }
@@ -1245,7 +1293,7 @@ fun AccountSection(authViewModel: AuthViewModel) {
       )
 
       Text(
-        text = "v2.2.4 • Clean Edition",
+        text = "v${com.example.BuildConfig.VERSION_NAME} • Liquid Glass Edition",
         style = TextStyle(
           fontSize = 12.sp,
           fontWeight = FontWeight.SemiBold,
