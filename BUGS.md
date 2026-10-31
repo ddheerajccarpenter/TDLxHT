@@ -1,0 +1,54 @@
+# TDlxHT — Defect Inventory & Bug Resolution Ledger (`BUGS.md`)
+
+This ledger tracks all identified, audited, resolved, and verified defects across the **TDlxHT** codebase in accordance with the Phase 1, Phase 3, and Phase 8 specifications.
+
+---
+
+## 1. Defect Classification System
+
+* **P0:** Fatal crash, application launch failure, data corruption, or severe security vulnerability.
+* **P1:** Critical functionality broken or primary user workflow blocked.
+* **P2:** Major usability, layout overlap, or interaction defect.
+* **P3:** Visual inconsistency, token divergence, or compiler warning.
+* **P4:** Performance optimization or cosmetic refinement opportunity.
+
+---
+
+## 2. Complete Bug Ledger
+
+| ID | Screen / Component | Problem | Severity | Root Cause | Fix Implemented | Status |
+| :--- | :--- | :--- | :---: | :--- | :--- | :---: |
+| **BUG-01** | `ReportsScreen.kt` | "Generate Visual Report" CTA was rendered underneath the floating dock on standard and short screens. | **P1** | `HorizontalPager` did not inherit Scaffold bottom insets; hardcoded extra padding failed on gesture navigation. | Implemented dynamic inset-aware bottom clearance: `FloatingNavContentBottomPadding + 16.dp` where clearance is derived from dock height (`64dp`), vertical margin (`16dp`), system navigation/gesture inset, and content gap. | **Verified** |
+| **BUG-02** | `SketchComponents.kt` | Hardcoded static `val FloatingNavContentBottomPadding = 155.dp` caused excessive empty space on tablets and failed on varying device insets. | **P2** | Static `155.dp` constant ignored device-specific window insets and gesture bar heights. | Converted `FloatingNavContentBottomPadding` to a dynamic `@Composable` getter using `WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()`. | **Verified** |
+| **BUG-03** | `HabitListScreen.kt` & `CalendarScreen.kt` | Static `contentPadding = PaddingValues(bottom = 155.dp)` caused layout inconsistency and potential overlap with Productivity tab controls. | **P2** | Screens hardcoded `155.dp` instead of referencing the dynamic inset clearance system. | Replaced static `155.dp` with `FloatingNavContentBottomPadding + 48.dp` ensuring complete scroll clearance above both the Productivity segmented bar and the floating dock. | **Verified** |
+| **BUG-04** | `Color.kt` & Theme | Token divergence between legacy color names (`PrimaryAccentLime`, `AccentTerracotta`) and canonical `designglass.md` specification. | **P3** | Historical drafts retained legacy accent names while intending a strict monochrome identity. | Implemented canonical token matrix (`CanonicalCanvasDark`, `CanonicalGlassFillBaseDark`, `CanonicalGlassFillElevatedDark`, etc.) while aliasing legacy names to monochromatic tokens to preserve backward compatibility. | **Verified** |
+| **BUG-05** | `AuthenticationScreen.kt`, `HabitDetailEditScreen.kt`, `TaskDetailEditScreen.kt` | Compiler warnings emitted for always-true redundant conditions: `isError && error != null` and `isEditing && existingHabit != null`. | **P3** | `isEditing` was initialized as `existingHabit != null`, making the subsequent compound check redundant and preventing Kotlin smart-casting. | Cleaned up conditionals to check `error != null`, `existingHabit != null`, and `existingTask != null`, enabling Kotlin smart casting and eliminating compiler warnings. | **Verified** |
+| **BUG-06** | `ShakeDetectionService.kt` | Java deprecation warning on `MODE_BACKGROUND_ACTIVITY_START_ALLOWED` in modern Android SDK compile targets. | **P3** | Constant was flagged as deprecated in Java under Compile SDK 36. | Applied `@Suppress("DEPRECATION")` with Android API 34+ version guard (`UPSIDE_DOWN_CAKE`). | **Verified** |
+| **BUG-07** | `MainActivity.kt` | Floating navigation dock background opacity and border gradients diverged slightly from `designglass.md` elevation tokens. | **P2** | Hardcoded colors `Color(0xD8202022)` and arbitrary border alpha values were used in the dock styling. | Replaced hardcoded values with `CanonicalGlassFillElevatedDark` (`rgba(48, 48, 55, 0.88)`), `CanonicalGlassBorderTopDark` (`0x47FFFFFF`), and `CanonicalGlassSheenTopDark` (`0x33FFFFFF`). | **Verified** |
+| **BUG-08** | `ToolRegistry.kt` | Potential division by zero and `NaN`/`Infinity` in loan EMI, attendance, margin, and percentage calculations. | **P1** | Zero or negative inputs could trigger mathematical exceptions in unattended edge cases. | Enforced non-zero guards, `coerceIn` limits, and fallback defaults (`₹0.00`, `0.0%`) across all 15 calculators in `ToolRegistry.kt`. | **Verified** |
+| **BUG-09** | Android Package Manager | Historical 'App Not Installed' package error on physical device update. | **P0** | Dangerous permission flags (`REQUEST_INSTALL_PACKAGES`, `SYSTEM_ALERT_WINDOW`, `USE_FULL_SCREEN_INTENT`) triggered Google Play Protect blocking. | Permanently stripped dangerous permissions from `AndroidManifest.xml`, elevated `versionCode` to 31, and enabled v1/v2/v3 full-block APK signing. | **Verified** |
+| **BUG-10** | `MainActivity.kt` | HorizontalPager sliding indicator caused parent remeasurement and layout thrashing across sibling composables. | **P2** | Indicator previously used `animateContentSize` on parent containers, triggering measure/layout passes on every frame. | Enforced $O(1)$ constant layout geometry with fixed-width slots and isolated indicator translation to GPU RenderNode properties via `graphicsLayer { translationX = ... }`. | **Verified** |
+| **BUG-11** | `TaskDetailEditScreen.kt` | Empty or whitespace-only task title validation previously relied solely on Toast without inline error feedback. | **P2** | Missing inline error state in task form violated design specification (Section 7.3 & 8.1). | Added reactive `titleError` state and inline error banner with `AccentRed` styling directly below the input field; clears automatically upon valid input. | **Verified** |
+| **BUG-12** | `HabitDetailEditScreen.kt` | Empty or whitespace-only habit name validation previously relied solely on Toast without inline error feedback. | **P2** | Missing inline error state in habit form violated design specification (Section 7.4 & 8.1). | Added reactive `nameError` state and inline error banner with `AccentRed` styling directly below the input field across both top and bottom save triggers; clears automatically upon valid input. | **Verified** |
+| **BUG-13** | `ReportsScreen.kt` | Compounding independent bottom spacer (`Spacer(Modifier.height(32.dp))`) caused unpredictable bottom clearance when combined with contentPadding. | **P3** | Extra trailing spacer violated design specification rule against compounding independent bottom spacers (Section 6.3). | Removed redundant trailing spacer and standardized bottom scroll clearance via `contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 24.dp)`. | **Verified** |
+| **BUG-14** | `SketchComponents.kt`, `MainActivity.kt` | Metallic chrome sheen (`drawRoundRect` top white arc gradient) painted on every surface, causing components to look like shiny plastic bumpers rather than optical glass. | **P1** | Hardcoded top 45% white-to-transparent sheen gradient in `SketchCard`, `GlassCard`, `GlassButton`, `SketchBottomNavigationBar`, etc. | Completely removed all painted top sheen arcs across all glass components; surfaces now rely strictly on optical translucency, ambient canvas lighting, and hairline specular rims. | **Verified** |
+| **BUG-15** | `Color.kt` | Glass surface fill colors were 82%–88% opaque dark gray (`Color(0xD125252A)`), blocking background information and creating an opaque metallic plastic appearance. | **P1** | Overly dense gray pigment in glass tokens prevented light transmission. | Tuned tokens to authentic translucent glass: `CanonicalGlassFillBaseDark = Color(0x40181820)` (~25% alpha) and `CanonicalGlassFillElevatedDark = Color(0x5E14141C)` (~37% alpha). | **Verified** |
+| **BUG-16** | `SketchComponents.kt` | Segmented controls and filter chips rendered active selections as solid stark white blocks (`PillBackgroundDark = #F5F5F7`), resembling hard plastic switches. | **P2** | Active selection background relied on high-contrast text color rather than a translucent optical lens. | Rebuilt `SketchSegmentedControl` and `SketchFilterChip` using an optical translucent glass lens (`Color(0x28FFFFFF)` with `0.7.dp` hairline border `Color(0x3EFFFFFF)`) and crisp white typography. | **Verified** |
+| **BUG-17** | `ToolsScreen.kt` | Aggressive 44dp circular badges with uppercase 2-letter abbreviations ("AT", "BR", "CG", etc.) and thick 1.2dp borders cluttered the tool list. | **P2** | Raw string truncation with heavy circular borders dominated visual hierarchy. | Replaced circular abbreviation badges with elegant 38dp rounded glass squircles (`RoundedCornerShape(10.dp)`) containing contextually mapped Material Outlined vector icons. | **Verified** |
+| **BUG-18** | `ToolsScreen.kt` & `ReportsScreen.kt` | "Loan & EMI Calculator" and "Generate Visual Report" CTA were obstructed by the floating navigation dock on standard devices. | **P1** | Insufficient bottom clearance in `LazyColumn.contentPadding`. | Expanded `contentPadding` bottom clearance to `FloatingNavContentBottomPadding + 48.dp`, ensuring bottom items scroll completely and comfortably above the floating dock. | **Verified** |
+| **BUG-19** | `ToolsScreen.kt` | Calculator cards dimming, disappearing to 0 alpha, and popping back during vertical scrolling. | **P1** | `staggeredEntrance` used unremembered local state inside recycled `LazyColumn` items, resetting `hasAppeared = false` on every scroll pass. | Removed `staggeredEntrance` from recycled list items and switched to Compose 1.7 native hardware-accelerated `Modifier.animateItem()`. | **Verified** |
+| **BUG-20** | `ToolsScreen.kt` | Header, search bar, and category chips disappeared during scroll and caused nested scrolling gesture conflicts. | **P1** | Header, search, and category chips were wrapped as `item {}` inside `LazyColumn`. | Re-architected with Option A: pinned persistent header, search bar, and decoupled horizontal chips in a top `Column`, while `LazyColumn(Modifier.weight(1f))` scrolls underneath. | **Verified** |
+| **BUG-21** | `ToolsScreen.kt` | Tapping favorite star violently moved clicked card to index 0 and repartitioned all other cards during viewing. | **P2** | `filteredTools` ran `orderedAll.partition { favoriteToolIds.contains(it.id) }` on every state change. | Decoupled favorite state from active list order so the clicked card stays in position with an isolated spring bounce on the star icon. | **Verified** |
+
+---
+
+## 3. Bug Resolution Summary
+
+* **Total Issues Audited:** 21
+* **P0 Issues Resolved:** 1 (100%)
+* **P1 Issues Resolved:** 7 (100%)
+* **P2 Issues Resolved:** 9 (100%)
+* **P3 Issues Resolved:** 4 (100%)
+* **Total Issues Verified:** 21 / 21 (100%)
+* **Remaining Unresolved Issues:** 0
+

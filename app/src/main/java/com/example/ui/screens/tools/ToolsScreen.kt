@@ -8,6 +8,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -168,12 +170,8 @@ fun ToolsScreen(
       if (idx >= 0) idx else (1000 + ToolRegistry.tools.indexOf(tool))
     }
 
-    // 2. Partition into favorites and others so favorites ALWAYS move to the front
-    val (favs, others) = orderedAll.partition { favoriteToolIds.contains(it.id) }
-    val fullOrdered = favs + others
-
-    // 3. Filter by category & search query
-    val matching = fullOrdered.filter { tool ->
+    // 2. Filter by category & search query (stable position, no violent re-partition on star tap)
+    val matching = orderedAll.filter { tool ->
       val matchesCategory = (selectedCategory == ToolCategory.ALL) || (tool.category == selectedCategory)
       val matchesQuery = q.isEmpty() ||
         tool.name.lowercase().contains(q) ||
@@ -182,7 +180,7 @@ fun ToolsScreen(
       matchesCategory && matchesQuery
     }
 
-    // 4. Apply selected sort criteria (GlassMenu items: Date, Name, Size)
+    // 3. Apply selected sort criteria (GlassMenu items: Date, Name, Size)
     when (sortCriterion) {
       "Name" -> matching.sortedBy { it.name }
       "Size" -> matching.sortedByDescending { it.description.length }
@@ -200,14 +198,16 @@ fun ToolsScreen(
       .fillMaxSize()
       .paperDotBackground()
   ) {
-    LazyColumn(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 16.dp),
-      contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
+    Column(
+      modifier = Modifier.fillMaxSize()
     ) {
-      // Header with Apple Liquid Glass Controls
-      item {
+      // Pinned Header, Search & Category Filters (Option A: Persistent Header)
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp)
+          .padding(top = 16.dp)
+      ) {
         AppHeader(
           title = "Tools",
           onBack = onBack,
@@ -266,20 +266,16 @@ fun ToolsScreen(
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-      }
 
-      // Search Bar
-      item {
+        // Search Bar (Pinned)
         SketchSearchBar(
           query = searchQuery,
           onQueryChange = { searchQuery = it },
           placeholder = "Search tools...",
           modifier = Modifier.padding(bottom = 12.dp)
         )
-      }
 
-      // Category Chips
-      item {
+        // Category Chips (Pinned, horizontal scroll decoupled from vertical cards)
         Row(
           modifier = Modifier
             .fillMaxWidth()
@@ -296,12 +292,18 @@ fun ToolsScreen(
           }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(10.dp))
       }
 
-      // Tool Cards List
+      // Pure Tool Cards List
       if (filteredTools.isEmpty()) {
-        item {
+        Box(
+          modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+          contentAlignment = Alignment.Center
+        ) {
           AppEmptyState(
             icon = Icons.Default.Close,
             title = if (searchQuery.isNotBlank()) "No tools found" else "No tools",
@@ -309,174 +311,191 @@ fun ToolsScreen(
           )
         }
       } else {
-        items(filteredTools, key = { it.id }) { tool ->
-          val isFav = favoriteToolIds.contains(tool.id)
-          val toolIndex = filteredTools.indexOf(tool)
-          Box(modifier = Modifier.animateItem().staggeredEntrance(index = toolIndex)) {
-            GlassCard(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .bounceClick {
-                  if (!isReorderMode) {
-                    activeToolId = tool.id
-                  }
-                }
-                .testTag("tool_card_${tool.id}"),
-              borderColor = if (isFav) AccentTerracotta.copy(alpha = 0.6f) else CardBorder,
-              cornerRadius = 18.dp
+        LazyColumn(
+          modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+          contentPadding = PaddingValues(top = 4.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
+        ) {
+          items(
+            items = filteredTools,
+            key = { it.id },
+            contentType = { "tool_card" }
+          ) { tool ->
+            val isFav = favoriteToolIds.contains(tool.id)
+            Box(
+              modifier = Modifier.animateItem(
+                fadeInSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                fadeOutSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing),
+                placementSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioLowBouncy)
+              )
             ) {
-              Row(
+              GlassCard(
                 modifier = Modifier
                   .fillMaxWidth()
-                  .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                  .padding(vertical = 4.dp)
+                  .bounceClick {
+                    if (!isReorderMode) {
+                      activeToolId = tool.id
+                    }
+                  }
+                  .testTag("tool_card_${tool.id}"),
+                borderColor = if (isFav) AccentTerracotta.copy(alpha = 0.6f) else CardBorder,
+                cornerRadius = 18.dp
               ) {
                 Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
                   verticalAlignment = Alignment.CenterVertically,
-                  modifier = Modifier.weight(1f)
+                  horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                  Box(
-                    modifier = Modifier
-                      .size(38.dp)
-                      .fluidLensedGlass(
-                        shape = RoundedCornerShape(10.dp),
-                        elevation = 1.dp,
-                        borderWidth = 0.6.dp,
-                        isElevated = isFav
-                      ),
-                    contentAlignment = Alignment.Center
-                  ) {
-                    Icon(
-                      imageVector = getToolIcon(tool.id),
-                      contentDescription = null,
-                      tint = if (isFav) AccentTerracotta else InkPrimary,
-                      modifier = Modifier.size(20.dp)
-                    )
-                  }
-
-                  Spacer(modifier = Modifier.width(12.dp))
-
-                  Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                      Text(
-                        text = tool.name,
-                        style = TextStyle(
-                          fontFamily = SFProFontFamily,
-                          fontSize = 16.sp,
-                          fontWeight = FontWeight.Bold,
-                          color = InkPrimary
-                        )
-                      )
-                      if (isFav) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Box(
-                          modifier = Modifier
-                            .background(AccentTerracotta.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
-                        ) {
-                          Text(
-                            text = "FAVORITE",
-                            style = TextStyle(
-                              fontSize = 9.sp,
-                              fontWeight = FontWeight.Bold,
-                              letterSpacing = 0.5.sp,
-                              color = AccentTerracotta
-                            )
-                          )
-                        }
-                      }
-                    }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                      text = tool.description,
-                      style = TextStyle(
-                        fontSize = 12.sp,
-                        color = InkSecondary,
-                        lineHeight = 16.sp
-                      ),
-                      maxLines = 2
-                    )
-                  }
-                }
-
-                if (isReorderMode) {
                   Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(start = 6.dp)
+                    modifier = Modifier.weight(1f)
                   ) {
-                    val currentIndex = filteredTools.indexOf(tool)
                     Box(
                       modifier = Modifier
-                        .size(32.dp)
-                        .border(1.dp, CardBorder, CircleShape)
-                        .clip(CircleShape)
-                        .bounceClick(enabled = currentIndex > 0) {
-                          if (currentIndex > 0) {
-                            val targetTool = filteredTools[currentIndex - 1]
-                            val currentOrder = if (customToolOrder.isNotEmpty()) customToolOrder.toMutableList() else ToolRegistry.tools.map { it.id }.toMutableList()
-                            val idx1 = currentOrder.indexOf(tool.id)
-                            val idx2 = currentOrder.indexOf(targetTool.id)
-                            if (idx1 >= 0 && idx2 >= 0) {
-                              java.util.Collections.swap(currentOrder, idx1, idx2)
-                              AppPreferences.setCustomToolOrder(context, currentOrder)
-                            }
-                          }
-                        },
+                        .size(38.dp)
+                        .fluidLensedGlass(
+                          shape = RoundedCornerShape(10.dp),
+                          elevation = 1.dp,
+                          borderWidth = 0.6.dp,
+                          isElevated = isFav
+                        ),
                       contentAlignment = Alignment.Center
                     ) {
                       Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Move Up",
-                        tint = if (currentIndex > 0) InkPrimary else InkMuted,
-                        modifier = Modifier.size(18.dp)
+                        imageVector = getToolIcon(tool.id),
+                        contentDescription = null,
+                        tint = if (isFav) AccentTerracotta else InkPrimary,
+                        modifier = Modifier.size(20.dp)
                       )
                     }
 
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                      Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                          text = tool.name,
+                          style = TextStyle(
+                            fontFamily = SFProFontFamily,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = InkPrimary
+                          )
+                        )
+                        if (isFav) {
+                          Spacer(modifier = Modifier.width(6.dp))
+                          Box(
+                            modifier = Modifier
+                              .background(AccentTerracotta.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                              .padding(horizontal = 5.dp, vertical = 1.dp)
+                          ) {
+                            Text(
+                              text = "FAVORITE",
+                              style = TextStyle(
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp,
+                                color = AccentTerracotta
+                              )
+                            )
+                          }
+                        }
+                      }
+                      Spacer(modifier = Modifier.height(2.dp))
+                      Text(
+                        text = tool.description,
+                        style = TextStyle(
+                          fontSize = 12.sp,
+                          color = InkSecondary,
+                          lineHeight = 16.sp
+                        ),
+                        maxLines = 2
+                      )
+                    }
+                  }
+
+                  if (isReorderMode) {
+                    Row(
+                      verticalAlignment = Alignment.CenterVertically,
+                      horizontalArrangement = Arrangement.spacedBy(4.dp),
+                      modifier = Modifier.padding(start = 6.dp)
+                    ) {
+                      val currentIndex = filteredTools.indexOf(tool)
+                      Box(
+                        modifier = Modifier
+                          .size(32.dp)
+                          .border(1.dp, CardBorder, CircleShape)
+                          .clip(CircleShape)
+                          .bounceClick(enabled = currentIndex > 0) {
+                            if (currentIndex > 0) {
+                              val targetTool = filteredTools[currentIndex - 1]
+                              val currentOrder = if (customToolOrder.isNotEmpty()) customToolOrder.toMutableList() else ToolRegistry.tools.map { it.id }.toMutableList()
+                              val idx1 = currentOrder.indexOf(tool.id)
+                              val idx2 = currentOrder.indexOf(targetTool.id)
+                              if (idx1 >= 0 && idx2 >= 0) {
+                                java.util.Collections.swap(currentOrder, idx1, idx2)
+                                AppPreferences.setCustomToolOrder(context, currentOrder)
+                              }
+                            }
+                          },
+                        contentAlignment = Alignment.Center
+                      ) {
+                        Icon(
+                          imageVector = Icons.Default.KeyboardArrowUp,
+                          contentDescription = "Move Up",
+                          tint = if (currentIndex > 0) InkPrimary else InkMuted,
+                          modifier = Modifier.size(18.dp)
+                        )
+                      }
+
+                      Box(
+                        modifier = Modifier
+                          .size(32.dp)
+                          .border(1.dp, CardBorder, CircleShape)
+                          .clip(CircleShape)
+                          .bounceClick(enabled = currentIndex < filteredTools.size - 1) {
+                            if (currentIndex < filteredTools.size - 1) {
+                              val targetTool = filteredTools[currentIndex + 1]
+                              val currentOrder = if (customToolOrder.isNotEmpty()) customToolOrder.toMutableList() else ToolRegistry.tools.map { it.id }.toMutableList()
+                              val idx1 = currentOrder.indexOf(tool.id)
+                              val idx2 = currentOrder.indexOf(targetTool.id)
+                              if (idx1 >= 0 && idx2 >= 0) {
+                                java.util.Collections.swap(currentOrder, idx1, idx2)
+                                AppPreferences.setCustomToolOrder(context, currentOrder)
+                              }
+                            }
+                          },
+                        contentAlignment = Alignment.Center
+                      ) {
+                        Icon(
+                          imageVector = Icons.Default.KeyboardArrowDown,
+                          contentDescription = "Move Down",
+                          tint = if (currentIndex < filteredTools.size - 1) InkPrimary else InkMuted,
+                          modifier = Modifier.size(18.dp)
+                        )
+                      }
+                    }
+                  } else {
                     Box(
                       modifier = Modifier
-                        .size(32.dp)
-                        .border(1.dp, CardBorder, CircleShape)
-                        .clip(CircleShape)
-                        .bounceClick(enabled = currentIndex < filteredTools.size - 1) {
-                          if (currentIndex < filteredTools.size - 1) {
-                            val targetTool = filteredTools[currentIndex + 1]
-                            val currentOrder = if (customToolOrder.isNotEmpty()) customToolOrder.toMutableList() else ToolRegistry.tools.map { it.id }.toMutableList()
-                            val idx1 = currentOrder.indexOf(tool.id)
-                            val idx2 = currentOrder.indexOf(targetTool.id)
-                            if (idx1 >= 0 && idx2 >= 0) {
-                              java.util.Collections.swap(currentOrder, idx1, idx2)
-                              AppPreferences.setCustomToolOrder(context, currentOrder)
-                            }
-                          }
+                        .size(36.dp)
+                        .bounceClick {
+                          AppPreferences.toggleToolFavorite(context, tool.id)
                         },
                       contentAlignment = Alignment.Center
                     ) {
                       Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Move Down",
-                        tint = if (currentIndex < filteredTools.size - 1) InkPrimary else InkMuted,
-                        modifier = Modifier.size(18.dp)
+                        imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                        contentDescription = if (isFav) "Favorited" else "Favorite",
+                        tint = if (isFav) AccentTerracotta else InkMuted,
+                        modifier = Modifier.size(20.dp)
                       )
                     }
-                  }
-                } else {
-                  Box(
-                    modifier = Modifier
-                      .size(36.dp)
-                      .bounceClick {
-                        AppPreferences.toggleToolFavorite(context, tool.id)
-                      },
-                    contentAlignment = Alignment.Center
-                  ) {
-                    Icon(
-                      imageVector = if (isFav) Icons.Filled.Star else Icons.Outlined.StarOutline,
-                      contentDescription = if (isFav) "Favorited" else "Favorite",
-                      tint = if (isFav) AccentTerracotta else InkMuted,
-                      modifier = Modifier.size(20.dp)
-                    )
                   }
                 }
               }

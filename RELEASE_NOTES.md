@@ -1,3 +1,35 @@
+# TDlxHT Release Notes — Version 2.5.4 (Build 41)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.4.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Tools Page Animation Bug Fix & Smooth Scrolling Rework
+
+TDlxHT 2.5.4 resolves all critical animation lifecycle, scrolling architecture, and view recycling defects on the Tools page (`ToolsScreen.kt`), eliminating disappearing calculator cards, preventing unremembered animation replays during scroll, and pinning a persistent top header with decoupled search and category filters.
+
+### 1. Eliminated Disappearing Calculator Cards (BUG-19)
+* **Root Cause Fixed:** Disposed and recreated local state inside recycled `LazyColumn` items was causing `hasAppeared` to reinitialize to `false`, zeroing opacity (`alpha = 0f`) and triggering staggered entrance delays whenever cards scrolled into view.
+* **Hardware-Accelerated Item Placement:** Stripped buggy `staggeredEntrance` modifiers from individual list items in favor of native Compose 1.7 `Modifier.animateItem()` with tuned specs (`fadeInSpec`, `fadeOutSpec`, and `placementSpec`), guaranteeing 100% stable alpha and zero flickering during rapid scrolling.
+
+### 2. Option A Persistent Header Architecture (BUG-20)
+* **Pinned Title, Search & Filter Controls:** Extracted `AppHeader`, `SketchSearchBar`, and the category filter chips from `LazyColumn` into a persistent pinned top container.
+* **Decoupled Horizontal Scrolling:** Category chip scrolling operates completely independently of the vertical calculator cards list, eliminating nested gesture conflicts.
+* **Continuous Accessibility:** Users can search and filter tools at any scroll depth without having to scroll back to the top of the page.
+
+### 3. Stabilized Favorite Toggle & Reorder Mechanics (BUG-21)
+* **No Abrupt Card Jumping:** Removed active in-place list re-partitioning so tapping the favorite star toggles the favorite state and plays an isolated spring bounce on the star icon without moving the card out from under the user's thumb.
+* **Smooth Reorder Animations:** Reordering cards in "Reorder" mode animates only the swapped items cleanly.
+
+### 4. Recycled Slot Optimization & Bottom Dock Clearance
+* **Recycled Content Types:** Added `contentType = { "tool_card" }` for optimal layout slot recycling in Compose `SubcomposeLayout`.
+* **Zero Dock Overlap:** Standardized `contentPadding = PaddingValues(top = 4.dp, bottom = FloatingNavContentBottomPadding + 48.dp)` to ensure the bottom card ("Loan & EMI Calculator") is completely accessible above the floating navigation dock.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.3 (Build 40)
 
 **Release Date:** 2026-10-31  
