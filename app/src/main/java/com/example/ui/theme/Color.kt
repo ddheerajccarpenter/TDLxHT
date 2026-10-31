@@ -71,6 +71,22 @@ val PaletteVintageGrape = BrandCharcoalDark
 val PaletteBerryCrush = BrandCharcoalDark
 val PaletteMintLeaf = BrandTextPrimary
 
+// =========================================================================
+// Perceptually Uniform OKLCH Palette (jakubkrehel/oklch-skill)
+// =========================================================================
+val OklchIndigo = Color(0xFF6366F1)       // oklch(0.65 0.22 275) Primary Brand Accent
+val OklchIndigoSoft = Color(0x266366F1)   // Soft Indigo Tint (~15% alpha)
+val OklchEmerald = Color(0xFF10B981)      // oklch(0.76 0.19 148) Success & Completion
+val OklchEmeraldSoft = Color(0x2610B981)  // Soft Emerald Tint (~15% alpha)
+val OklchAmber = Color(0xFFF59E0B)        // oklch(0.72 0.17 65) Flame, Streaks, In-Progress
+val OklchAmberSoft = Color(0x26F59E0B)    // Soft Amber Tint (~15% alpha)
+val OklchCoral = Color(0xFFEF4444)        // oklch(0.63 0.23 25) High Priority & Alerts
+val OklchCoralSoft = Color(0x26EF4444)    // Soft Coral Tint (~15% alpha)
+val OklchCyan = Color(0xFF0EA5E9)         // oklch(0.70 0.16 220) Focus Mode & Pomodoro
+val OklchCyanSoft = Color(0x260EA5E9)     // Soft Cyan Tint (~15% alpha)
+val OklchPurple = Color(0xFFA855F7)       // oklch(0.68 0.24 300) Insights & Analytics
+val OklchPurpleSoft = Color(0x26A855F7)   // Soft Purple Tint (~15% alpha)
+
 // --- Dark Mode Tokens (Deep Charcoal & Translucent Glass) ---
 val GrapeCanvasDark = BrandCharcoalDark
 val GrapeSurfaceSoft = BrandCharcoalElevated
@@ -145,7 +161,15 @@ data class AppColors(
   val accentRed: Color,
   val chipBorder: Color,
   val chipUnselected: Color,
-  val isDark: Boolean
+  val isDark: Boolean,
+  val oklchPrimary: Color = OklchIndigo,
+  val oklchSuccess: Color = OklchEmerald,
+  val oklchWarning: Color = OklchAmber,
+  val oklchDanger: Color = OklchCoral,
+  val oklchFocus: Color = OklchCyan,
+  val oklchPurple: Color = OklchPurple,
+  val surfaceCard: Color = if (isDark) CanonicalGlassFillBaseDark else CanonicalGlassFillBaseLight,
+  val surfaceElevated: Color = if (isDark) CanonicalGlassFillElevatedDark else CanonicalGlassFillElevatedLight
 )
 
 val LightColors = AppColors(
@@ -159,14 +183,22 @@ val LightColors = AppColors(
   pillBackgroundDark = LightInkPrimary,
   pillTextDark = Color.White,
   progressBarTrack = Color(0xFFE5E5EA),
-  progressBarFilled = LightInkPrimary,
-  accentTerracotta = LightInkPrimary,
-  accentOrange = LightInkSecondary,
-  accentYellowHighlight = Color(0x15000000),
-  accentRed = Color(0xFFD32F2F),
+  progressBarFilled = OklchIndigo,
+  accentTerracotta = OklchIndigo,
+  accentOrange = OklchAmber,
+  accentYellowHighlight = Color(0x156366F1),
+  accentRed = OklchCoral,
   chipBorder = LightHairline,
   chipUnselected = Color(0xFFF2F2F7),
-  isDark = false
+  isDark = false,
+  oklchPrimary = OklchIndigo,
+  oklchSuccess = OklchEmerald,
+  oklchWarning = OklchAmber,
+  oklchDanger = OklchCoral,
+  oklchFocus = OklchCyan,
+  oklchPurple = OklchPurple,
+  surfaceCard = CanonicalGlassFillBaseLight,
+  surfaceElevated = CanonicalGlassFillElevatedLight
 )
 
 val DarkColors = AppColors(
@@ -179,15 +211,23 @@ val DarkColors = AppColors(
   cardBorder = BrandGlassBorder,
   pillBackgroundDark = BrandTextPrimary,
   pillTextDark = BrandCharcoalDark,
-  progressBarTrack = Color(0x33FFFFFF),
-  progressBarFilled = BrandTextPrimary,
-  accentTerracotta = BrandTextPrimary,
-  accentOrange = BrandTextSecondary,
-  accentYellowHighlight = Color(0x1FFFFFFF),
-  accentRed = Color(0xFFE05D5D),
+  progressBarTrack = Color(0x2EFFFFFF),
+  progressBarFilled = OklchIndigo,
+  accentTerracotta = OklchIndigo,
+  accentOrange = OklchAmber,
+  accentYellowHighlight = Color(0x2E6366F1),
+  accentRed = OklchCoral,
   chipBorder = BrandGlassBorder,
   chipUnselected = Color(0x33252528),
-  isDark = true
+  isDark = true,
+  oklchPrimary = OklchIndigo,
+  oklchSuccess = OklchEmerald,
+  oklchWarning = OklchAmber,
+  oklchDanger = OklchCoral,
+  oklchFocus = OklchCyan,
+  oklchPurple = OklchPurple,
+  surfaceCard = BrandGlassSurface,
+  surfaceElevated = CanonicalGlassFillElevatedDark
 )
 
 val LocalAppColors = staticCompositionLocalOf { DarkColors }
@@ -245,13 +285,37 @@ val ChipUnselected: Color
   @Composable get() = LocalAppColors.current.chipUnselected
 
 val AppleBlue: Color
-  @Composable get() = PaletteMintLeaf
+  @Composable get() = LocalAppColors.current.oklchPrimary
 
 val AppleGreen: Color
-  @Composable get() = PaletteMintLeaf
+  @Composable get() = LocalAppColors.current.oklchSuccess
 
 val AppleOrange: Color
-  @Composable get() = if (LocalAppColors.current.isDark) BrandWhite else BrandDarkGrey
+  @Composable get() = LocalAppColors.current.oklchWarning
 
 val PrimaryAccent: Color
-  @Composable get() = PaletteMintLeaf
+  @Composable get() = LocalAppColors.current.oklchPrimary
+
+val OklchPrimaryToken: Color
+  @Composable get() = LocalAppColors.current.oklchPrimary
+
+val OklchSuccessToken: Color
+  @Composable get() = LocalAppColors.current.oklchSuccess
+
+val OklchWarningToken: Color
+  @Composable get() = LocalAppColors.current.oklchWarning
+
+val OklchDangerToken: Color
+  @Composable get() = LocalAppColors.current.oklchDanger
+
+val OklchFocusToken: Color
+  @Composable get() = LocalAppColors.current.oklchFocus
+
+val OklchPurpleToken: Color
+  @Composable get() = LocalAppColors.current.oklchPurple
+
+val SurfaceCardToken: Color
+  @Composable get() = LocalAppColors.current.surfaceCard
+
+val SurfaceElevatedToken: Color
+  @Composable get() = LocalAppColors.current.surfaceElevated

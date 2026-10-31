@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
+import com.example.data.model.TaskPriority
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
@@ -81,6 +82,10 @@ import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSegmented
+import com.example.ui.components.BentoHeroCard
+import com.example.ui.components.CircularProgressGauge
+import com.example.ui.components.PriorityPill
+import com.example.ui.components.StreakFlameBadge
 import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchProgressBar
@@ -89,6 +94,11 @@ import com.example.ui.components.paperDotBackground
 import com.example.ui.theme.AccentOrange
 import com.example.ui.theme.AccentTerracotta
 import com.example.ui.theme.PrimaryAccentLime
+import com.example.ui.theme.OklchIndigo
+import com.example.ui.theme.OklchEmerald
+import com.example.ui.theme.OklchAmber
+import com.example.ui.theme.OklchCoral
+import com.example.ui.theme.OklchCyan
 import com.example.ui.theme.CardBackground
 import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
@@ -157,6 +167,10 @@ fun HomeScreen(
       .filter { it.date == todayStr && it.isCompleted }
       .map { it.habitId }
       .toSet()
+  }
+
+  val prioritySpotlightTask = remember(todayTasks) {
+    todayTasks.firstOrNull { !it.isCompleted && (it.priority == TaskPriority.HIGH || it.priority == TaskPriority.MEDIUM) }
   }
 
   val listState = rememberLazyListState()
@@ -311,151 +325,141 @@ fun HomeScreen(
         }
       }
 
-      // DAILY SUMMARY CARD (Apple Liquid Glass)
+      // BENTO HERO DASHBOARD (OKLCH Ring Gauge + Momentum Flame)
       item {
-        GlassCard(
-          modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 100),
-          cornerRadius = 20.dp
+        BentoHeroCard(
+          modifier = Modifier
+            .fillMaxWidth()
+            .heroEntrance(delayMs = 100),
+          accentColor = OklchIndigo
         ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(18.dp)
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
           ) {
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.Top
-            ) {
-              Column {
+            // Circular Arc Progress Ring Gauge
+            CircularProgressGauge(
+              progress = summary.overallProgress,
+              modifier = Modifier.size(72.dp),
+              strokeWidth = 7.dp,
+              primaryColor = OklchIndigo,
+              secondaryColor = OklchEmerald
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+              Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+              ) {
                 Text(
-                  text = "DAILY SUMMARY",
+                  text = "TODAY'S MOMENTUM",
                   style = TextStyle(
+                    fontFamily = SFProFontFamily,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
-                    color = InkSecondary
+                    color = OklchIndigo
                   )
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                AnimatedContent(
-                  targetState = "${summary.tasksCompleted}/${summary.tasksTotal}",
-                  transitionSpec = {
-                    slideInVertically(animationSpec = tween(200, easing = FastOutSlowInEasing)) { height -> height / 2 } +
-                      fadeIn(animationSpec = tween(200)) togetherWith
-                      slideOutVertically(animationSpec = tween(150, easing = FastOutSlowInEasing)) { height -> -height / 2 } +
-                      fadeOut(animationSpec = tween(150))
-                  },
-                  label = "taskCountAnim"
-                ) { countText ->
+
+                if (summary.maxStreak > 0) {
+                  StreakFlameBadge(streakCount = summary.maxStreak)
+                }
+              }
+
+              Spacer(modifier = Modifier.height(4.dp))
+
+              Text(
+                text = "${summary.tasksCompleted}/${summary.tasksTotal} Tasks • ${summary.habitsCompleted}/${summary.habitsTotal} Habits",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 14.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
+              )
+
+              Spacer(modifier = Modifier.height(2.dp))
+
+              Text(
+                text = todayFormattedDate,
+                style = TextStyle(
+                  fontSize = 12.sp,
+                  color = InkSecondary
+                )
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
+
+          SketchProgressBar(
+            progress = summary.overallProgress,
+            modifier = Modifier.fillMaxWidth(),
+            height = 6.dp
+          )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+      }
+
+      // PRIORITY SPOTLIGHT (If uncompleted High/Med priority task is scheduled for today)
+      if (prioritySpotlightTask != null && (selectedTab == 0 || selectedTab == 1)) {
+        item {
+          BentoHeroCard(
+            modifier = Modifier
+              .fillMaxWidth()
+              .bounceClick { onTaskClick(prioritySpotlightTask) },
+            accentColor = if (prioritySpotlightTask.priority == TaskPriority.HIGH) OklchCoral else OklchAmber,
+            cornerRadius = 16.dp
+          ) {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+              Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+              ) {
+                SketchCheckbox(
+                  checked = prioritySpotlightTask.isCompleted,
+                  onCheckedChange = { handleTaskToggle(prioritySpotlightTask) }
+                )
+                Column {
+                  Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                      text = "PRIORITY SPOTLIGHT",
+                      style = TextStyle(
+                        fontFamily = SFProFontFamily,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.8.sp,
+                        color = if (prioritySpotlightTask.priority == TaskPriority.HIGH) OklchCoral else OklchAmber
+                      )
+                    )
+                    PriorityPill(priority = prioritySpotlightTask.priority)
+                  }
                   Text(
-                    text = "Tasks: $countText done",
+                    text = prioritySpotlightTask.title,
                     style = TextStyle(
                       fontFamily = SFProFontFamily,
                       fontSize = 15.sp,
                       fontWeight = FontWeight.Bold,
-                      fontFeatureSettings = "tnum",
                       color = InkPrimary
-                    )
-                  )
-                }
-              }
-
-              Column(horizontalAlignment = Alignment.End) {
-                // Date badge pill (subtle translucent glass)
-                val isDarkLocal = com.example.ui.theme.LocalAppColors.current.isDark
-                Box(
-                  modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isDarkLocal) Color(0x1CFFFFFF) else Color(0x10000000))
-                    .border(0.6.dp, if (isDarkLocal) Color(0x28FFFFFF) else Color(0x18000000), RoundedCornerShape(10.dp))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                  Text(
-                    text = todayFormattedDate,
-                    style = TextStyle(
-                      fontSize = 11.sp,
-                      fontWeight = FontWeight.Bold,
-                      color = InkPrimary
-                    )
-                  )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-                AnimatedContent(
-                  targetState = if (summary.habitsTotal == 0) {
-                    "No habits scheduled"
-                  } else if (summary.sessionsTotal > summary.habitsTotal) {
-                    "Habits: ${summary.habitsCompleted}/${summary.habitsTotal} done (${summary.sessionsCompleted}/${summary.sessionsTotal} sessions)"
-                  } else {
-                    "Habits: ${summary.habitsCompleted}/${summary.habitsTotal} checked"
-                  },
-                  transitionSpec = {
-                    slideInVertically(animationSpec = tween(200, easing = FastOutSlowInEasing)) { height -> height / 2 } +
-                      fadeIn(animationSpec = tween(200)) togetherWith
-                      slideOutVertically(animationSpec = tween(150, easing = FastOutSlowInEasing)) { height -> -height / 2 } +
-                      fadeOut(animationSpec = tween(150))
-                  },
-                  label = "habitCountAnim"
-                ) { habitCountText ->
-                  Text(
-                    text = habitCountText,
-                    style = TextStyle(
-                      fontFamily = SFProFontFamily,
-                      fontSize = 13.sp,
-                      fontWeight = FontWeight.Medium,
-                      fontFeatureSettings = "tnum",
-                      color = InkSecondary
-                    )
-                  )
-                }
-              }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Progress bar and streak badge
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              SketchProgressBar(
-                progress = summary.overallProgress,
-                modifier = Modifier.weight(1f),
-                height = 10.dp
-              )
-
-              if (summary.maxStreak > 0) {
-                Spacer(modifier = Modifier.width(10.dp))
-                val isDarkLocal = com.example.ui.theme.LocalAppColors.current.isDark
-                Box(
-                  modifier = Modifier
-                    .pulseEntrance(delayMs = 180)
-                    .fluidLensedGlass(
-                      shape = RoundedCornerShape(10.dp),
-                      elevation = 1.dp,
-                      borderWidth = 0.6.dp,
-                      isElevated = true
-                    )
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                  Text(
-                    text = "${summary.maxStreak}-day streak",
-                    style = TextStyle(
-                      fontFamily = SFProFontFamily,
-                      fontSize = 12.sp,
-                      fontWeight = FontWeight.Bold,
-                      fontFeatureSettings = "tnum",
-                      color = if (isDarkLocal) Color.White else Color(0xFF111113)
-                    )
+                    ),
+                    maxLines = 1
                   )
                 }
               }
             }
           }
+          Spacer(modifier = Modifier.height(16.dp))
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
       }
 
       // Filter Segment: [All] [Tasks] [Habits] - Apple Liquid Glass Segmented

@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
@@ -120,7 +121,20 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.material3.HorizontalDivider
 import com.example.ui.theme.AccentTerracotta
+import com.example.ui.theme.OklchIndigo
+import com.example.ui.theme.OklchIndigoSoft
+import com.example.ui.theme.OklchEmerald
+import com.example.ui.theme.OklchEmeraldSoft
+import com.example.ui.theme.OklchAmber
+import com.example.ui.theme.OklchAmberSoft
+import com.example.ui.theme.OklchCoral
+import com.example.ui.theme.OklchCoralSoft
+import com.example.ui.theme.OklchCyan
+import com.example.ui.theme.OklchCyanSoft
+import com.example.ui.theme.OklchPurple
+import com.example.ui.theme.OklchPurpleSoft
 
 import com.example.ui.theme.LocalAppColors
 
@@ -2457,5 +2471,245 @@ fun DeleteConfirmationDialog(
         }
       }
     }
+  }
+}
+
+// =========================================================================
+// Modern OKLCH Bento & Grouped Inset Components
+// =========================================================================
+
+/**
+ * Clean grouped inset container inspired by iOS 18 and Linear.
+ * Groups related settings or list items into a single rounded card with subtle borders.
+ */
+@Composable
+fun GroupedInsetCard(
+  modifier: Modifier = Modifier,
+  cornerRadius: Dp = 18.dp,
+  content: @Composable ColumnScope.() -> Unit
+) {
+  val isDark = LocalAppColors.current.isDark
+  val surfaceColor = if (isDark) Color(0x38181824) else Color(0xF2FFFFFF)
+  val borderColor = if (isDark) Color(0x22FFFFFF) else Color(0x18000000)
+
+  Column(
+    modifier = modifier
+      .clip(RoundedCornerShape(cornerRadius))
+      .background(surfaceColor)
+      .border(1.dp, borderColor, RoundedCornerShape(cornerRadius))
+  ) {
+    content()
+  }
+}
+
+/**
+ * Hairline separator for inside grouped inset lists.
+ */
+@Composable
+fun GroupedDivider(
+  modifier: Modifier = Modifier,
+  startIndent: Dp = 16.dp
+) {
+  val isDark = LocalAppColors.current.isDark
+  val dividerColor = if (isDark) Color(0x14FFFFFF) else Color(0x10000000)
+  HorizontalDivider(
+    modifier = modifier.padding(start = startIndent),
+    thickness = 0.8.dp,
+    color = dividerColor
+  )
+}
+
+/**
+ * Bento Hero Card with rich specular highlight gradient and elevation tint.
+ */
+@Composable
+fun BentoHeroCard(
+  modifier: Modifier = Modifier,
+  accentColor: Color = OklchIndigo,
+  cornerRadius: Dp = 22.dp,
+  onClick: (() -> Unit)? = null,
+  content: @Composable ColumnScope.() -> Unit
+) {
+  val isDark = LocalAppColors.current.isDark
+  val baseGradient = if (isDark) {
+    Brush.verticalGradient(
+      colors = listOf(
+        accentColor.copy(alpha = 0.18f),
+        Color(0x3514141E)
+      )
+    )
+  } else {
+    Brush.verticalGradient(
+      colors = listOf(
+        accentColor.copy(alpha = 0.10f),
+        Color(0xFFFFFFFF)
+      )
+    )
+  }
+  val borderColor = if (isDark) accentColor.copy(alpha = 0.28f) else accentColor.copy(alpha = 0.20f)
+
+  val cardModifier = if (onClick != null) {
+    modifier
+      .clip(RoundedCornerShape(cornerRadius))
+      .bounceClick { onClick() }
+      .background(baseGradient)
+      .border(1.2.dp, borderColor, RoundedCornerShape(cornerRadius))
+      .padding(18.dp)
+  } else {
+    modifier
+      .clip(RoundedCornerShape(cornerRadius))
+      .background(baseGradient)
+      .border(1.2.dp, borderColor, RoundedCornerShape(cornerRadius))
+      .padding(18.dp)
+  }
+
+  Column(modifier = cardModifier) {
+    content()
+  }
+}
+
+/**
+ * High-precision circular arc gauge drawn with smooth GPU Canvas shaders.
+ */
+@Composable
+fun CircularProgressGauge(
+  progress: Float,
+  modifier: Modifier = Modifier,
+  strokeWidth: Dp = 8.dp,
+  primaryColor: Color = OklchIndigo,
+  secondaryColor: Color = OklchEmerald,
+  centerContent: (@Composable () -> Unit)? = null
+) {
+  val animatedProgress by animateFloatAsState(
+    targetValue = progress.coerceIn(0f, 1f),
+    animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
+    label = "gaugeProgress"
+  )
+
+  val trackColor = if (LocalAppColors.current.isDark) Color(0x24FFFFFF) else Color(0x18000000)
+
+  Box(
+    modifier = modifier,
+    contentAlignment = Alignment.Center
+  ) {
+    Canvas(modifier = Modifier.matchParentSize()) {
+      val stroke = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+      val diameter = size.minDimension - stroke.width
+      val topLeftOffset = Offset(
+        (size.width - diameter) / 2f,
+        (size.height - diameter) / 2f
+      )
+      val arcSize = androidx.compose.ui.geometry.Size(diameter, diameter)
+
+      // Background track
+      drawArc(
+        color = trackColor,
+        startAngle = -90f,
+        sweepAngle = 360f,
+        useCenter = false,
+        topLeft = topLeftOffset,
+        size = arcSize,
+        style = stroke
+      )
+
+      // Active sweep arc with gradient
+      if (animatedProgress > 0.001f) {
+        val sweep = animatedProgress * 360f
+        drawArc(
+          brush = Brush.sweepGradient(
+            0.0f to primaryColor,
+            0.7f to secondaryColor,
+            1.0f to primaryColor
+          ),
+          startAngle = -90f,
+          sweepAngle = sweep,
+          useCenter = false,
+          topLeft = topLeftOffset,
+          size = arcSize,
+          style = stroke
+        )
+      }
+    }
+
+    if (centerContent != null) {
+      centerContent()
+    } else {
+      Text(
+        text = "${(animatedProgress * 100).toInt()}%",
+        style = TextStyle(
+          fontFamily = SFProFontFamily,
+          fontSize = 18.sp,
+          fontWeight = FontWeight.Bold,
+          color = InkPrimary
+        )
+      )
+    }
+  }
+}
+
+/**
+ * Compact priority pill badge with OKLCH tints.
+ */
+@Composable
+fun PriorityPill(
+  priority: com.example.data.model.TaskPriority,
+  modifier: Modifier = Modifier
+) {
+  val (pillColor, textColor, label) = when (priority) {
+    com.example.data.model.TaskPriority.HIGH -> Triple(OklchCoralSoft, OklchCoral, "High")
+    com.example.data.model.TaskPriority.MEDIUM -> Triple(OklchAmberSoft, OklchAmber, "Med")
+    com.example.data.model.TaskPriority.LOW -> Triple(OklchCyanSoft, OklchCyan, "Low")
+  }
+
+  Box(
+    modifier = modifier
+      .clip(RoundedCornerShape(6.dp))
+      .background(pillColor)
+      .border(0.8.dp, textColor.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+      .padding(horizontal = 7.dp, vertical = 2.5.dp),
+    contentAlignment = Alignment.Center
+  ) {
+    Text(
+      text = label,
+      style = TextStyle(
+        fontFamily = SFProFontFamily,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+        color = textColor
+      )
+    )
+  }
+}
+
+/**
+ * Momentum flame streak pill badge with bounce animation.
+ */
+@Composable
+fun StreakFlameBadge(
+  streakCount: Int,
+  modifier: Modifier = Modifier
+) {
+  val flameColor = OklchAmber
+  val bgColor = OklchAmberSoft
+
+  Row(
+    modifier = modifier
+      .clip(RoundedCornerShape(12.dp))
+      .background(bgColor)
+      .border(1.dp, flameColor.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
+      .padding(horizontal = 9.dp, vertical = 4.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(4.dp)
+  ) {
+    Text("🔥", fontSize = 12.sp)
+    Text(
+      text = "$streakCount",
+      style = TextStyle(
+        fontFamily = SFProFontFamily,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = flameColor
+      )
+    )
   }
 }

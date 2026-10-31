@@ -68,6 +68,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
+import com.example.ui.components.BentoHeroCard
+import com.example.ui.components.StreakFlameBadge
+import com.example.ui.theme.OklchEmerald
+import com.example.ui.theme.OklchEmeraldSoft
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.SketchCard
 import com.example.ui.components.SketchCheckbox
@@ -322,21 +326,35 @@ fun HabitListScreen(
         }
         Spacer(modifier = Modifier.height(10.dp))
       } else {
-        // Summary Card: Today done, streak
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 60)
+        // Bento Habit Momentum Hero Card
+        BentoHeroCard(
+          modifier = Modifier
+            .fillMaxWidth()
+            .heroEntrance(delayMs = 60),
+          accentColor = OklchEmerald,
+          cornerRadius = 16.dp
         ) {
           Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Column {
               Text(
-                text = "${todayCompletedIds.size}/${todayScheduledHabits.size} done",
+                text = "HABIT MOMENTUM",
                 style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 11.sp,
+                  fontWeight = FontWeight.Bold,
+                  letterSpacing = 1.sp,
+                  color = OklchEmerald
+                )
+              )
+              Spacer(modifier = Modifier.height(2.dp))
+              Text(
+                text = "${todayCompletedIds.size} of ${todayScheduledHabits.size} completed today",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -345,21 +363,7 @@ fun HabitListScreen(
             }
 
             if (maxStreak > 0) {
-              Box(
-                modifier = Modifier
-                  .pulseEntrance(delayMs = 150)
-                  .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                  .padding(horizontal = 10.dp, vertical = 4.dp)
-              ) {
-                Text(
-                  text = "$maxStreak d streak",
-                  style = TextStyle(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = InkPrimary
-                  )
-                )
-              }
+              StreakFlameBadge(streakCount = maxStreak)
             }
           }
         }

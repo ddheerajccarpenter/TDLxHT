@@ -19,7 +19,15 @@
   --color-hairline-soft: #f0f0f0;
   --color-primary: #141414;
   --color-on-primary: #ffffff;
-  --color-accent: #0066ff;
+  --color-accent: #6366f1;
+
+  /* OKLCH Perceptually Uniform Palette */
+  --oklch-indigo: #6366f1;
+  --oklch-emerald: #10b981;
+  --oklch-amber: #f59e0b;
+  --oklch-coral: #ef4444;
+  --oklch-cyan: #0ea5e9;
+  --oklch-purple: #a855f7;
 
   /* Map to old variables for compatibility */
   --canvas: var(--color-canvas);
@@ -81,7 +89,15 @@
   --color-hairline-soft: #262626;
   --color-primary: #ffffff;
   --color-on-primary: #000000;
-  --color-accent: #c3d9f3;
+  --color-accent: #6366f1;
+
+  /* OKLCH Perceptually Uniform Palette */
+  --oklch-indigo: #6366f1;
+  --oklch-emerald: #10b981;
+  --oklch-amber: #f59e0b;
+  --oklch-coral: #ef4444;
+  --oklch-cyan: #0ea5e9;
+  --oklch-purple: #a855f7;
 
   /* Map to old variables */
   --canvas: var(--color-canvas);

@@ -128,6 +128,7 @@ import com.example.data.model.AppSettings
 import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.ui.components.AnimatedDialogContent
+import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
@@ -1612,25 +1613,28 @@ fun FocusTimerDialog(
 
       Spacer(modifier = Modifier.height(24.dp))
 
-      // Timer Display with Liquid-Glass styling
-      Box(
-        modifier = Modifier
-          .size(160.dp)
-          .background(PillBackgroundDark.copy(alpha = 0.08f), CircleShape)
-          .border(2.dp, CardBorder, CircleShape),
-        contentAlignment = Alignment.Center
+      // Timer Display with OKLCH Focus Ring Gauge
+      val totalSeconds = (selectedMinutes * 60).coerceAtLeast(1)
+      val timerProgress = (remainingSeconds.toFloat() / totalSeconds.toFloat()).coerceIn(0f, 1f)
+
+      CircularProgressGauge(
+        progress = timerProgress,
+        modifier = Modifier.size(170.dp),
+        strokeWidth = 9.dp,
+        primaryColor = com.example.ui.theme.OklchCyan,
+        secondaryColor = com.example.ui.theme.OklchIndigo
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
           Text(
             text = formattedTime,
             style = TextStyle(
               fontFamily = SFProFontFamily,
-              fontSize = 38.sp,
+              fontSize = 36.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary
             )
           )
-          Spacer(modifier = Modifier.height(4.dp))
+          Spacer(modifier = Modifier.height(2.dp))
           Text(
             text = if (isRunning) "FOCUSING" else if (remainingSeconds == 0) "COMPLETED" else "PAUSED",
             style = TextStyle(
@@ -1638,7 +1642,7 @@ fun FocusTimerDialog(
               fontSize = 10.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.sp,
-              color = InkSecondary
+              color = com.example.ui.theme.OklchCyan
             )
           )
         }

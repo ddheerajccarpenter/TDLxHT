@@ -61,7 +61,15 @@ fun MyApplicationTheme(
     accentRed = accentRed,
     chipBorder = chipBorder,
     chipUnselected = chipUnselected,
-    isDark = darkTheme
+    isDark = darkTheme,
+    oklchPrimary = targetColors.oklchPrimary,
+    oklchSuccess = targetColors.oklchSuccess,
+    oklchWarning = targetColors.oklchWarning,
+    oklchDanger = targetColors.oklchDanger,
+    oklchFocus = targetColors.oklchFocus,
+    oklchPurple = targetColors.oklchPurple,
+    surfaceCard = cardBackground,
+    surfaceElevated = targetColors.surfaceElevated
   )
 
   val colorScheme = if (darkTheme) {

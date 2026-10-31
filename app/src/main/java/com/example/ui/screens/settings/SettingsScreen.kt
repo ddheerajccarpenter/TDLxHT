@@ -41,7 +41,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Speed
@@ -79,6 +83,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.AppSettings
 import com.example.reminder.ReminderScheduler
 import com.example.ui.components.AppHeader
+import com.example.ui.components.BentoHeroCard
+import com.example.ui.components.GroupedDivider
+import com.example.ui.components.GroupedInsetCard
 import com.example.ui.components.InteractionLevel
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
@@ -99,6 +106,11 @@ import com.example.ui.theme.InkPrimary
 import com.example.ui.theme.InkSecondary
 import com.example.ui.theme.PillBackgroundDark
 import com.example.ui.theme.PillTextDark
+import com.example.ui.theme.OklchIndigo
+import com.example.ui.theme.OklchEmerald
+import com.example.ui.theme.OklchAmber
+import com.example.ui.theme.OklchCoral
+import com.example.ui.theme.OklchCyan
 import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.viewmodel.MainViewModel
 import com.example.ui.viewmodel.SyncStatus
@@ -114,9 +126,21 @@ fun SettingsScreen(
   val settings by viewModel.settings.collectAsStateWithLifecycle()
   val shakeToOpen by AppPreferences.shakeToOpen.collectAsStateWithLifecycle()
   val vibrations by AppPreferences.vibrations.collectAsStateWithLifecycle()
+  val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
+  val syncState by authViewModel.syncState.collectAsStateWithLifecycle()
 
   var showSummaryTimeDialog by remember { mutableStateOf(false) }
   var isDiagnosticsOpen by remember { mutableStateOf(false) }
+  var showLogoutDialog by remember { mutableStateOf(false) }
+  var showDeleteAccountDialog by remember { mutableStateOf(false) }
+
+  LaunchedEffect(syncState) {
+    when (val s = syncState) {
+      is SyncStatus.Success -> Toast.makeText(context, s.message, Toast.LENGTH_SHORT).show()
+      is SyncStatus.Error -> Toast.makeText(context, s.message, Toast.LENGTH_SHORT).show()
+      else -> Unit
+    }
+  }
 
   if (isDiagnosticsOpen) {
     BackHandler { isDiagnosticsOpen = false }
@@ -135,6 +159,33 @@ fun SettingsScreen(
       Toast.makeText(context, "Notification permission granted", Toast.LENGTH_SHORT).show()
     } else {
       Toast.makeText(context, "Notifications won't appear without permission", Toast.LENGTH_LONG).show()
+    }
+  }
+
+  val exportService = remember { com.example.data.service.DataExportService(HabitTaskApplication.instance.database) }
+  val coroutineScope = rememberCoroutineScope()
+  var isExporting by remember { mutableStateOf(false) }
+  var isImporting by remember { mutableStateOf(false) }
+
+  val importLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.GetContent()
+  ) { uri: Uri? ->
+    if (uri != null) {
+      isImporting = true
+      coroutineScope.launch {
+        val result = exportService.importFromJson(context, uri)
+        isImporting = false
+        result.onSuccess { summary ->
+          Toast.makeText(
+            context,
+            "Restored ${summary.tasks} tasks, ${summary.subtasks} subtasks, ${summary.habits} habits",
+            Toast.LENGTH_LONG
+          ).show()
+        }.onFailure { err ->
+          SafeLog.w("SettingsScreen", "Import failed", err)
+          Toast.makeText(context, "Import failed: ${err.localizedMessage ?: "Invalid file"}", Toast.LENGTH_LONG).show()
+        }
+      }
     }
   }
 
@@ -164,31 +215,136 @@ fun SettingsScreen(
             )
           }
         )
-
         Spacer(modifier = Modifier.height(14.dp))
       }
 
-      // 1. THEME & APPEARANCE (Section 21)
+      // 1. USER PROFILE & CLOUD HERO
+      item {
+        val email = currentUser?.email ?: "Guest User"
+        val isGuest = currentUser == null
+
+        BentoHeroCard(
+          modifier = Modifier
+            .fillMaxWidth()
+            .staggeredEntrance(index = 0),
+          accentColor = OklchIndigo
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Box(
+              modifier = Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .background(OklchIndigo.copy(alpha = 0.22f))
+                .border(1.5.dp, OklchIndigo.copy(alpha = 0.5f), CircleShape),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = email.take(1).uppercase(),
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 20.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = OklchIndigo
+                )
+              )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = if (isGuest) "Offline Account" else "Account & Cloud Sync",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 12.sp,
+                  fontWeight = FontWeight.SemiBold,
+                  color = InkSecondary
+                )
+              )
+              Text(
+                text = email,
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
+
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
+            // Sync to Cloud Button
+            Box(
+              modifier = Modifier
+                .weight(1f)
+                .height(40.dp)
+                .background(
+                  PillBackgroundDark.copy(alpha = if (syncState is SyncStatus.Syncing) 0.5f else 1f),
+                  RoundedCornerShape(10.dp)
+                )
+                .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .bounceClick(enabled = syncState !is SyncStatus.Syncing) { authViewModel.syncNow() }
+                .semantics { contentDescription = "Sync data to cloud" },
+              contentAlignment = Alignment.Center
+            ) {
+              if (syncState is SyncStatus.Syncing) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                  CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = PillTextDark)
+                  Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PillTextDark, fontWeight = FontWeight.SemiBold))
+                }
+              } else {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                  Icon(Icons.Default.CloudSync, contentDescription = null, tint = PillTextDark, modifier = Modifier.size(16.dp))
+                  Text("Sync Now", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PillTextDark, fontWeight = FontWeight.SemiBold))
+                }
+              }
+            }
+
+            // Sign Out Button
+            Box(
+              modifier = Modifier
+                .weight(1f)
+                .height(40.dp)
+                .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .bounceClick { showLogoutDialog = true }
+                .semantics { contentDescription = "Sign out of account" },
+              contentAlignment = Alignment.Center
+            ) {
+              Text("Sign Out", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+      }
+
+      // 2. THEME & DISPLAY (Grouped Inset)
       item {
         Text(
-          text = "THEME & APPEARANCE",
+          text = "APPEARANCE & CLOCK",
           style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 0)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 14.dp)
-          ) {
+        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 1)) {
+          // Theme selector
+          Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
-              text = "Theme",
+              text = "Theme Mode",
               style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             val prefTheme by com.example.util.AppPreferences.themeMode.collectAsStateWithLifecycle()
             val effectiveTheme = if (prefTheme.isNotBlank()) prefTheme else settings.themeMode
@@ -218,7 +374,7 @@ fun SettingsScreen(
                 Box(
                   modifier = Modifier
                     .weight(1f)
-                    .height(40.dp)
+                    .height(38.dp)
                     .border(1.2.dp, borderCol, RoundedCornerShape(10.dp))
                     .clip(RoundedCornerShape(10.dp))
                     .background(bg)
@@ -243,74 +399,56 @@ fun SettingsScreen(
               }
             }
           }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
-      }
+          GroupedDivider()
 
-      // 2. DATE & TIME FORMAT (Section 22)
-      item {
-        Text(
-          text = "DATE & TIME DISPLAY",
-          style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 1)
-        ) {
-          Column(
+          // Time format
+          Row(
             modifier = Modifier
               .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 12.dp)
+              .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
           ) {
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                Text(
-                  text = "Time Format",
-                  style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-                )
-              }
+            Text(
+              text = "Time Format",
+              style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+            )
 
-              Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(false to "12h", true to "24h").forEach { (is24, label) ->
-                  val isSelected = settings.timeFormat24Hour == is24
-                  val bg by animateColorAsState(
-                    targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "timeFormatBg_$is24"
-                  )
-                  val textCol by animateColorAsState(
-                    targetValue = if (isSelected) PillTextDark else InkSecondary,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "timeFormatText_$is24"
-                  )
-                  val borderCol by animateColorAsState(
-                    targetValue = if (isSelected) PillBackgroundDark else CardBorder,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "timeFormatBorder_$is24"
-                  )
-                  Box(
-                    modifier = Modifier
-                      .border(1.2.dp, borderCol, RoundedCornerShape(8.dp))
-                      .clip(RoundedCornerShape(8.dp))
-                      .background(bg)
-                      .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
-                      .padding(horizontal = 12.dp, vertical = 6.dp)
-                  ) {
-                    Text(
-                      text = label,
-                      style = TextStyle(
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = textCol
-                      )
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+              listOf(false to "12h", true to "24h").forEach { (is24, label) ->
+                val isSelected = settings.timeFormat24Hour == is24
+                val bg by animateColorAsState(
+                  targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
+                  animationSpec = tween(180, easing = FastOutSlowInEasing),
+                  label = "timeFormatBg_$is24"
+                )
+                val textCol by animateColorAsState(
+                  targetValue = if (isSelected) PillTextDark else InkSecondary,
+                  animationSpec = tween(180, easing = FastOutSlowInEasing),
+                  label = "timeFormatText_$is24"
+                )
+                val borderCol by animateColorAsState(
+                  targetValue = if (isSelected) PillBackgroundDark else CardBorder,
+                  animationSpec = tween(180, easing = FastOutSlowInEasing),
+                  label = "timeFormatBorder_$is24"
+                )
+                Box(
+                  modifier = Modifier
+                    .border(1.2.dp, borderCol, RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(bg)
+                    .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                  Text(
+                    text = label,
+                    style = TextStyle(
+                      fontSize = 12.sp,
+                      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                      color = textCol
                     )
-                  }
+                  )
                 }
               }
             }
@@ -320,7 +458,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(20.dp))
       }
 
-      // 3. NOTIFICATIONS & REMINDERS (Section 18)
+      // 3. NOTIFICATIONS & REMINDERS (Grouped Inset)
       item {
         Text(
           text = "NOTIFICATIONS & REMINDERS",
@@ -328,14 +466,8 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 2)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 8.dp)
-          ) {
+        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 2)) {
+          Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
             // Push Notifications master
             SettingsToggleRow(
               title = "Push Notifications",
@@ -363,7 +495,7 @@ fun SettingsScreen(
               }
             )
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
             // Task Reminders
             SettingsToggleRow(
@@ -379,7 +511,7 @@ fun SettingsScreen(
               }
             )
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
             // Habit Reminders
             SettingsToggleRow(
@@ -395,7 +527,7 @@ fun SettingsScreen(
               }
             )
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
             // Sound Alerts
             SettingsToggleRow(
@@ -406,9 +538,9 @@ fun SettingsScreen(
               }
             )
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
-            // Daily Summary (Section 10 & 18)
+            // Daily Summary
             Row(
               modifier = Modifier
                 .fillMaxWidth()
@@ -419,17 +551,17 @@ fun SettingsScreen(
               Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                 Text(
                   text = "Daily Productivity Summary",
-                  style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                  style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
                 )
                 Text(
                   text = "Recap of done/remaining at ${formatTimeDisplay(settings.dailySummaryTime, settings.timeFormat24Hour)}",
-                  style = TextStyle(fontSize = 13.sp, color = InkSecondary)
+                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
                 )
                 if (settings.dailySummaryEnabled) {
                   Spacer(modifier = Modifier.height(4.dp))
                   Text(
                     text = "Tap to change time",
-                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = InkPrimary),
+                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OklchIndigo),
                     modifier = Modifier.bounceClick { showSummaryTimeDialog = true }
                   )
                 }
@@ -454,7 +586,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(20.dp))
       }
 
-      // 4. CALENDAR PREFERENCES (Section 19)
+      // 4. CALENDAR PREFERENCES (Grouped Inset)
       item {
         Text(
           text = "CALENDAR PREFERENCES",
@@ -462,14 +594,8 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 3)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 10.dp)
-          ) {
+        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 3)) {
+          Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
             // Default Calendar View
             Row(
               modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -477,7 +603,7 @@ fun SettingsScreen(
               verticalAlignment = Alignment.CenterVertically
             ) {
               Text(
-                text = "Default Calendar View",
+                text = "Default View",
                 style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
               )
 
@@ -520,7 +646,7 @@ fun SettingsScreen(
               }
             }
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
             // Start of Week
             Row(
@@ -572,9 +698,8 @@ fun SettingsScreen(
               }
             }
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
-            // Show Completed Tasks
             SettingsToggleRow(
               title = "Show Completed Tasks",
               checked = settings.showCompletedTasksInCalendar,
@@ -583,9 +708,8 @@ fun SettingsScreen(
               }
             )
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
-            // Show Completed Habits
             SettingsToggleRow(
               title = "Show Completed Habits",
               checked = settings.showCompletedHabitsInCalendar,
@@ -594,9 +718,8 @@ fun SettingsScreen(
               }
             )
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+            GroupedDivider()
 
-            // Show Overdue Items
             SettingsToggleRow(
               title = "Highlight Overdue Items",
               checked = settings.showOverdueInCalendar,
@@ -610,22 +733,19 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(20.dp))
       }
 
-      // 5. TASK AUTOMATION & PRODUCTIVITY (Section 20)
+      // 5. AUTOMATION, HAPTICS & GESTURES
       item {
         Text(
-          text = "TASK AUTOMATION",
+          text = "AUTOMATION & GESTURES",
           style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 4)
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 8.dp)
-          ) {
+        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 4)) {
+          val currentShakeAction by AppPreferences.shakeAction.collectAsStateWithLifecycle()
+          val currentTimerDuration by AppPreferences.shakeTimerDuration.collectAsStateWithLifecycle()
+
+          Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
             SettingsToggleRow(
               title = "Auto-Complete Parent Task",
               subtitle = "When all subtasks finish",
@@ -634,34 +754,26 @@ fun SettingsScreen(
                 viewModel.updateSettings(settings.copy(autoMarkTaskOnSubtasksDone = checked))
               }
             )
-          }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
-      }
+            GroupedDivider()
 
-      // HAPTICS & GESTURES
-      item {
-        Text(
-          text = "HAPTICS & GESTURES",
-          style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 5)
-        ) {
-          val currentShakeAction by AppPreferences.shakeAction.collectAsStateWithLifecycle()
-          val currentTimerDuration by AppPreferences.shakeTimerDuration.collectAsStateWithLifecycle()
-
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 8.dp)
-          ) {
             SettingsToggleRow(
-              title = "Shake Gesture Active",
-              subtitle = "Perform action when device is shaken",
+              title = "Haptic Vibrations",
+              subtitle = "Tactile response on click & drag",
+              checked = vibrations,
+              onCheckedChange = { checked ->
+                AppPreferences.setVibrationsEnabled(context, checked)
+                if (checked) {
+                  VibrationHelper.click(context)
+                }
+              }
+            )
+
+            GroupedDivider()
+
+            SettingsToggleRow(
+              title = "Shake Device Gesture",
+              subtitle = "Perform quick action on device shake",
               checked = shakeToOpen,
               onCheckedChange = { checked ->
                 AppPreferences.setShakeToOpenEnabled(context, checked)
@@ -676,56 +788,11 @@ fun SettingsScreen(
             )
 
             if (shakeToOpen) {
-              HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+              GroupedDivider()
 
-              Text(
-                text = "ACTION ON SHAKE",
-                style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary)
-              )
-              Spacer(modifier = Modifier.height(8.dp))
-
-              // Liquid-glass action selector pills
-              Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-              ) {
-                listOf(
-                  "CREATE_TASK" to "Task",
-                  "START_TIMER" to "Timer",
-                  "QUICK_CHOOSER" to "Actions",
-                  "DISABLED" to "Off"
-                ).forEach { (actionKey, label) ->
-                  val isSel = currentShakeAction == actionKey
-                  Box(
-                    modifier = Modifier
-                      .weight(1f)
-                      .height(34.dp)
-                      .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
-                      .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                      .clip(RoundedCornerShape(10.dp))
-                      .bounceClick {
-                        AppPreferences.setShakeAction(context, actionKey)
-                        VibrationHelper.tick(context)
-                      },
-                    contentAlignment = Alignment.Center
-                  ) {
-                    Text(
-                      text = label,
-                      style = TextStyle(
-                        fontFamily = SFProFontFamily,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isSel) PillTextDark else InkPrimary
-                      )
-                    )
-                  }
-                }
-              }
-
-              if (currentShakeAction == "START_TIMER") {
-                Spacer(modifier = Modifier.height(12.dp))
+              Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                 Text(
-                  text = "DEFAULT TIMER DURATION",
+                  text = "ACTION ON SHAKE",
                   style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -734,98 +801,97 @@ fun SettingsScreen(
                   modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                  listOf(5, 15, 25, 45, 60).forEach { mins ->
-                    val isSel = currentTimerDuration == mins
+                  listOf(
+                    "CREATE_TASK" to "Task",
+                    "START_TIMER" to "Timer",
+                    "QUICK_CHOOSER" to "Actions",
+                    "DISABLED" to "Off"
+                  ).forEach { (actionKey, label) ->
+                    val isSel = currentShakeAction == actionKey
                     Box(
                       modifier = Modifier
                         .weight(1f)
-                        .height(32.dp)
+                        .height(34.dp)
                         .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
                         .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
                         .bounceClick {
-                          AppPreferences.setShakeTimerDuration(context, mins)
+                          AppPreferences.setShakeAction(context, actionKey)
                           VibrationHelper.tick(context)
                         },
                       contentAlignment = Alignment.Center
                     ) {
                       Text(
-                        text = "${mins}m",
+                        text = label,
                         style = TextStyle(
                           fontFamily = SFProFontFamily,
                           fontSize = 12.sp,
-                          fontWeight = FontWeight.Bold,
+                          fontWeight = FontWeight.SemiBold,
                           color = if (isSel) PillTextDark else InkPrimary
                         )
                       )
                     }
                   }
                 }
-              }
-            }
 
-            HorizontalDivider(color = CardBorder.copy(alpha = 0.15f), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+                if (currentShakeAction == "START_TIMER") {
+                  Spacer(modifier = Modifier.height(10.dp))
+                  Text(
+                    text = "DEFAULT TIMER DURATION",
+                    style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary)
+                  )
+                  Spacer(modifier = Modifier.height(8.dp))
 
-            SettingsToggleRow(
-              title = "Haptic Vibrations",
-              checked = vibrations,
-              onCheckedChange = { checked ->
-                AppPreferences.setVibrationsEnabled(context, checked)
-                if (checked) {
-                  VibrationHelper.click(context)
+                  Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                  ) {
+                    listOf(5, 15, 25, 45, 60).forEach { mins ->
+                      val isSel = currentTimerDuration == mins
+                      Box(
+                        modifier = Modifier
+                          .weight(1f)
+                          .height(32.dp)
+                          .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+                        .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .bounceClick {
+                          AppPreferences.setShakeTimerDuration(context, mins)
+                          VibrationHelper.tick(context)
+                        },
+                        contentAlignment = Alignment.Center
+                      ) {
+                        Text(
+                          text = "${mins}m",
+                          style = TextStyle(
+                            fontFamily = SFProFontFamily,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSel) PillTextDark else InkPrimary
+                          )
+                        )
+                      }
+                    }
+                  }
                 }
               }
-            )
+            }
           }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
       }
 
-      // Data & Privacy Card (JSON Export & Import)
+      // 6. DATA & PRIVACY (Backup & System Diagnostics)
       item {
-        val exportService = remember { com.example.data.service.DataExportService(HabitTaskApplication.instance.database) }
-        val coroutineScope = rememberCoroutineScope()
-        var isExporting by remember { mutableStateOf(false) }
-        var isImporting by remember { mutableStateOf(false) }
-
-        val importLauncher = rememberLauncherForActivityResult(
-          contract = ActivityResultContracts.GetContent()
-        ) { uri: Uri? ->
-          if (uri != null) {
-            isImporting = true
-            coroutineScope.launch {
-              val result = exportService.importFromJson(context, uri)
-              isImporting = false
-              result.onSuccess { summary ->
-                Toast.makeText(
-                  context,
-                  "Restored ${summary.tasks} tasks, ${summary.subtasks} subtasks, ${summary.habits} habits",
-                  Toast.LENGTH_LONG
-                ).show()
-              }.onFailure { err ->
-                SafeLog.w("SettingsScreen", "Import failed", err)
-                Toast.makeText(context, "Import failed: ${err.localizedMessage ?: "Invalid file"}", Toast.LENGTH_LONG).show()
-              }
-            }
-          }
-        }
-
         Text(
           text = "DATA & PRIVACY",
           style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary)
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 6),
-          cornerRadius = 14.dp
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(16.dp)
-          ) {
+        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 5)) {
+          Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
               text = "Backup & Restore",
               style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
@@ -837,81 +903,78 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            Box(
-              modifier = Modifier
-                .fillMaxWidth()
-                .height(42.dp)
-                .background(PillBackgroundDark, RoundedCornerShape(10.dp))
-                .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick(enabled = !isExporting && !isImporting) {
-                  isExporting = true
-                  coroutineScope.launch {
-                    val result = exportService.exportToJson(context)
-                    isExporting = false
-                    result.onSuccess { uri ->
-                      val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "application/json"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+              Box(
+                modifier = Modifier
+                  .weight(1f)
+                  .height(42.dp)
+                  .background(PillBackgroundDark, RoundedCornerShape(10.dp))
+                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .bounceClick(enabled = !isExporting && !isImporting) {
+                    isExporting = true
+                    coroutineScope.launch {
+                      val result = exportService.exportToJson(context)
+                      isExporting = false
+                      result.onSuccess { uri ->
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                          type = "application/json"
+                          putExtra(Intent.EXTRA_STREAM, uri)
+                          addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, "Export TDlxHT Data"))
+                      }.onFailure { err ->
+                        SafeLog.w("SettingsScreen", "Export failed", err)
+                        Toast.makeText(context, "Unable to export data", Toast.LENGTH_SHORT).show()
                       }
-                      context.startActivity(Intent.createChooser(sendIntent, "Export TDlxHT Data"))
-                    }.onFailure { err ->
-                      SafeLog.w("SettingsScreen", "Export failed", err)
-                      Toast.makeText(context, "Unable to export data", Toast.LENGTH_SHORT).show()
                     }
-                  }
-                },
-              contentAlignment = Alignment.Center
-            ) {
-              if (isExporting) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = PillTextDark, strokeWidth = 2.dp)
-              } else {
-                Text(
-                  text = "Export Data (JSON)",
-                  style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = PillTextDark)
-                )
+                  },
+                contentAlignment = Alignment.Center
+              ) {
+                if (isExporting) {
+                  CircularProgressIndicator(modifier = Modifier.size(16.dp), color = PillTextDark, strokeWidth = 2.dp)
+                } else {
+                  Text(
+                    text = "Export Data",
+                    style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PillTextDark)
+                  )
+                }
               }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Box(
-              modifier = Modifier
-                .fillMaxWidth()
-                .height(42.dp)
-                .background(CardBackground, RoundedCornerShape(10.dp))
-                .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick(enabled = !isExporting && !isImporting) {
-                  importLauncher.launch("*/*")
-                },
-              contentAlignment = Alignment.Center
-            ) {
-              if (isImporting) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = InkPrimary, strokeWidth = 2.dp)
-              } else {
-                Text(
-                  text = "Import & Restore (JSON)",
-                  style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-                )
+              Box(
+                modifier = Modifier
+                  .weight(1f)
+                  .height(42.dp)
+                  .background(CardBackground, RoundedCornerShape(10.dp))
+                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .bounceClick(enabled = !isExporting && !isImporting) {
+                    importLauncher.launch("*/*")
+                  },
+                contentAlignment = Alignment.Center
+              ) {
+                if (isImporting) {
+                  CircularProgressIndicator(modifier = Modifier.size(16.dp), color = InkPrimary, strokeWidth = 2.dp)
+                } else {
+                  Text(
+                    text = "Import Data",
+                    style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                  )
+                }
               }
             }
           }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+          GroupedDivider()
 
-        // System Diagnostics Card
-        SketchCard(
-          modifier = Modifier
-            .fillMaxWidth()
-            .bounceClick { isDiagnosticsOpen = true },
-          cornerRadius = 14.dp
-        ) {
+          // System Diagnostics Row
           Row(
             modifier = Modifier
               .fillMaxWidth()
+              .bounceClick { isDiagnosticsOpen = true }
               .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -919,11 +982,10 @@ fun SettingsScreen(
             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
               Text(
                 text = "System Diagnostics",
-                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
               )
-              Spacer(modifier = Modifier.height(2.dp))
               Text(
-                text = "Inspect backend connection, sync health, release & sensors.",
+                text = "Inspect backend connection, sync health & sensors",
                 style = TextStyle(fontSize = 12.sp, color = InkSecondary)
               )
             }
@@ -934,39 +996,68 @@ fun SettingsScreen(
               modifier = Modifier.size(18.dp)
             )
           }
+
+          GroupedDivider()
+
+          // Danger Zone: Delete Account
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable { showDeleteAccountDialog = true }
+              .padding(16.dp),
+            contentAlignment = Alignment.Center
+          ) {
+            Text(
+              text = "Delete Account & Cloud Data",
+              style = TextStyle(fontSize = 13.sp, color = AccentRed, fontWeight = FontWeight.SemiBold)
+            )
+          }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
       }
 
-      // App Info Card
+      // 7. ABOUT TDLXHT (Single Authoritative Card - ZERO collisions)
       item {
         SketchCard(
-          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 7),
-          cornerRadius = 14.dp
+          modifier = Modifier
+            .fillMaxWidth()
+            .staggeredEntrance(index = 6),
+          cornerRadius = 18.dp
         ) {
           Column(
             modifier = Modifier
               .fillMaxWidth()
-              .padding(16.dp),
+              .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
           ) {
+            Image(
+              painter = painterResource(R.drawable.app_logo),
+              contentDescription = "TDlxHT Logo",
+              modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .border(2.dp, CardBorder, CircleShape)
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Text(
               text = "TDlxHT • Planner & Habits",
               style = TextStyle(
                 fontFamily = SFProFontFamily,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
               )
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-              text = "Version ${com.example.BuildConfig.VERSION_NAME} (Build ${com.example.BuildConfig.VERSION_CODE}) • Offline First",
-              style = TextStyle(fontSize = 12.sp, color = InkMuted)
+              text = "Version ${com.example.BuildConfig.VERSION_NAME} (Build ${com.example.BuildConfig.VERSION_CODE}) • Liquid Glass Edition",
+              style = TextStyle(fontSize = 12.sp, color = InkSecondary)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             var isCheckingUpdate by remember { mutableStateOf(false) }
 
@@ -991,7 +1082,7 @@ fun SettingsScreen(
                     }
                   }
                 }
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .padding(horizontal = 18.dp, vertical = 9.dp),
               contentAlignment = Alignment.Center
             ) {
               Text(
@@ -1001,15 +1092,8 @@ fun SettingsScreen(
             }
           }
         }
-      }
 
-      // Account section — signed-in user, cloud sync & logout
-      item {
-        Spacer(modifier = Modifier.height(8.dp))
-        Box(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 8)) {
-          AccountSection(authViewModel = authViewModel)
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(24.dp))
       }
     }
 
@@ -1033,18 +1117,18 @@ fun SettingsScreen(
             ) {
               Text(
                 text = "Daily Summary Time",
-                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
+                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
               )
               Box(
                 modifier = Modifier
-                  .size(34.dp)
+                  .size(32.dp)
                   .border(1.dp, CardBorder, CircleShape)
                   .clip(CircleShape)
                   .background(CardBackground)
                   .bounceClick(scaleDown = 0.88f) { showSummaryTimeDialog = false },
                 contentAlignment = Alignment.Center
               ) {
-                Icon(Icons.Default.Close, contentDescription = "Close", tint = InkPrimary, modifier = Modifier.size(17.dp))
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = InkPrimary, modifier = Modifier.size(16.dp))
               }
             }
 
@@ -1081,7 +1165,7 @@ fun SettingsScreen(
                   Box(
                     modifier = Modifier
                       .weight(1f)
-                      .height(42.dp)
+                      .height(40.dp)
                       .border(1.2.dp, borderCol, RoundedCornerShape(10.dp))
                       .clip(RoundedCornerShape(10.dp))
                       .background(bg)
@@ -1105,6 +1189,84 @@ fun SettingsScreen(
                     )
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Sign Out Dialog
+    if (showLogoutDialog) {
+      Dialog(onDismissRequest = { showLogoutDialog = false }) {
+        SketchCard(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+          Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Sign Out?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+            Spacer(Modifier.height(10.dp))
+            Text(
+              text = "Your account will be safely signed out, and local data cleared to isolate accounts. Sign back in at any time to sync with the cloud.",
+              style = TextStyle(fontSize = 13.sp, color = InkSecondary, textAlign = TextAlign.Center, lineHeight = 18.sp)
+            )
+            Spacer(Modifier.height(20.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+              Box(
+                modifier = Modifier.weight(1f).height(42.dp)
+                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .bounceClick { showLogoutDialog = false },
+                contentAlignment = Alignment.Center
+              ) {
+                Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+              }
+              Box(
+                modifier = Modifier.weight(1f).height(42.dp)
+                  .background(AccentRed.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
+                  .border(1.2.dp, AccentRed.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .bounceClick { showLogoutDialog = false; authViewModel.signOut(context) },
+                contentAlignment = Alignment.Center
+              ) {
+                Text("Sign Out", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = AccentRed, fontWeight = FontWeight.SemiBold))
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Delete Account Dialog
+    if (showDeleteAccountDialog) {
+      Dialog(onDismissRequest = { showDeleteAccountDialog = false }) {
+        SketchCard(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+          Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Delete Account?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AccentRed))
+            Spacer(Modifier.height(10.dp))
+            Text(
+              text = "Are you sure you want to delete your account? All your cloud data, tasks, habits, and history will be permanently deleted. This action cannot be undone.",
+              style = TextStyle(fontSize = 13.sp, color = InkSecondary, textAlign = TextAlign.Center, lineHeight = 18.sp)
+            )
+            Spacer(Modifier.height(20.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+              Box(
+                modifier = Modifier.weight(1f).height(42.dp)
+                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .bounceClick { showDeleteAccountDialog = false },
+                contentAlignment = Alignment.Center
+              ) {
+                Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+              }
+              Box(
+                modifier = Modifier.weight(1f).height(42.dp)
+                  .background(AccentRed, RoundedCornerShape(10.dp))
+                  .clip(RoundedCornerShape(10.dp))
+                  .bounceClick {
+                    showDeleteAccountDialog = false
+                    authViewModel.deleteAccount(context)
+                  },
+                contentAlignment = Alignment.Center
+              ) {
+                Text("Delete", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold))
               }
             }
           }
@@ -1153,241 +1315,5 @@ fun SettingsToggleRow(
       checked = checked,
       onCheckedChange = onCheckedChange
     )
-  }
-}
-
-// Appended Account section composable — called from within the LazyColumn
-@Composable
-fun AccountSection(authViewModel: AuthViewModel) {
-  val context = LocalContext.current
-  val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
-  val syncState by authViewModel.syncState.collectAsStateWithLifecycle()
-  var showLogoutDialog by remember { mutableStateOf(false) }
-  var showDeleteAccountDialog by remember { mutableStateOf(false) }
-
-  LaunchedEffect(syncState) {
-    when (val s = syncState) {
-      is SyncStatus.Success -> Toast.makeText(context, s.message, Toast.LENGTH_SHORT).show()
-      is SyncStatus.Error -> Toast.makeText(context, s.message, Toast.LENGTH_SHORT).show()
-      else -> Unit
-    }
-  }
-
-  val email = currentUser?.email ?: "Unknown"
-
-  Spacer(modifier = Modifier.height(8.dp))
-  Text(
-    text = "ACCOUNT",
-    style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary)
-  )
-  Spacer(modifier = Modifier.height(8.dp))
-
-  SketchCard(
-    modifier = Modifier.fillMaxWidth()
-  ) {
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 14.dp)
-    ) {
-      Text(
-        text = "Signed in as",
-        style = TextStyle(fontSize = 12.sp, color = InkSecondary)
-      )
-      Text(
-        text = email,
-        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-      )
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      // Sync button
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(44.dp)
-          .background(
-            PillBackgroundDark.copy(alpha = if (syncState is SyncStatus.Syncing) 0.5f else 1f),
-            RoundedCornerShape(10.dp)
-          )
-          .border(1.5.dp, CardBorder, RoundedCornerShape(10.dp))
-          .clip(RoundedCornerShape(10.dp))
-          .bounceClick(enabled = syncState !is SyncStatus.Syncing) { authViewModel.syncNow() }
-          .semantics { contentDescription = "Sync data to cloud" },
-        contentAlignment = Alignment.Center
-      ) {
-        if (syncState is SyncStatus.Syncing) {
-          Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = PillTextDark)
-            Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, color = PillTextDark, fontWeight = FontWeight.SemiBold))
-          }
-        } else {
-          Text("Sync to Cloud", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, color = PillTextDark, fontWeight = FontWeight.SemiBold))
-        }
-      }
-
-      Spacer(modifier = Modifier.height(10.dp))
-
-      // Sign out button
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(44.dp)
-          .border(1.5.dp, CardBorder, RoundedCornerShape(10.dp))
-          .clip(RoundedCornerShape(10.dp))
-          .bounceClick { showLogoutDialog = true }
-          .semantics { contentDescription = "Sign out of account" },
-        contentAlignment = Alignment.Center
-      ) {
-        Text("Sign Out", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
-      }
-
-      Spacer(modifier = Modifier.height(10.dp))
-
-      // Delete Account button
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(38.dp)
-          .clip(RoundedCornerShape(10.dp))
-          .bounceClick { showDeleteAccountDialog = true }
-          .semantics { contentDescription = "Delete account and data" },
-        contentAlignment = Alignment.Center
-      ) {
-        Text("Delete Account & Data", style = TextStyle(fontSize = 13.sp, color = AccentRed, fontWeight = FontWeight.Medium))
-      }
-    }
-  }
-
-  Spacer(modifier = Modifier.height(20.dp))
-
-  // About App Card
-  SketchCard(
-    modifier = Modifier.fillMaxWidth()
-  ) {
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 20.dp, horizontal = 16.dp),
-      horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-      Image(
-        painter = painterResource(R.drawable.app_logo),
-        contentDescription = "TDlxHT Logo",
-        modifier = Modifier
-          .size(64.dp)
-          .clip(CircleShape)
-          .border(2.dp, CardBorder, CircleShape)
-      )
-
-      Spacer(modifier = Modifier.height(10.dp))
-
-      Text(
-        text = "TDlxHT",
-        style = TextStyle(
-          fontFamily = com.example.ui.theme.PunkGrandmotherFontFamily,
-          fontSize = 32.sp,
-          fontWeight = FontWeight.Normal,
-          color = InkPrimary
-        )
-      )
-
-      Text(
-        text = "v${com.example.BuildConfig.VERSION_NAME} • Liquid Glass Edition",
-        style = TextStyle(
-          fontSize = 12.sp,
-          fontWeight = FontWeight.SemiBold,
-          color = InkSecondary
-        )
-      )
-
-      Spacer(modifier = Modifier.height(6.dp))
-
-      Text(
-        text = "Handcrafted with sketch paper aesthetics, drag-hover gestures, and tactile haptic feedback.",
-        style = TextStyle(
-          fontSize = 12.sp,
-          color = InkMuted,
-          textAlign = TextAlign.Center,
-          lineHeight = 16.sp
-        )
-      )
-    }
-  }
-
-  if (showLogoutDialog) {
-    Dialog(onDismissRequest = { showLogoutDialog = false }) {
-      SketchCard(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-          Text("Sign Out?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
-          Spacer(Modifier.height(10.dp))
-          Text(
-            text = "Your account will be safely signed out, and local data cleared to isolate accounts. Sign back in at any time to sync with the cloud.",
-            style = TextStyle(fontSize = 13.sp, color = InkSecondary, textAlign = TextAlign.Center, lineHeight = 18.sp)
-          )
-          Spacer(Modifier.height(20.dp))
-          Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(
-              modifier = Modifier.weight(1f).height(44.dp)
-                .border(1.5.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick { showLogoutDialog = false },
-              contentAlignment = Alignment.Center
-            ) {
-              Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
-            }
-            Box(
-              modifier = Modifier.weight(1f).height(44.dp)
-                .background(AccentRed.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
-                .border(1.5.dp, AccentRed.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick { showLogoutDialog = false; authViewModel.signOut(context) },
-              contentAlignment = Alignment.Center
-            ) {
-              Text("Sign Out", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, color = AccentRed, fontWeight = FontWeight.SemiBold))
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (showDeleteAccountDialog) {
-    Dialog(onDismissRequest = { showDeleteAccountDialog = false }) {
-      SketchCard(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-          Text("Delete Account?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AccentRed))
-          Spacer(Modifier.height(10.dp))
-          Text(
-            text = "Are you sure you want to delete your account? All your cloud data, tasks, habits, and history will be permanently deleted. This action cannot be undone.",
-            style = TextStyle(fontSize = 13.sp, color = InkSecondary, textAlign = TextAlign.Center, lineHeight = 18.sp)
-          )
-          Spacer(Modifier.height(20.dp))
-          Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(
-              modifier = Modifier.weight(1f).height(44.dp)
-                .border(1.5.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick { showDeleteAccountDialog = false },
-              contentAlignment = Alignment.Center
-            ) {
-              Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
-            }
-            Box(
-              modifier = Modifier.weight(1f).height(44.dp)
-                .background(AccentRed, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick {
-                  showDeleteAccountDialog = false
-                  authViewModel.deleteAccount(context)
-                },
-              contentAlignment = Alignment.Center
-            ) {
-              Text("Delete", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Bold))
-            }
-          }
-        }
-      }
-    }
   }
 }

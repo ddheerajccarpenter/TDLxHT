@@ -62,6 +62,8 @@ import com.example.data.service.AiIntelligenceEngine
 import com.example.data.service.AiProductivityInsight
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
+import com.example.ui.components.BentoHeroCard
+import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
@@ -71,6 +73,9 @@ import com.example.ui.components.heroEntrance
 import com.example.ui.components.staggeredEntrance
 import com.example.ui.components.paperDotBackground
 import com.example.ui.theme.AccentTerracotta
+import com.example.ui.theme.OklchPurple
+import com.example.ui.theme.OklchIndigo
+import com.example.ui.theme.OklchEmerald
 import com.example.ui.theme.CardBackground
 import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
@@ -222,8 +227,68 @@ fun ReportsScreen(
 
 @Composable
 private fun StatsSection(stats: ReportStats) {
+    val overallScore = remember(stats) {
+        val taskRate = if (stats.tasksTotal > 0) stats.taskCompletionRate else 1f
+        val habitRate = if (stats.habitsTotal > 0) stats.habitCompletionRate else 1f
+        ((taskRate * 0.5f + habitRate * 0.5f) * 100).roundToInt().coerceIn(0, 100)
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("STATISTICS", style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary))
+        // Executive Score Bento Card
+        BentoHeroCard(
+            modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 40),
+            accentColor = OklchPurple,
+            cornerRadius = 18.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressGauge(
+                    progress = overallScore / 100f,
+                    modifier = Modifier.size(68.dp),
+                    strokeWidth = 7.dp,
+                    primaryColor = OklchPurple,
+                    secondaryColor = OklchIndigo
+                )
+
+                Spacer(Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "EXECUTIVE SCORE",
+                        style = TextStyle(
+                            fontFamily = SFProFontFamily,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp,
+                            color = OklchPurple
+                        )
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = when {
+                            overallScore >= 80 -> "Optimal Momentum"
+                            overallScore >= 50 -> "Steady Progress"
+                            else -> "Building Cadence"
+                        },
+                        style = TextStyle(
+                            fontFamily = SFProFontFamily,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = InkPrimary
+                        )
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "${stats.tasksCompleted} Tasks • ${stats.habitsCompleted} Habits Met",
+                        style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+                    )
+                }
+            }
+        }
+
+        Text("DETAILED METRICS", style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary))
 
         // Tasks card
         SketchCard(Modifier.fillMaxWidth().staggeredEntrance(index = 0)) {

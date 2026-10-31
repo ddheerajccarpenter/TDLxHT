@@ -1,3 +1,39 @@
+# TDlxHT Release Notes — Version 2.5.1 (Build 38)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.1.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Complete UI Overhaul, Perceptually Uniform OKLCH Palette & Settings Rebuild
+
+TDlxHT 2.5.1 delivers a complete, modern UI redesign across all screens, integrating the `jakubkrehel/oklch-skill` and `jakubkrehel/skills` systems, introducing Bento grid dashboards, Circular Arc Progress Gauges, Momentum Flame badges, and completely eliminating card overlap bugs in Settings.
+
+### 1. Settings Screen Zero-Overlap Rebuild (Fix for Card Collisions)
+* **Apple iOS 18 / Linear Grouped Inset Lists:** Replaced disparate stacked cards with single-container `GroupedInsetCard` layouts with hairline dividers.
+* **Top Profile Hero:** Clean single account hero card displaying user avatar, email, cloud sync status, "Sync Now" action, and "Sign Out".
+* **Eliminated Duplicate About App Cards:** Fully removed duplicate About cards and rogue `Box` containers that caused overlapping elements in previous builds.
+
+### 2. Perceptually Uniform OKLCH Palette
+* **Semantic Tones:** Integrated high-contrast, WCAG AAA-compliant OKLCH colors:
+  * Electric Indigo (`#6366F1`) for primary actions and active states.
+  * Emerald Success (`#10B981`) for habit completion and positive momentum.
+  * Amber Flame (`#F59E0B`) for streaks and active timers.
+  * Coral Alert (`#EF4444`) for high-priority items and destructive actions.
+  * Focus Cyan (`#0EA5E9`) for Pomodoro timer sweeps.
+  * Analytics Purple (`#A855F7`) for Executive Scores and Insights.
+
+### 3. Today Bento Dashboard & Circular Arc Gauges
+* **Bento Hero:** Modern Bento layout on Today screen featuring GPU-drawn `CircularProgressGauge` showing overall completion %, accompanied by `StreakFlameBadge`.
+* **Priority Spotlight Card:** Automatic top-level spotlight for uncompleted High/Medium priority tasks scheduled for today.
+
+### 4. Interactive Focus Timer with Smooth Sweep Arcs
+* **Circular Sweep Arc Gauge:** Transformed the Pomodoro modal with a dynamic sweep arc indicating remaining focus session time in crisp OKLCH Cyan and Indigo.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.0 (Build 37)
 
 **Release Date:** 2026-10-31  
