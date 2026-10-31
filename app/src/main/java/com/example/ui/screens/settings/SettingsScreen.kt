@@ -120,6 +120,7 @@ fun SettingsScreen(
   viewModel: MainViewModel,
   authViewModel: AuthViewModel,
   onBack: () -> Unit,
+  onNavigateToDiagnostics: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -974,7 +975,13 @@ fun SettingsScreen(
           Row(
             modifier = Modifier
               .fillMaxWidth()
-              .bounceClick { isDiagnosticsOpen = true }
+              .bounceClick {
+                if (onNavigateToDiagnostics != null) {
+                  onNavigateToDiagnostics()
+                } else {
+                  isDiagnosticsOpen = true
+                }
+              }
               .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically

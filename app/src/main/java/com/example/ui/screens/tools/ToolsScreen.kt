@@ -137,6 +137,7 @@ fun ToolsScreen(
   onBack: (() -> Unit)? = null,
   onToolModalStateChanged: ((Boolean) -> Unit)? = null,
   onCreateTaskFromResult: ((title: String, notes: String) -> Unit)? = null,
+  onToolClick: ((ToolDefinition) -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -337,7 +338,11 @@ fun ToolsScreen(
                   .padding(vertical = 4.dp)
                   .bounceClick {
                     if (!isReorderMode) {
-                      activeToolId = tool.id
+                      if (onToolClick != null) {
+                        onToolClick(tool)
+                      } else {
+                        activeToolId = tool.id
+                      }
                     }
                   }
                   .testTag("tool_card_${tool.id}"),

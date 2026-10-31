@@ -176,6 +176,12 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
 import androidx.annotation.RawRes
 import com.example.ui.components.AnimatedIcon
+import com.example.ui.navigation.AppNavDestination
+import com.example.ui.navigation.PredictiveNavController
+import com.example.ui.navigation.PredictiveNavigationHost
+import com.example.ui.navigation.rememberPredictiveNavController
+import com.example.ui.screens.settings.DiagnosticsScreen
+import com.example.ui.screens.tools.ToolRunnerModal
 import kotlinx.coroutines.launch
 
 enum class AppDestination(
@@ -294,10 +300,24 @@ fun MainApp(
   val pagerState = rememberPagerState(initialPage = 0) { destinations.size }
   val currentDestination = destinations[pagerState.currentPage]
 
-  var taskToEdit by remember { mutableStateOf<Task?>(null) }
-  var isCreatingTask by remember { mutableStateOf(false) }
-  var habitToEdit by remember { mutableStateOf<Habit?>(null) }
-  var isCreatingHabit by remember { mutableStateOf(false) }
+  val navController = rememberPredictiveNavController(
+    initialDestination = AppNavDestination.Main(0)
+  )
+
+  // Keep PagerState and navController root tab index synchronized
+  LaunchedEffect(navController.currentDestination) {
+    val cur = navController.currentDestination
+    if (cur is AppNavDestination.Main && cur.tabIndex != pagerState.currentPage) {
+      pagerState.scrollToPage(cur.tabIndex)
+    }
+  }
+
+  LaunchedEffect(pagerState.currentPage) {
+    val cur = navController.currentDestination
+    if (cur is AppNavDestination.Main && cur.tabIndex != pagerState.currentPage) {
+      navController.backStack[0] = AppNavDestination.Main(pagerState.currentPage)
+    }
+  }
 
   // Remote update check state
   var availableUpdate by remember { mutableStateOf<com.example.util.AppUpdateInfo?>(null) }
@@ -341,63 +361,27 @@ fun MainApp(
     }
   }
 
-  var isSettingsOpen by remember { mutableStateOf(false) }
-  var isSearchOpen by remember { mutableStateOf(false) }
-  var isToolModalOpen by remember { mutableStateOf(false) }
-  var isQuickAddSheetOpen by remember { mutableStateOf(false) }
-  var isCreatingShortTermTask by remember { mutableStateOf(false) }
-  var prefilledTaskTitle by remember { mutableStateOf<String?>(null) }
-  var prefilledTaskNotes by remember { mutableStateOf<String?>(null) }
-  var isFocusTimerOpen by remember { mutableStateOf(false) }
-  var focusTimerMinutes by remember { mutableIntStateOf(25) }
-
-  // Handle system back navigation
-  BackHandler(enabled = isSearchOpen || isSettingsOpen || isCreatingTask || taskToEdit != null || isCreatingHabit || habitToEdit != null || isToolModalOpen || isQuickAddSheetOpen || isFocusTimerOpen || pagerState.currentPage != 0) {
-    when {
-      isSearchOpen -> isSearchOpen = false
-      isSettingsOpen -> isSettingsOpen = false
-      isQuickAddSheetOpen -> isQuickAddSheetOpen = false
-      isFocusTimerOpen -> isFocusTimerOpen = false
-      isCreatingTask -> {
-        isCreatingTask = false
-        isCreatingShortTermTask = false
-        prefilledTaskTitle = null
-        prefilledTaskNotes = null
-      }
-      taskToEdit != null -> taskToEdit = null
-      isCreatingHabit -> isCreatingHabit = false
-      habitToEdit != null -> habitToEdit = null
-      isToolModalOpen -> {
-        // Inner BackHandler in ToolsScreen handles activeToolId = null
-      }
-      else -> coroutineScope.launch { pagerState.animateScrollToPage(0) }
-    }
-  }
-
-  val isModalOpen = isSearchOpen || isSettingsOpen || isCreatingTask || taskToEdit != null || isCreatingHabit || habitToEdit != null || isToolModalOpen || isFocusTimerOpen
-
   fun dispatchShakeAction() {
     com.example.util.VibrationHelper.shakeDetected(context)
     when (com.example.util.AppPreferences.getShakeAction(context)) {
       "CREATE_TASK" -> {
-        isCreatingTask = true
+        navController.navigate(AppNavDestination.TaskDetail())
         Toast.makeText(context, "Shake: Quick Add Task", Toast.LENGTH_SHORT).show()
       }
       "START_TIMER" -> {
         val duration = com.example.util.AppPreferences.getShakeTimerDuration(context)
-        focusTimerMinutes = duration
-        isFocusTimerOpen = true
+        navController.navigate(AppNavDestination.FocusTimer(duration))
         Toast.makeText(context, "Shake: Focus Timer (${duration}m)", Toast.LENGTH_SHORT).show()
       }
       "QUICK_CHOOSER" -> {
-        isQuickAddSheetOpen = true
+        navController.navigate(AppNavDestination.QuickCreate)
         Toast.makeText(context, "Shake: Quick Actions", Toast.LENGTH_SHORT).show()
       }
       "DISABLED" -> {
         // Shake gesture is disabled in settings
       }
       else -> {
-        isCreatingTask = true
+        navController.navigate(AppNavDestination.TaskDetail())
       }
     }
   }
@@ -424,388 +408,341 @@ fun MainApp(
     }
   }
 
-  Scaffold(
-    modifier = Modifier.fillMaxSize(),
-    containerColor = PaperBackground,
-    bottomBar = {
-      if (!isModalOpen) {
-        SketchBottomNavigationBar(
-          destinations = destinations,
-          pagerState = pagerState,
-          isQuickAddOpen = isQuickAddSheetOpen,
-          onDestinationSelected = { destination ->
-            val targetIndex = destinations.indexOf(destination)
-            if (targetIndex >= 0) {
-              coroutineScope.launch {
-                pagerState.animateScrollToPage(targetIndex)
+  PredictiveNavigationHost(
+    navController = navController,
+    modifier = Modifier.fillMaxSize()
+  ) { destination ->
+    when (destination) {
+      is AppNavDestination.Main -> {
+        Scaffold(
+          modifier = Modifier.fillMaxSize(),
+          containerColor = PaperBackground,
+          bottomBar = {
+            if (navController.backStack.size == 1) {
+              SketchBottomNavigationBar(
+                destinations = destinations,
+                pagerState = pagerState,
+                isQuickAddOpen = false,
+                onDestinationSelected = { dest ->
+                  val targetIndex = destinations.indexOf(dest)
+                  if (targetIndex >= 0) {
+                    coroutineScope.launch {
+                      pagerState.animateScrollToPage(targetIndex)
+                    }
+                  }
+                },
+                onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) }
+              )
+            }
+          }
+        ) { innerPadding ->
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(top = innerPadding.calculateTopPadding())
+          ) {
+            HorizontalPager(
+              state = pagerState,
+              modifier = Modifier.fillMaxSize(),
+              userScrollEnabled = navController.backStack.size == 1
+            ) { page ->
+              when (destinations[page]) {
+                AppDestination.TODAY -> {
+                  HomeScreen(
+                    viewModel = viewModel,
+                    onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
+                    onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                    onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
+                    onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                    onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
+                    onNavigateToSearch = { navController.navigate(AppNavDestination.Search) }
+                  )
+                }
+                AppDestination.PRODUCTIVITY -> {
+                  ProductivityScreen(
+                    viewModel = viewModel,
+                    onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
+                    onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                    onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
+                    onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                    onBackToHome = { coroutineScope.launch { pagerState.animateScrollToPage(0) } }
+                  )
+                }
+                AppDestination.TOOLS -> {
+                  ToolsScreen(
+                    onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
+                    onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
+                    onCreateTaskFromResult = { title, notes ->
+                      navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
+                    }
+                  )
+                }
+                AppDestination.INSIGHTS -> {
+                  ReportsScreen(
+                    onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
+                    onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
+                  )
+                }
               }
             }
-          },
-          onQuickAdd = { isQuickAddSheetOpen = true }
-        )
-      }
-    }
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(top = innerPadding.calculateTopPadding())
-    ) {
-      // HorizontalPager allowing fluid swipe gestures between pages
-      HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = !isModalOpen
-      ) { page ->
-        when (destinations[page]) {
-          AppDestination.TODAY -> {
-            HomeScreen(
-              viewModel = viewModel,
-              onNavigateToAddTask = { isCreatingTask = true },
-              onNavigateToAddHabit = { isCreatingHabit = true },
-              onTaskClick = { taskToEdit = it },
-              onHabitClick = { habitToEdit = it },
-              onNavigateToSettings = { isSettingsOpen = true },
-              onNavigateToSearch = { isSearchOpen = true }
-            )
-          }
-          AppDestination.PRODUCTIVITY -> {
-            ProductivityScreen(
-              viewModel = viewModel,
-              onNavigateToAddTask = { isCreatingTask = true },
-              onNavigateToAddHabit = { isCreatingHabit = true },
-              onTaskClick = { taskToEdit = it },
-              onHabitClick = { habitToEdit = it },
-              onBackToHome = { coroutineScope.launch { pagerState.animateScrollToPage(0) } }
-            )
-          }
-          AppDestination.TOOLS -> {
-            ToolsScreen(
-              onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
-              onToolModalStateChanged = { isOpen -> isToolModalOpen = isOpen },
-              onCreateTaskFromResult = { title, notes ->
-                prefilledTaskTitle = title
-                prefilledTaskNotes = notes
-                isToolModalOpen = false
-                isCreatingTask = true
-              }
-            )
-          }
-          AppDestination.INSIGHTS -> {
-            ReportsScreen(
-              onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
-              onNavigateToAddTask = { isCreatingTask = true }
-            )
           }
         }
       }
 
-      // Task modal with tactile slide-up, scale-in and fade
-      AnimatedVisibility(
-        visible = isCreatingTask || taskToEdit != null,
-        enter = slideInVertically(
-          initialOffsetY = { it / 6 },
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + scaleIn(
-          initialScale = 0.94f,
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + fadeIn(animationSpec = tween(180)),
-        exit = slideOutVertically(
-          targetOffsetY = { it / 8 },
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + scaleOut(
-          targetScale = 0.95f,
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + fadeOut(animationSpec = tween(140))
-      ) {
+      is AppNavDestination.TaskDetail -> {
         TaskDetailEditScreen(
           viewModel = viewModel,
-          existingTask = taskToEdit,
-          initialTitle = prefilledTaskTitle ?: "",
-          initialNotes = prefilledTaskNotes ?: "",
-          initialIsShortTerm = isCreatingShortTermTask,
-          onDismiss = {
-            isCreatingTask = false
-            isCreatingShortTermTask = false
-            taskToEdit = null
-            prefilledTaskTitle = null
-            prefilledTaskNotes = null
-          }
+          existingTask = destination.task,
+          initialTitle = destination.initialTitle,
+          initialNotes = destination.initialNotes,
+          initialIsShortTerm = destination.initialIsShortTerm,
+          onDismiss = { navController.navigateBack() }
         )
       }
 
-      // Habit modal with tactile slide-up, scale-in and fade
-      AnimatedVisibility(
-        visible = isCreatingHabit || habitToEdit != null,
-        enter = slideInVertically(
-          initialOffsetY = { it / 6 },
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + scaleIn(
-          initialScale = 0.94f,
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + fadeIn(animationSpec = tween(180)),
-        exit = slideOutVertically(
-          targetOffsetY = { it / 8 },
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + scaleOut(
-          targetScale = 0.95f,
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + fadeOut(animationSpec = tween(140))
-      ) {
+      is AppNavDestination.HabitDetail -> {
         HabitDetailEditScreen(
           viewModel = viewModel,
-          existingHabit = habitToEdit,
-          onDismiss = {
-            isCreatingHabit = false
-            habitToEdit = null
-          }
+          existingHabit = destination.habit,
+          onDismiss = { navController.navigateBack() }
         )
       }
 
-      // Settings screen with tactile slide-up, scale-in and fade
-      AnimatedVisibility(
-        visible = isSettingsOpen,
-        enter = slideInVertically(
-          initialOffsetY = { it / 4 },
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + scaleIn(
-          initialScale = 0.96f,
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + fadeIn(animationSpec = tween(180)),
-        exit = slideOutVertically(
-          targetOffsetY = { it / 4 },
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + scaleOut(
-          targetScale = 0.96f,
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + fadeOut(animationSpec = tween(140))
-      ) {
+      is AppNavDestination.Settings -> {
         SettingsScreen(
           viewModel = viewModel,
           authViewModel = authViewModel,
-          onBack = { isSettingsOpen = false }
+          onBack = { navController.navigateBack() },
+          onNavigateToDiagnostics = { navController.navigate(AppNavDestination.Diagnostics) }
         )
       }
 
-      // Search screen with tactile slide-up, scale-in and fade
-      AnimatedVisibility(
-        visible = isSearchOpen,
-        enter = slideInVertically(
-          initialOffsetY = { it / 4 },
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + scaleIn(
-          initialScale = 0.96f,
-          animationSpec = spring(dampingRatio = 0.80f, stiffness = 380f)
-        ) + fadeIn(animationSpec = tween(180)),
-        exit = slideOutVertically(
-          targetOffsetY = { it / 4 },
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + scaleOut(
-          targetScale = 0.96f,
-          animationSpec = tween(160, easing = FastOutSlowInEasing)
-        ) + fadeOut(animationSpec = tween(140))
-      ) {
+      is AppNavDestination.Diagnostics -> {
+        DiagnosticsScreen(
+          taskRepository = HabitTaskApplication.instance.taskRepository,
+          habitRepository = HabitTaskApplication.instance.habitRepository,
+          onNavigateBack = { navController.navigateBack() }
+        )
+      }
+
+      is AppNavDestination.Search -> {
         SearchScreen(
           viewModel = viewModel,
-          onTaskClick = {
-            taskToEdit = it
-            isSearchOpen = false
-          },
-          onHabitClick = {
-            habitToEdit = it
-            isSearchOpen = false
-          },
-          onBack = { isSearchOpen = false }
+          onTaskClick = { navController.replaceTop(AppNavDestination.TaskDetail(task = it)) },
+          onHabitClick = { navController.replaceTop(AppNavDestination.HabitDetail(habit = it)) },
+          onBack = { navController.navigateBack() }
         )
       }
-    }
-  }
 
-  // Quick Create Sheet for Global Quick Add "+" — Apple Liquid Glass Sheet
-  GlassSheet(
-    visible = isQuickAddSheetOpen,
-    onDismissRequest = { isQuickAddSheetOpen = false }
-  ) {
-    val isDark = com.example.ui.theme.LocalAppColors.current.isDark
-    val optionIconAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
-
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Text(
-        text = "Quick Create",
-        style = TextStyle(
-          fontFamily = SFProFontFamily,
-          fontSize = 20.sp,
-          fontWeight = FontWeight.Bold,
-          color = InkPrimary
-        )
-      )
-
-      GlassButton(
-        onClick = { isQuickAddSheetOpen = false },
-        contentDescription = "Close",
-        size = 34.dp
-      ) {
-        Icon(
-          Icons.Default.Close,
-          contentDescription = null,
-          tint = InkPrimary,
-          modifier = Modifier.size(16.dp)
-        )
-      }
-    }
-
-    Spacer(modifier = Modifier.height(18.dp))
-
-    // Option 1: New Task
-    GlassCard(
-      modifier = Modifier
-        .fillMaxWidth()
-        .bounceClick {
-          isQuickAddSheetOpen = false
-          isCreatingTask = true
-        },
-      cornerRadius = 16.dp,
-      elevation = 2.dp
-    ) {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Box(
-          modifier = Modifier
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(optionIconAccent.copy(alpha = 0.14f))
-            .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
-          contentAlignment = Alignment.Center
-        ) {
-          AnimatedIcon(
-            resId = R.raw.anim_productivity,
-            isSelected = true,
-            tint = optionIconAccent,
-            size = 24.dp
-          )
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Text(
-          text = "New Task",
-          style = TextStyle(
-            fontFamily = SFProFontFamily,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = InkPrimary
-          )
-        )
-      }
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    // Option 2: New Habit
-    GlassCard(
-      modifier = Modifier
-        .fillMaxWidth()
-        .bounceClick {
-          isQuickAddSheetOpen = false
-          isCreatingHabit = true
-        },
-      cornerRadius = 16.dp,
-      elevation = 2.dp
-    ) {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Box(
-          modifier = Modifier
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(optionIconAccent.copy(alpha = 0.14f))
-            .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
-          contentAlignment = Alignment.Center
-        ) {
-          AnimatedIcon(
-            resId = R.raw.anim_today,
-            isSelected = true,
-            tint = optionIconAccent,
-            size = 24.dp
-          )
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Text(
-          text = "New Habit",
-          style = TextStyle(
-            fontFamily = SFProFontFamily,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = InkPrimary
-          )
-        )
-      }
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    // Option 3: Short-term Task (Auto-removes upon completion, local record only)
-    GlassCard(
-      modifier = Modifier
-        .fillMaxWidth()
-        .bounceClick {
-          isQuickAddSheetOpen = false
-          isCreatingShortTermTask = true
-          isCreatingTask = true
-        },
-      cornerRadius = 16.dp,
-      elevation = 2.dp
-    ) {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Box(
-          modifier = Modifier
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(optionIconAccent.copy(alpha = 0.14f))
-            .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
-          contentAlignment = Alignment.Center
-        ) {
-          Icon(
-            imageVector = Icons.Default.Check,
-            contentDescription = null,
-            tint = optionIconAccent,
-            modifier = Modifier.size(22.dp)
-          )
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Column {
-          Text(
-            text = "Short-term Task",
-            style = TextStyle(
-              fontFamily = SFProFontFamily,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Bold,
-              color = InkPrimary
+      is AppNavDestination.ToolRunner -> {
+        ToolRunnerModal(
+          tool = destination.tool,
+          onCreateTaskFromResult = { title, notes ->
+            navController.replaceTop(
+              AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes)
             )
-          )
-          Text(
-            text = "Auto-removes when done • Local record only",
-            style = TextStyle(fontSize = 12.sp, color = InkSecondary)
-          )
+          },
+          onDismiss = { navController.navigateBack() }
+        )
+      }
+
+      is AppNavDestination.QuickCreate -> {
+        GlassSheet(
+          visible = true,
+          onDismissRequest = { navController.navigateBack() }
+        ) {
+          val isDark = com.example.ui.theme.LocalAppColors.current.isDark
+          val optionIconAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
+
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+              text = "Quick Create",
+              style = TextStyle(
+                fontFamily = SFProFontFamily,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = InkPrimary
+              )
+            )
+
+            GlassButton(
+              onClick = { navController.navigateBack() },
+              contentDescription = "Close",
+              size = 34.dp
+            ) {
+              Icon(
+                Icons.Default.Close,
+                contentDescription = null,
+                tint = InkPrimary,
+                modifier = Modifier.size(16.dp)
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(18.dp))
+
+          // Option 1: New Task
+          GlassCard(
+            modifier = Modifier
+              .fillMaxWidth()
+              .bounceClick {
+                navController.replaceTop(AppNavDestination.TaskDetail())
+              },
+            cornerRadius = 16.dp,
+            elevation = 2.dp
+          ) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(42.dp)
+                  .clip(CircleShape)
+                  .background(optionIconAccent.copy(alpha = 0.14f))
+                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+                contentAlignment = Alignment.Center
+              ) {
+                AnimatedIcon(
+                  resId = R.raw.anim_productivity,
+                  isSelected = true,
+                  tint = optionIconAccent,
+                  size = 24.dp
+                )
+              }
+              Spacer(modifier = Modifier.width(14.dp))
+              Text(
+                text = "New Task",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(12.dp))
+
+          // Option 2: New Habit
+          GlassCard(
+            modifier = Modifier
+              .fillMaxWidth()
+              .bounceClick {
+                navController.replaceTop(AppNavDestination.HabitDetail())
+              },
+            cornerRadius = 16.dp,
+            elevation = 2.dp
+          ) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(42.dp)
+                  .clip(CircleShape)
+                  .background(optionIconAccent.copy(alpha = 0.14f))
+                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+                contentAlignment = Alignment.Center
+              ) {
+                AnimatedIcon(
+                  resId = R.raw.anim_today,
+                  isSelected = true,
+                  tint = optionIconAccent,
+                  size = 24.dp
+                )
+              }
+              Spacer(modifier = Modifier.width(14.dp))
+              Text(
+                text = "New Habit",
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = InkPrimary
+                )
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(12.dp))
+
+          // Option 3: Short-term Task (Auto-removes upon completion, local record only)
+          GlassCard(
+            modifier = Modifier
+              .fillMaxWidth()
+              .bounceClick {
+                navController.replaceTop(
+                  AppNavDestination.TaskDetail(initialIsShortTerm = true)
+                )
+              },
+            cornerRadius = 16.dp,
+            elevation = 2.dp
+          ) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(42.dp)
+                  .clip(CircleShape)
+                  .background(optionIconAccent.copy(alpha = 0.14f))
+                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(
+                  imageVector = Icons.Default.Check,
+                  contentDescription = null,
+                  tint = optionIconAccent,
+                  modifier = Modifier.size(22.dp)
+                )
+              }
+              Spacer(modifier = Modifier.width(14.dp))
+              Column {
+                Text(
+                  text = "Short-term Task",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = InkPrimary
+                  )
+                )
+                Text(
+                  text = "Auto-removes when done • Local record only",
+                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+                )
+              }
+            }
+          }
+          Spacer(modifier = Modifier.height(8.dp))
+        }
+      }
+
+      is AppNavDestination.FocusTimer -> {
+        Dialog(onDismissRequest = { navController.navigateBack() }) {
+          AnimatedDialogContent {
+            FocusTimerDialog(
+              initialMinutes = destination.initialMinutes,
+              onClose = { navController.navigateBack() }
+            )
+          }
         }
       }
     }
-    Spacer(modifier = Modifier.height(8.dp))
   }
 
   // Single-time first launch permission dialog
@@ -927,18 +864,6 @@ fun MainApp(
       }
     }
   }
-  }
-
-  // Focus Timer Dialog (Triggered via Shake or Tools)
-  if (isFocusTimerOpen) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = { isFocusTimerOpen = false }) {
-      AnimatedDialogContent {
-        FocusTimerDialog(
-          initialMinutes = focusTimerMinutes,
-          onClose = { isFocusTimerOpen = false }
-        )
-      }
-    }
   }
 
   // In-App New Version Release Update Notification Dialog with Real-Time Download Progress

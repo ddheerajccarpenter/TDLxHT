@@ -1,3 +1,35 @@
+# TDlxHT Release Notes — Version 2.5.5 (Build 42)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.5.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Global Predictive Back & Previous-Screen Preview Navigation System
+
+TDlxHT 2.5.5 introduces a complete, application-wide navigation animation system featuring native Android 14/15 Predictive Back gesture support, a real-time live previous-screen preview underneath, and centralized forward and backward motion across every screen and modal in the app.
+
+### 1. Centralized Predictive Navigation Stack (`PredictiveNavController`)
+* **Unified Stack Architecture:** Replaced fragmented, ad-hoc `AnimatedVisibility` boolean flags with a centralized `PredictiveNavController` and `PredictiveNavigationHost` managing the global backstack.
+* **App-Wide Coverage:** Coordinates Home, Productivity (Tasks, Habits, Calendar), Tools (all 15 calculators), Insights, Settings, System Diagnostics, Search, Task Details, Habit Details, Quick Create, and dialog modals.
+
+### 2. Live Gesture-Progress-Aware Layered Rendering
+* **Real Previous-Screen Preview (Layer 0):** Renders the actual live previous composable screen underneath during back gesture execution (no artificial screenshots). As gesture progress advances from 0% to 100%, the background screen rises from depth (`scale 0.93f -> 1.0f`, corner radius `16dp -> 0dp`, dimming scrim `0.28 -> 0.00`).
+* **Active Screen Motion (Layer 1):** The active screen follows swipe progress, subtly scaling down (`1.00f -> 0.92f`), curving its corners into a soft Liquid Glass card (`0dp -> 24dp`), and translating horizontally along the gesture edge.
+* **Predictive Cancellation & Commit:** Swiping back to the edge and releasing cancels with a smooth spring restoration (`stiffness = 420f, damping = 0.78f`) with zero layout resets. Releasing past the threshold completes the exit with spring settling (`stiffness = 450f, damping = 0.82f`).
+
+### 3. Native Android 13–15 `OnBackInvokedCallback` Integration
+* **Manifest Enabling Flag:** Added `android:enableOnBackInvokedCallback="true"` in `AndroidManifest.xml` to grant full system gesture navigation telemetry to Jetpack Compose's `PredictiveBackHandler`.
+* **Backward & 3-Button Compatibility:** Automatically falls back to smooth layered animated pop transitions on Android 7.0–12 and 3-button navigation devices.
+
+### 4. Strict Back Priority & State Preservation
+* **Priority Order:** Modals/Sheets -> Nested Screens (Diagnostics, ToolRunner) -> Secondary Screens (Settings, Search, Details) -> Main Tabs -> System Exit.
+* **Zero Lost State:** All scroll positions, form drafts, search queries, and calculator results are preserved without recreation or redundant re-fetching.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.4 (Build 41)
 
 **Release Date:** 2026-10-31  
