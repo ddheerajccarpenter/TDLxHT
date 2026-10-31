@@ -112,8 +112,7 @@ fun ReportsScreen(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .motionBlurOnScroll(listState.isScrollInProgress),
+                .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
         ) {
             // Header

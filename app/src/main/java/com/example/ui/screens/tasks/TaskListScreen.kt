@@ -392,8 +392,7 @@ fun TaskListScreen(
           state = listState,
           modifier = Modifier
             .fillMaxWidth()
-            .weight(1f)
-            .motionBlurOnScroll(listState.isScrollInProgress),
+            .weight(1f),
           contentPadding = PaddingValues(bottom = com.example.ui.components.FloatingNavContentBottomPadding + 64.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {

@@ -198,7 +198,7 @@ fun SettingsScreen(
       modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp),
-      contentPadding = PaddingValues(top = 16.dp, bottom = com.example.ui.components.FloatingNavContentBottomPadding)
+      contentPadding = PaddingValues(top = 16.dp, bottom = com.example.ui.components.FloatingNavContentBottomPadding + 48.dp)
     ) {
       // Header
       item {

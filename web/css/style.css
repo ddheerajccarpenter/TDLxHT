@@ -1,35 +1,40 @@
 /* ==========================================================================
-   TDLxHT Design System — DESIGN.md Tokens
-   Dark Mode: Bugatti-inspired | Light Mode: Mobbin-inspired
+   TDLxHT Universal Ink Wash Theme System
+   Japanese Ink & Parchment Aesthetic:
+   Charcoal Slate:   #4A4A4A
+   Mist Silver:      #CBCBCB
+   Warm Ivory:       #FFFFE3
+   Slate Steel Wash: #6D8196
+   Zero purple, zero neon blue, zero neon green, zero AI-sloped colors.
+   Dark mode is strictly darker than light mode.
    ========================================================================== */
 
-/* ─── Design System Tokens from DESIGN.md ────────────────────────────────────── */
+/* ─── Light Mode: Warm Ivory Parchment with Charcoal Ink ───────────── */
 :root,
 [data-theme="light"] {
-  /* Mobbin-inspired Light Mode */
-  --color-canvas: #ffffff;
-  --color-canvas-soft: #f3f3f3;
-  --color-field: #f0f0f0;
-  --color-surface-card: #ffffff;
-  --color-ink: #141414;
-  --color-ink-soft: #262626;
-  --color-text-muted: #707070;
-  --color-text-faint: #adadad;
-  --color-hairline: #e0e0e0;
-  --color-hairline-soft: #f0f0f0;
-  --color-primary: #141414;
-  --color-on-primary: #ffffff;
-  --color-accent: #6366f1;
+  --color-canvas: #FFFFE3;
+  --color-canvas-soft: #F4F3D6;
+  --color-field: #F4F4DA;
+  --color-surface-card: #FAF9F0;
+  --color-ink: #4A4A4A;
+  --color-ink-soft: #6D8196;
+  --color-text-muted: #7A7D82;
+  --color-text-faint: #CBCBCB;
+  --color-hairline: #CBCBCB;
+  --color-hairline-soft: rgba(74, 74, 74, 0.12);
+  --color-primary: #4A4A4A;
+  --color-on-primary: #FFFFE3;
+  --color-accent: #6D8196;
 
-  /* OKLCH Perceptually Uniform Palette */
-  --oklch-indigo: #6366f1;
-  --oklch-emerald: #10b981;
-  --oklch-amber: #f59e0b;
-  --oklch-coral: #ef4444;
-  --oklch-cyan: #0ea5e9;
-  --oklch-purple: #a855f7;
+  /* Ink Wash Semantic Palette */
+  --oklch-indigo: #6D8196;
+  --oklch-emerald: #6D8196;
+  --oklch-amber: #6D8196;
+  --oklch-coral: #8C5252;
+  --oklch-cyan: #6D8196;
+  --oklch-purple: #6D8196;
 
-  /* Map to old variables for compatibility */
+  /* Compatibility variables */
   --canvas: var(--color-canvas);
   --surface: var(--color-canvas);
   --surface-card: var(--color-surface-card);
@@ -51,11 +56,11 @@
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
   --tracking-display: 0;
 
-  /* Geometry — Mobbin = pill shapes */
+  /* Geometry */
   --radius-none: 0px;
   --radius-xs: 4px;
   --radius-sm: 16px;
-  --radius-md: 24px;
+  --radius-md: 20px;
   --radius-lg: 24px;
   --radius-xl: 32px;
   --radius-pill: 9999px;
@@ -67,39 +72,39 @@
   --btn-primary-border: transparent;
   --btn-primary-radius: var(--radius-full);
 
-  /* Mesh background */
-  --mesh-base: #f8f8f8;
-  --mesh-1: rgba(100, 140, 255, 0.08);
-  --mesh-2: rgba(255, 120, 80, 0.06);
-  --mesh-3: rgba(60, 200, 140, 0.05);
-  --mesh-4: rgba(200, 100, 255, 0.04);
+  /* Mesh background (Neutral Ink Wash) */
+  --mesh-base: #FFFFE3;
+  --mesh-1: rgba(109, 129, 150, 0.08);
+  --mesh-2: rgba(74, 74, 74, 0.05);
+  --mesh-3: rgba(203, 203, 203, 0.10);
+  --mesh-4: rgba(109, 129, 150, 0.05);
 }
 
+/* ─── Dark Mode: Deep Charcoal Canvas with Warm Ivory Text ──────────── */
 [data-theme="dark"] {
-  /* Bugatti-inspired Dark Mode */
-  --color-canvas: #000000;
-  --color-canvas-soft: #0d0d0d;
-  --color-field: transparent;
-  --color-surface-card: #141414;
-  --color-ink: #ffffff;
-  --color-ink-soft: #e6e6e6;
-  --color-text-muted: #999999;
-  --color-text-faint: #666666;
-  --color-hairline: #262626;
-  --color-hairline-soft: #262626;
-  --color-primary: #ffffff;
-  --color-on-primary: #000000;
-  --color-accent: #6366f1;
+  --color-canvas: #1E2022;
+  --color-canvas-soft: #242629;
+  --color-field: #282A2E;
+  --color-surface-card: #2B2D30;
+  --color-ink: #FFFFE3;
+  --color-ink-soft: #CBCBCB;
+  --color-text-muted: #8E9296;
+  --color-text-faint: #5C6066;
+  --color-hairline: #4A4A4A;
+  --color-hairline-soft: rgba(203, 203, 203, 0.12);
+  --color-primary: #FFFFE3;
+  --color-on-primary: #1E2022;
+  --color-accent: #6D8196;
 
-  /* OKLCH Perceptually Uniform Palette */
-  --oklch-indigo: #6366f1;
-  --oklch-emerald: #10b981;
-  --oklch-amber: #f59e0b;
-  --oklch-coral: #ef4444;
-  --oklch-cyan: #0ea5e9;
-  --oklch-purple: #a855f7;
+  /* Ink Wash Semantic Palette */
+  --oklch-indigo: #6D8196;
+  --oklch-emerald: #6D8196;
+  --oklch-amber: #6D8196;
+  --oklch-coral: #8C5252;
+  --oklch-cyan: #6D8196;
+  --oklch-purple: #6D8196;
 
-  /* Map to old variables */
+  /* Compatibility variables */
   --canvas: var(--color-canvas);
   --surface: var(--color-canvas);
   --surface-card: var(--color-surface-card);
@@ -115,34 +120,34 @@
   --btn-outline-border: var(--color-hairline);
   --btn-outline-text: var(--color-ink);
 
-  /* Typography — Bugatti uses wide tracking */
-  --font-display: "Saira Condensed", "Inter", -apple-system, sans-serif;
-  --font-body: "Cormorant Garamond", Garamond, "Georgia", serif;
+  /* Typography */
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --tracking-display: 2px;
+  --tracking-display: 0;
 
-  /* Geometry — Bugatti = rectangular cards, pill buttons only */
+  /* Geometry */
   --radius-none: 0px;
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 16px;
+  --radius-md: 20px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
   --radius-pill: 9999px;
   --radius-full: 9999px;
 
-  /* Button tokens — Bugatti: transparent with outline */
-  --btn-primary-bg: transparent;
-  --btn-primary-color: #ffffff;
-  --btn-primary-border: 1px solid #ffffff;
+  /* Button tokens */
+  --btn-primary-bg: #FFFFE3;
+  --btn-primary-color: #1E2022;
+  --btn-primary-border: 1px solid #FFFFE3;
   --btn-primary-radius: var(--radius-full);
 
-  /* Mesh background */
-  --mesh-base: #050505;
-  --mesh-1: rgba(120, 119, 198, 0.25);
-  --mesh-2: rgba(255, 100, 60, 0.15);
-  --mesh-3: rgba(100, 200, 255, 0.12);
-  --mesh-4: rgba(60, 255, 160, 0.08);
+  /* Mesh background (Neutral Ink Wash) */
+  --mesh-base: #1E2022;
+  --mesh-1: rgba(109, 129, 150, 0.15);
+  --mesh-2: rgba(74, 74, 74, 0.25);
+  --mesh-3: rgba(203, 203, 203, 0.05);
+  --mesh-4: rgba(109, 129, 150, 0.10);
 }
 
 @keyframes mesh-drift {
@@ -1526,16 +1531,16 @@ input, select {
   z-index: 1;
 }
 
-/* html background: also gets the mesh so the very top/sides look good */
+/* html background: subtle neutral ink wash lighting */
 html {
   background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(120, 80, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(109, 129, 150, 0.12) 0%, transparent 50%),
     var(--canvas);
 }
 
 [data-theme="light"] html {
   background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(180, 150, 255, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(109, 129, 150, 0.08) 0%, transparent 50%),
     var(--canvas);
 }
 

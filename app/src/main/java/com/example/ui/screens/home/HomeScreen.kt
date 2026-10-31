@@ -202,8 +202,7 @@ fun HomeScreen(
       state = listState,
       modifier = Modifier
         .fillMaxSize()
-        .padding(horizontal = 16.dp)
-        .motionBlurOnScroll(listState.isScrollInProgress),
+        .padding(horizontal = 16.dp),
       contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding)
     ) {
       // Standardized Top Header

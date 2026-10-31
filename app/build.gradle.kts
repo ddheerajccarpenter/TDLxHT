@@ -1,6 +1,8 @@
 import java.io.File
+import java.io.FileInputStream
 import java.util.Date
 import java.util.Locale
+import java.util.Properties
 import java.text.SimpleDateFormat
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
@@ -13,6 +15,27 @@ plugins {
   id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
 }
 
+val localProps = Properties().apply {
+  val f = rootProject.file("local.properties")
+  if (f.exists()) {
+    f.inputStream().use { stream -> load(stream) }
+  }
+}
+val envFileProps = Properties().apply {
+  val f = rootProject.file(".env")
+  if (f.exists()) {
+    f.inputStream().use { stream -> load(stream) }
+  }
+}
+
+fun findSecret(name: String, fallback: String = ""): String {
+  return System.getenv(name)
+    ?: (project.findProperty(name) as? String)
+    ?: (localProps.getProperty(name) as? String)
+    ?: (envFileProps.getProperty(name) as? String)
+    ?: fallback
+}
+
 android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
@@ -21,24 +44,24 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 38
-    versionName = "2.5.1"
+    versionCode = 39
+    versionName = "2.5.2"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    buildConfigField("String", "SUPABASE_URL", "\"${System.getenv("SUPABASE_URL") ?: project.findProperty("SUPABASE_URL") ?: "https://mtlckvkyimoqbrlvirch.supabase.co"}\"")
-    buildConfigField("String", "SUPABASE_ANON_KEY", "\"${System.getenv("SUPABASE_ANON_KEY") ?: project.findProperty("SUPABASE_ANON_KEY") ?: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bGNrdmt5aW1vcWJybHZpcmNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5Njc0MTEsImV4cCI6MjEwMzU0MzQxMX0.gGxCER-GAzSVS6IMzKoy5p8NwuDbOZ2QiBzkEeG_-J4"}\"")
-    buildConfigField("String", "APP_WEB_URL", "\"${System.getenv("APP_WEB_URL") ?: project.findProperty("APP_WEB_URL") ?: "https://tdlxht.vercel.app/"}\"")
-    buildConfigField("String", "NAPKIN_API_KEY", "\"${System.getenv("NAPKIN_API_KEY") ?: project.findProperty("NAPKIN_API_KEY") ?: "sk-deff27b1093c44fc3a79b5d48cf3d3f470e2eaeca4baf9eb631f227455c88759"}\"")
+    buildConfigField("String", "SUPABASE_URL", "\"${findSecret("SUPABASE_URL", "https://mtlckvkyimoqbrlvirch.supabase.co")}\"")
+    buildConfigField("String", "SUPABASE_ANON_KEY", "\"${findSecret("SUPABASE_ANON_KEY")}\"")
+    buildConfigField("String", "APP_WEB_URL", "\"${findSecret("APP_WEB_URL", "https://tdlxht.vercel.app/")}\"")
+    buildConfigField("String", "NAPKIN_API_KEY", "\"${findSecret("NAPKIN_API_KEY")}\"")
   }
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/tdlxht-release.jks"
+      val keystorePath = findSecret("KEYSTORE_PATH", "${rootDir}/tdlxht-release.jks")
       storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD") ?: "tdlxhtpassword"
-      keyAlias = "tdlxhtkey"
-      keyPassword = System.getenv("KEY_PASSWORD") ?: "tdlxhtpassword"
+      storePassword = findSecret("STORE_PASSWORD")
+      keyAlias = findSecret("KEY_ALIAS", "tdlxhtkey")
+      keyPassword = findSecret("KEY_PASSWORD")
       enableV1Signing = true
       enableV2Signing = true
       enableV3Signing = true

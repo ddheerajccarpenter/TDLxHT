@@ -109,6 +109,10 @@ import com.example.ui.theme.InkSecondary
 import com.example.ui.theme.PillBackgroundDark
 import com.example.ui.theme.PillTextDark
 import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.InkWashCharcoalSurface
+import com.example.ui.theme.InkWashIvoryCard
+import com.example.ui.theme.InkWashCharcoalDeep
+import com.example.ui.theme.InkWashIvoryPaper
 import com.example.util.VibrationHelper
 import com.example.ui.components.FloatingNavContentBottomPadding
 import androidx.compose.foundation.clickable
@@ -868,7 +872,7 @@ fun ToolRunnerModal(
 
         // Result Card (Tactile highlight with solid contrast)
         val isDarkTheme = com.example.ui.theme.LocalAppColors.current.isDark
-        val resultCardBg = if (isDarkTheme) Color(0xFF1B1B24) else Color(0xFFF3F3F7)
+        val resultCardBg = if (isDarkTheme) InkWashCharcoalSurface else InkWashIvoryCard
         SketchCard(
           modifier = Modifier.fillMaxWidth(),
           backgroundColor = resultCardBg,
@@ -1014,7 +1018,7 @@ fun ToolInputField(
   keyboardType: KeyboardType = KeyboardType.Decimal
 ) {
   val isDarkTheme = com.example.ui.theme.LocalAppColors.current.isDark
-  val inputTrough = if (isDarkTheme) Color(0xFF15151B) else Color(0xFFEBEBF0)
+  val inputTrough = if (isDarkTheme) InkWashCharcoalDeep else InkWashIvoryPaper
   Column {
     Text(
       text = label,

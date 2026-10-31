@@ -1,3 +1,35 @@
+# TDlxHT Release Notes — Version 2.5.2 (Build 39)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.2.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Universal Ink Wash Theme, Performance Optimization & Credential Sanitization
+
+TDlxHT 2.5.2 introduces a complete universal styling overhaul using an authentic Ink Wash Japanese parchment and charcoal aesthetic across Android and web, eliminates display latency and GPU thrash, cleans all visible credentials into secure external configuration, and refines list spacing.
+
+### 1. Universal Ink Wash Palette (Android & Web)
+* **Authentic Ink & Parchment Tokens:**
+  * Charcoal Slate (`#4A4A4A`): Primary deep neutral, high-contrast dark text in light mode, primary action buttons.
+  * Mist Silver (`#CBCBCB`): Subtle hairlines, dividers, and muted text.
+  * Warm Ivory (`#FFFFE3`): Parchment canvas in light mode, glowing text in dark mode.
+  * Slate Steel Wash (`#6D8196`): Universal accent, focus timer arcs, gauge sweeps, and active pills.
+* **Elimination of Saturated Slop Colors:** Removed all neon purple, vibrant green, and oversaturated cyan across the app and web landing page.
+* **Tonal Dark Mode:** Dark mode strictly uses deep charcoal tones (`#1E2022`, `#2B2D30`) ensuring dark mode is perceptibly darker than light mode.
+
+### 2. Elimination of Scroll Lag & High Refresh Rate Unlock
+* **Skia Blur Pass Removal:** Eliminated active `RenderEffect.createBlurEffect` continuous re-allocations from `motionBlurOnScroll` during LazyColumn scrolling.
+* **Unlocked Native High Refresh Rate:** Removed the 60 FPS clamp (`preferredRefreshRate = 60f`), enabling native 90Hz and 120Hz LTPO display fluidity.
+* **Settings Content Padding:** Added +48dp bottom clearance to prevent any navigation dock collision with footer controls.
+
+### 3. Credential & Key Sanitization
+* **Secure Property Loading:** Removed all hardcoded API keys, Supabase JWTs, and keystore passwords from `app/build.gradle.kts`, Supabase edge functions, serverless API routes, and web scripts into `local.properties` and environment variables.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.1 (Build 38)
 
 **Release Date:** 2026-10-31  

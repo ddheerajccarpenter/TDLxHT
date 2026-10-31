@@ -162,6 +162,14 @@ import com.example.ui.theme.PillBackgroundDark
 import com.example.ui.theme.PillTextDark
 import com.example.ui.theme.PaletteAntiqueWhite
 import com.example.ui.theme.GrapeCanvasDark
+import com.example.ui.theme.InkWashCharcoal
+import com.example.ui.theme.InkWashMist
+import com.example.ui.theme.InkWashIvory
+import com.example.ui.theme.InkWashSlate
+import com.example.ui.theme.InkWashCharcoalDeep
+import com.example.ui.theme.InkWashCharcoalSurface
+import com.example.ui.theme.InkWashCharcoalElevated
+import com.example.ui.theme.InkWashCharcoalBorder
 import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.viewmodel.MainViewModel
 import androidx.compose.material.icons.filled.Home
@@ -195,11 +203,6 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
-
-    // Enforce rock-solid 60 FPS refresh rate pacing for filmic, jitter-free scrolling cadence
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-      window.attributes.preferredRefreshRate = 60f
-    }
 
     try {
       SupabaseClient.client.handleDeeplinks(intent)
@@ -1448,7 +1451,7 @@ fun SketchBottomNavigationBar(
           Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
-            tint = if (isDark) com.example.ui.theme.BrandWhite else com.example.ui.theme.BrandDarkGrey,
+            tint = if (isDark) InkWashIvory else InkWashCharcoal,
             modifier = Modifier
               .size(24.dp)
               .graphicsLayer(rotationZ = fabRotation)
@@ -1474,8 +1477,8 @@ private fun LiquidGlassNavItem(
   val proximity = (1f - distance).coerceIn(0f, 1f)
   val isSelected = proximity > 0.50f
 
-  val activeColor = if (isDark) BrandSand else BrandCyprus
-  val inactiveColor = if (isDark) BrandSand.copy(alpha = 0.44f) else BrandCyprus.copy(alpha = 0.40f)
+  val activeColor = if (isDark) InkWashIvory else InkWashCharcoal
+  val inactiveColor = if (isDark) InkWashMist.copy(alpha = 0.50f) else InkWashCharcoal.copy(alpha = 0.45f)
 
   // Liquid capsule animated presence using pure GPU RenderNode transforms (zero layout remeasurement!)
   val liquidAlpha by animateFloatAsState(
@@ -1621,8 +1624,8 @@ fun FocusTimerDialog(
         progress = timerProgress,
         modifier = Modifier.size(170.dp),
         strokeWidth = 9.dp,
-        primaryColor = com.example.ui.theme.OklchCyan,
-        secondaryColor = com.example.ui.theme.OklchIndigo
+        primaryColor = InkWashSlate,
+        secondaryColor = InkWashIvory
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
           Text(
@@ -1642,7 +1645,7 @@ fun FocusTimerDialog(
               fontSize = 10.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.sp,
-              color = com.example.ui.theme.OklchCyan
+              color = InkWashSlate
             )
           )
         }

@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     const pingRes = await fetch(`${supabaseUrl}/rest/v1/`, {
       method: 'HEAD',
       headers: {
-        'apikey': process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bGNrdmt5aW1vcWJybHZpcmNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5Njc0MTEsImV4cCI6MjEwMzU0MzQxMX0.gGxCER-GAzSVS6IMzKoy5p8NwuDbOZ2QiBzkEeG_-J4'
+        'apikey': process.env.SUPABASE_ANON_KEY || ''
       }
     });
     pingLatencyMs = Date.now() - startTime;

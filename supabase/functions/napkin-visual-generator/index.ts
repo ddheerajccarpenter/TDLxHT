@@ -114,7 +114,10 @@ Deno.serve(async (req: Request) => {
 Create a clean productivity dashboard visualization for this data.`;
 
   // 5. Call Napkin API
-  const napkinKey = Deno.env.get("NAPKIN_API_KEY") || "sk-deff27b1093c44fc3a79b5d48cf3d3f470e2eaeca4baf9eb631f227455c88759";
+  const napkinKey = Deno.env.get("NAPKIN_API_KEY");
+  if (!napkinKey) {
+    throw new Error("NAPKIN_API_KEY environment variable is not configured");
+  }
   let napkinResult: { imageUrl?: string; svgContent?: string } = {};
 
   try {
