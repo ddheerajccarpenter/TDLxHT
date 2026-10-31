@@ -7,6 +7,7 @@
 
 import { checkRateLimit } from './_rateLimit.js';
 import { applySecurityHeaders, sendSuccess } from './_middleware.js';
+import { queryNeonHealth } from './db.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -44,6 +45,9 @@ export default async function handler(req, res) {
     dbStatus = 'unreachable';
   }
 
+  // Query Neon Serverless Postgres
+  const neonHealth = await queryNeonHealth();
+
   let version = '2.4.3';
   let apkFilename = 'TDLxHT.2.4.3.apk';
   let apkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.3/TDLxHT.2.4.3.apk';
@@ -80,6 +84,7 @@ export default async function handler(req, res) {
       service_role_secured: hasServiceRoleKey,
       client_anon_available: hasAnonKey
     },
+    neon_postgres: neonHealth,
     ai_engine: {
       gemini_configured: hasGeminiKey,
       model: 'gemini-1.5-flash'

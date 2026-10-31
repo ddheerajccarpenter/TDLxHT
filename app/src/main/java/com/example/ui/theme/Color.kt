@@ -15,38 +15,38 @@ import androidx.compose.ui.graphics.Color
 // Dark Text Muted:       #7C7C85 (Inactive Controls)
 // =========================================================================
 
-// Canonical Dark Tokens (designglass.md - Liquid Glass System)
-val CanonicalCanvasDark = Color(0xFF121215)
-val CanonicalCanvasSecondaryDark = Color(0xFF18181D)
-val CanonicalGlassFillBaseDark = Color(0x4D1A1A24) // Lensed translucent glass (~30% optical density)
-val CanonicalGlassFillElevatedDark = Color(0xEB161622) // Elevated fluid glass for floating dock & modals (~92% optical density)
-val CanonicalGlassFillSubtleDark = Color(0x2E14141C) // Subtle translucent track (~18% alpha)
-val CanonicalGlassBorderTopDark = Color(0x38FFFFFF) // Lensed specular hairline top rim (~22% alpha)
-val CanonicalGlassBorderBottomDark = Color(0x0CFFFFFF) // Bottom edge meniscus rim (~5% alpha)
-val CanonicalGlassSheenTopDark = Color(0x20FFFFFF) // Overhead optical caustic refraction hint
-val CanonicalTextPrimaryDark = Color(0xFFF5F5F7)
-val CanonicalTextSecondaryDark = Color(0xFFB0B0B8)
-val CanonicalTextMutedDark = Color(0xFF7C7C85)
-val CanonicalDividerDark = Color(0x14FFFFFF) // Subtle interior separator (~8% alpha)
-val CanonicalAccentActionDark = Color(0xFFFFFFFF)
-val CanonicalDestructiveDark = Color(0xFFE05D5D)
+// Canonical Dark Tokens (Solid Charcoal Grey System)
+val CanonicalCanvasDark = Color(0xFF1E2022) // Solid Charcoal Grey Canvas
+val CanonicalCanvasSecondaryDark = Color(0xFF242629)
+val CanonicalGlassFillBaseDark = Color(0xFF2B2D30) // Solid Opaque Card Surface Grey
+val CanonicalGlassFillElevatedDark = Color(0xFF35383C) // Solid Opaque Elevated Dock & Modal Grey
+val CanonicalGlassFillSubtleDark = Color(0xFF242629) // Solid Subtle Track
+val CanonicalGlassBorderTopDark = Color(0xFF4A4A4A) // Solid Specular Hairline
+val CanonicalGlassBorderBottomDark = Color(0xFF35383C)
+val CanonicalGlassSheenTopDark = Color(0xFF4A4A4A)
+val CanonicalTextPrimaryDark = Color(0xFFFFFFE3)
+val CanonicalTextSecondaryDark = Color(0xFFCBCBCB)
+val CanonicalTextMutedDark = Color(0xFF8E9296)
+val CanonicalDividerDark = Color(0xFF4A4A4A) // Solid interior separator
+val CanonicalAccentActionDark = Color(0xFFFFFFE3)
+val CanonicalDestructiveDark = Color(0xFF8C5252)
 
-// Canonical Light Tokens (designglass.md - Liquid Glass System)
-val CanonicalCanvasLight = Color(0xFFF5F5F7)
-val CanonicalCanvasSecondaryLight = Color(0xFFEAEAF0)
-val CanonicalGlassFillBaseLight = Color(0xD0FFFFFF) // Translucent soft white glass (~82% alpha)
-val CanonicalGlassFillElevatedLight = Color(0xEEFFFFFF) // Elevated white glass dock (~93% alpha)
-val CanonicalGlassFillSubtleLight = Color(0x80E8E8F0) // Subtle light track
-val CanonicalGlassBorderTopLight = Color(0x70FFFFFF) // Top specular highlight
-val CanonicalGlassBorderBottomLight = Color(0x10000000) // Bottom rim definition
-val CanonicalGlassSheenTopLight = Color(0x18FFFFFF)
-val CanonicalTextPrimaryLight = Color(0xFF111113)
-val CanonicalTextSecondaryLight = Color(0xFF55555C)
-val CanonicalTextMutedDarkLight = Color(0xFF8E8E93)
-val CanonicalTextMutedLight = Color(0xFF8E8E93)
-val CanonicalDividerLight = Color(0x10000000)
-val CanonicalAccentActionLight = Color(0xFF000000)
-val CanonicalDestructiveLight = Color(0xFFD32F2F)
+// Canonical Light Tokens (Warm Ivory & Solid Surface System)
+val CanonicalCanvasLight = Color(0xFFFFFFE3) // Warm Ivory
+val CanonicalCanvasSecondaryLight = Color(0xFFF4F3D6)
+val CanonicalGlassFillBaseLight = Color(0xFFFAF9F0) // Solid Translucent-free Card
+val CanonicalGlassFillElevatedLight = Color(0xFFFAF9F0) // Solid Elevated Dock
+val CanonicalGlassFillSubtleLight = Color(0xFFF4F3D6)
+val CanonicalGlassBorderTopLight = Color(0xFFCBCBCB)
+val CanonicalGlassBorderBottomLight = Color(0xFFCBCBCB)
+val CanonicalGlassSheenTopLight = Color(0xFFCBCBCB)
+val CanonicalTextPrimaryLight = Color(0xFF4A4A4A)
+val CanonicalTextSecondaryLight = Color(0xFF6D8196)
+val CanonicalTextMutedDarkLight = Color(0xFF7A7D82)
+val CanonicalTextMutedLight = Color(0xFF7A7D82)
+val CanonicalDividerLight = Color(0xFFCBCBCB)
+val CanonicalAccentActionLight = Color(0xFF4A4A4A)
+val CanonicalDestructiveLight = Color(0xFF8C5252)
 
 val BrandCharcoalDark = CanonicalCanvasDark
 val BrandCharcoalElevated = CanonicalCanvasSecondaryDark

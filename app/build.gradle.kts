@@ -44,13 +44,14 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 39
-    versionName = "2.5.2"
+    versionCode = 40
+    versionName = "2.5.3"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     buildConfigField("String", "SUPABASE_URL", "\"${findSecret("SUPABASE_URL", "https://mtlckvkyimoqbrlvirch.supabase.co")}\"")
     buildConfigField("String", "SUPABASE_ANON_KEY", "\"${findSecret("SUPABASE_ANON_KEY")}\"")
+    buildConfigField("String", "NEON_DATABASE_URL", "\"${findSecret("NEON_DATABASE_URL")}\"")
     buildConfigField("String", "APP_WEB_URL", "\"${findSecret("APP_WEB_URL", "https://tdlxht.vercel.app/")}\"")
     buildConfigField("String", "NAPKIN_API_KEY", "\"${findSecret("NAPKIN_API_KEY")}\"")
   }

@@ -1,3 +1,38 @@
+# TDlxHT Release Notes — Version 2.5.3 (Build 40)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.3.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Neon Cloud Infrastructure, Solid Grey UI & Interactive Motion Components
+
+TDlxHT 2.5.3 integrates Neon serverless cloud primitives, adds interactive spring-damped touch edge glow and progress ring checkmark animations, and overhauls all dark backgrounds to solid charcoal grey with opaque solid buttons and cards across Android and the web companion.
+
+### 1. Neon Cloud Integration & Serverless Postgres
+* **Neon Project Linking:** Linked project `patient-waterfall-08736018` under organization `DHEERAJ` (`org-square-surf-76889185`) on branch `production`.
+* **Serverless Postgres Driver:** Integrated `@neondatabase/serverless` connection pool in `api/db.js` with live SQL health verification in `api/status.js`.
+* **Declared Services:** Scaffolded `neon.ts` managing Serverless Postgres, Auth, AI Gateway, Functions, and Object Storage.
+
+### 2. TouchEdgeGlowButton (Spring Physics & Ink Wash Caustics)
+* **Harmonic Edge Glow:** Dynamic edge illumination running on damped spring physics (`FREQUENCY = 3.4`, `DAMPING = 0.78`) tracking finger touch and mouse hover coordinates.
+* **Palette Match:** Illuminated in Slate Steel (`#6D8196`) and Warm Ivory (`#FFFFE3`) with solid button cores.
+* **Multi-Platform:** Implemented in Jetpack Compose (`TouchEdgeGlowButton`) and Web (`cursor-edge-glow.js`).
+
+### 3. ProgressRingCheck (Morphing Task Completion)
+* **Dashed Idle Ring:** Uncompleted tasks feature an 8-dash circular stroke circumference in Mist Silver (`#CBCBCB`).
+* **Arc Sweep & Checkmark Morph:** Tapping a task initiates an animated sweep arc that smoothly morphs into a checkmark with tactile haptic confirmation.
+* **Integrated Everywhere:** Replaces standard checkboxes in Android's `HomeScreen` and `TaskListScreen` as well as the interactive web companion.
+
+### 4. Solid Grey Backgrounds & Solid Buttons (No Transparency)
+* **Solid Charcoal Grey Canvas:** Replaced all pitch-black backgrounds with solid grey (`#1E2022` canvas, `#2B2D30` cards, `#35383C` elevated sheets).
+* **Solid Buttons:** Converted translucent glass buttons and ghost outlines into solid high-contrast buttons (`#4A4A4A` / `#FFFFE3` / `#6D8196`).
+* **Solid Navigation Stadium Dock:** Upgraded the bottom navigation bar to an opaque solid grey dock with a solid border, removing all unwanted blur bleed.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.2 (Build 39)
 
 **Release Date:** 2026-10-31  

@@ -116,7 +116,7 @@
   --on-primary: var(--color-on-primary);
   --btn-bg: var(--color-primary);
   --btn-text: var(--color-on-primary);
-  --btn-outline-bg: transparent;
+  --btn-outline-bg: var(--color-field);
   --btn-outline-border: var(--color-hairline);
   --btn-outline-text: var(--color-ink);
 
@@ -1274,36 +1274,29 @@ input, select {
    convex radial caustics, dual-boundary Fresnel specular rims, and fluid elasticity.
    ========================================================================== */
 
-/* Header frame: fluid lensed glass pill */
+/* Header frame: solid grey / ivory pill */
 .header-frame.lg-glass {
-  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 255, 255, 0.14) 0%, transparent 75%),
-              rgba(24, 24, 30, 0.78);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
 }
 
 [data-theme="light"] .header-frame.lg-glass {
-  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 255, 255, 0.95) 0%, transparent 75%),
-              rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
-/* Feature cards & Content panels: authentic fluid lensed glass */
+/* Feature cards & Content panels: solid grey / solid ivory */
 .feature-card.lg-glass,
 .feature-card.lg-card.lg-glass,
 .product-preview-card.lg-glass,
 .principles-card.lg-glass,
 .download-card.lg-glass,
 .calc-runner-panel.lg-glass {
-  background: radial-gradient(ellipse 85% 45% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 70%),
-              rgba(25, 25, 32, 0.76);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 [data-theme="light"] .feature-card.lg-glass,
@@ -1312,99 +1305,83 @@ input, select {
 [data-theme="light"] .principles-card.lg-glass,
 [data-theme="light"] .download-card.lg-glass,
 [data-theme="light"] .calc-runner-panel.lg-glass {
-  background: radial-gradient(ellipse 85% 45% at 50% 0%, rgba(255, 255, 255, 0.95) 0%, transparent 70%),
-              rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
-/* Search box: lensed fluid trough */
+/* Search box: solid trough */
 .calc-search-box.lg-glass {
-  background: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(255, 255, 255, 0.10) 0%, transparent 70%),
-              rgba(20, 20, 26, 0.70);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
 }
 
 [data-theme="light"] .calc-search-box.lg-glass {
-  background: rgba(245, 245, 250, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.80);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
 }
 
-/* Stat boxes */
+/* Stat boxes: solid surface */
 .preview-stat-box.lg-glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
 }
 
 [data-theme="light"] .preview-stat-box.lg-glass {
-  background: rgba(255, 255, 255, 0.60);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
 }
 
-/* Calculator category cards: fluid lensed glass base */
+/* Calculator category cards: solid grey base */
 .calc-category-card.lg-glass {
-  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 75%),
-              rgba(24, 24, 30, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
   transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), background 180ms ease, border-color 180ms ease;
 }
 
 .calc-category-card.lg-glass:hover,
 .calc-category-card.lg-glass.active {
-  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 255, 255, 0.22) 0%, transparent 75%),
-              rgba(40, 40, 52, 0.85);
-  border-color: rgba(255, 255, 255, 0.32);
+  background: var(--color-surface-card);
+  border-color: var(--color-accent);
   color: var(--ink);
   transform: translateY(-2px) scale(1.02);
 }
 
 [data-theme="light"] .calc-category-card.lg-glass {
-  background: rgba(255, 255, 255, 0.70);
-  border: 1px solid rgba(255, 255, 255, 0.80);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
 }
 
 [data-theme="light"] .calc-category-card.lg-glass:hover,
 [data-theme="light"] .calc-category-card.lg-glass.active {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--color-surface-card);
+  border-color: var(--color-accent);
   color: var(--ink);
   transform: translateY(-2px) scale(1.02);
 }
 
 /* Product fact cells */
 .product-fact-cell.lg-glass {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
 }
 
 [data-theme="light"] .product-fact-cell.lg-glass {
-  background: rgba(255, 255, 255, 0.50);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-hairline);
 }
 
-/* Bottom dock: fluid lensed glass stadium dock */
+/* Bottom dock: solid stadium dock */
 .bottom-dock.lg-track.lg-track--tabbar {
-  background: radial-gradient(ellipse 85% 45% at 50% 0%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
-              rgba(22, 22, 28, 0.82);
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.40);
 }
 
 [data-theme="light"] .bottom-dock.lg-track.lg-track--tabbar {
-  background: radial-gradient(ellipse 85% 45% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, transparent 70%),
-              rgba(255, 255, 255, 0.90);
-  border: 1px solid rgba(255, 255, 255, 0.90);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* lg-track__glass is the actual blurred container */
@@ -1901,5 +1878,175 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .scroll-blur-container {
     filter: none !important;
+  }
+}
+
+/* ==========================================================================
+   Cursor / Touch Edge Glow Button (Ink Wash Palette)
+   ========================================================================== */
+.glow-button-container {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+}
+
+.glow-arc {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: calc(100% + 8px);
+  width: calc(100% + 8px);
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  will-change: transform, opacity;
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms ease;
+}
+
+.glow-right {
+  opacity: 0;
+}
+
+.glow-left {
+  opacity: 0;
+  transform: translate(-50%, -50%) scaleX(-1);
+}
+
+.glow-arc .glow-blur-layer {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  box-sizing: content-box;
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  border: 3px solid transparent;
+  filter: blur(12px);
+  background: linear-gradient(transparent, transparent) padding-box,
+              linear-gradient(92deg, rgba(109, 129, 150, 0.25) 45%, #6D8196 98%) border-box;
+}
+
+.glow-arc .glow-sharp-layer {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  box-sizing: content-box;
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  filter: blur(3px);
+  background: linear-gradient(transparent, transparent) padding-box,
+              linear-gradient(98deg, rgba(255, 255, 227, 0) 38%, rgba(109, 129, 150, 0.4) 82%, #FFFFE3 94%) border-box;
+}
+
+.glow-light-track {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: -1;
+  margin-left: -90px;
+  display: flex;
+  height: 100%;
+  width: 180px;
+  align-items: center;
+  justify-content: center;
+  --light-x: 0px;
+  transform: translateX(var(--light-x));
+}
+
+.glow-light-track .glow-core {
+  position: absolute;
+  top: 50%;
+  height: 100px;
+  width: 100px;
+  transform: translateY(-50%);
+  background: radial-gradient(50% 50% at 50% 50%, #FFFFE3 5%, rgba(109, 129, 150, 0.5) 30%, rgba(109, 129, 150, 0) 75%);
+}
+
+/* ==========================================================================
+   ProgressRingCheck Interactive Morphing Task Checkmark
+   ========================================================================== */
+.progress-ring-check-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.progress-ring-check-svg {
+  overflow: visible;
+  color: var(--color-ink-soft);
+  transition: color 200ms ease;
+}
+
+.prc-bg {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill-opacity: 0;
+  stroke-opacity: 0;
+  transition: fill-opacity 180ms ease, stroke-opacity 200ms ease;
+}
+
+.progress-ring-check-wrapper[data-status="running"] .prc-bg {
+  stroke-opacity: 0.2;
+}
+
+.progress-ring-check-wrapper[data-status="done"] .prc-bg {
+  fill-opacity: 0.12;
+}
+
+.prc-ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: opacity 200ms ease, stroke-dashoffset 200ms ease;
+}
+
+.progress-ring-check-wrapper[data-status="pending"] .prc-ring {
+  opacity: 0.55;
+  stroke-dasharray: 2 4.5;
+}
+
+.progress-ring-check-wrapper[data-status="running"] .prc-ring {
+  opacity: 1;
+  stroke-dasharray: 36 18;
+  animation: prc-spin 0.8s linear infinite;
+}
+
+.progress-ring-check-wrapper[data-status="done"] .prc-ring {
+  opacity: 1;
+  stroke-dasharray: 54 0;
+  color: var(--color-accent);
+}
+
+.prc-check {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: stroke-dashoffset 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 150ms ease;
+}
+
+.progress-ring-check-wrapper[data-status="done"] .prc-check {
+  opacity: 1;
+  stroke-dashoffset: 0;
+  color: var(--color-accent);
+}
+
+@keyframes prc-spin {
+  100% {
+    transform: rotate(270deg);
   }
 }

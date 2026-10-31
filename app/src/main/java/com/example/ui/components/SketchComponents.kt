@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.IntOffset
 import com.example.ui.theme.SFProFontFamily
 import androidx.compose.animation.animateColorAsState
@@ -71,6 +72,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -984,31 +986,9 @@ fun Modifier.fluidLensedGlass(
   val outerBorderBrush = if (customBorderColor != null && customBorderColor != Color.Unspecified && customBorderColor != defaultCardBrd) {
     SolidColor(customBorderColor)
   } else if (isDark) {
-    if (isElevated) {
-      Brush.verticalGradient(
-        colors = listOf(
-          Color(0x48FFFFFF), // Specular top rim
-          Color(0x18FFFFFF), // Mid transmission
-          Color(0x0CFFFFFF)  // Bottom edge rim
-        )
-      )
-    } else {
-      Brush.verticalGradient(
-        colors = listOf(
-          Color(0x38FFFFFF),
-          Color(0x12FFFFFF),
-          Color(0x08FFFFFF)
-        )
-      )
-    }
+    SolidColor(InkWashCharcoalBorder)
   } else {
-    Brush.verticalGradient(
-      colors = listOf(
-        Color(0x85FFFFFF),
-        Color(0x35FFFFFF),
-        Color(0x15000000)
-      )
-    )
+    SolidColor(InkWashMist)
   }
 
   val baseModifier = this
@@ -1032,37 +1012,26 @@ fun Modifier.fluidLensedGlass(
       if (customBackgroundColor != null && customBackgroundColor != Color.Unspecified && customBackgroundColor != defaultCardBg) {
         drawRect(color = customBackgroundColor)
       } else {
-        // 1. Convex Refraction Body Fill (authentic optical glass density)
+        // 1. Solid Body Fill (Solid grey on dark, solid ivory on light - zero transparency)
         drawRect(
           brush = Brush.verticalGradient(
             colors = if (isDark) {
               if (isElevated) {
                 listOf(
-                  Color(0xEE222230), // High optical density (~92% base) for elevated floating dock & modals
-                  Color(0xE4181822),
-                  Color(0xDC14141C)
+                  InkWashCharcoalElevated,
+                  InkWashCharcoalSurface
                 )
               } else {
                 listOf(
-                  Color(0x4422222E),
-                  Color(0x36181822),
-                  Color(0x2C12121A)
+                  InkWashCharcoalSurface,
+                  InkWashCharcoalDeep
                 )
               }
             } else {
-              if (isElevated) {
-                listOf(
-                  Color(0xF8FFFFFF),
-                  Color(0xF0F4F4F8),
-                  Color(0xEAECECF2)
-                )
-              } else {
-                listOf(
-                  Color(0xF2FFFFFF),
-                  Color(0xE8F2F2F6),
-                  Color(0xDFE8E8EE)
-                )
-              }
+              listOf(
+                InkWashIvoryCard,
+                InkWashIvoryPaper
+              )
             }
           )
         )
@@ -1992,20 +1961,73 @@ fun SketchCheckbox(
       .testTag("task_checkbox"),
     contentAlignment = Alignment.Center
   ) {
+    val ringColor = if (checked) {
+      if (isDark) InkWashIvory else InkWashCharcoal
+    } else {
+      if (isDark) InkWashMist.copy(alpha = 0.5f) else InkWashCharcoal.copy(alpha = 0.35f)
+    }
+
     Box(
       modifier = Modifier
         .size(sizeDp)
         .graphicsLayer {
           scaleX = squashX.value
           scaleY = squashY.value
-        }
-        .background(bgColor, RoundedCornerShape(7.dp))
-        .border(1.6.dp, borderColor, RoundedCornerShape(7.dp)),
+        },
       contentAlignment = Alignment.Center
     ) {
+      Canvas(modifier = Modifier.matchParentSize()) {
+        val strokeWidth = 2.dp.toPx()
+        val diameter = size.minDimension - strokeWidth
+        val topLeftOffset = Offset(
+          (size.width - diameter) / 2f,
+          (size.height - diameter) / 2f
+        )
+        val arcSize = androidx.compose.ui.geometry.Size(diameter, diameter)
+
+        if (!checked) {
+          // ProgressRingCheck Idle State: 8 subtle dashed intervals around the ring
+          val circumference = Math.PI.toFloat() * diameter
+          val dashLen = circumference / 16f
+          drawArc(
+            color = ringColor,
+            startAngle = -90f,
+            sweepAngle = 360f,
+            useCenter = false,
+            topLeft = topLeftOffset,
+            size = arcSize,
+            style = Stroke(
+              width = strokeWidth,
+              cap = StrokeCap.Round,
+              pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLen, dashLen * 1.2f), 0f)
+            )
+          )
+        } else {
+          // ProgressRingCheck Done State: Solid ring with animated checkmark
+          drawArc(
+            color = ringColor,
+            startAngle = -90f,
+            sweepAngle = 360f * checkProgress,
+            useCenter = false,
+            topLeft = topLeftOffset,
+            size = arcSize,
+            style = Stroke(
+              width = strokeWidth,
+              cap = StrokeCap.Round
+            )
+          )
+          // Solid subtle fill
+          drawCircle(
+            color = ringColor.copy(alpha = 0.12f),
+            radius = diameter / 2f,
+            center = center
+          )
+        }
+      }
+
       if (checkProgress > 0.01f) {
-        Canvas(modifier = Modifier.size(sizeDp * 0.62f)) {
-          val strokeWidth = 2.2.dp.toPx()
+        Canvas(modifier = Modifier.size(sizeDp * 0.58f)) {
+          val strokeWidth = 2.4.dp.toPx()
           val w = size.width
           val h = size.height
 
@@ -2040,7 +2062,7 @@ fun SketchCheckbox(
 
           drawPath(
             path = path,
-            color = checkMarkColor,
+            color = ringColor,
             style = Stroke(
               width = strokeWidth,
               cap = androidx.compose.ui.graphics.StrokeCap.Round,
@@ -2678,5 +2700,134 @@ fun StreakFlameBadge(
         color = flameColor
       )
     )
+  }
+}
+
+/**
+ * TouchEdgeGlowButton: Solid-core interactive button with spring-damped edge glow
+ * that dynamically illuminates towards touch / drag direction.
+ * Styled with the Ink Wash palette (Solid Charcoal / Warm Ivory / Slate Steel).
+ */
+@Composable
+fun TouchEdgeGlowButton(
+  text: String,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  enabled: Boolean = true,
+  icon: (@Composable () -> Unit)? = null
+) {
+  val context = LocalContext.current
+  val isDark = LocalAppColors.current.isDark
+  var touchX by remember { mutableFloatStateOf(0f) }
+  var isTouching by remember { mutableStateOf(false) }
+
+  val animatedTargetX by animateFloatAsState(
+    targetValue = if (isTouching) touchX else 0f,
+    animationSpec = spring(dampingRatio = 0.78f, stiffness = 400f),
+    label = "glowX"
+  )
+
+  val solidBg = if (isDark) InkWashIvory else InkWashCharcoal
+  val solidText = if (isDark) InkWashCharcoalDeep else InkWashIvory
+  val glowColor = InkWashSlate
+  val accentRim = if (isDark) InkWashMist else InkWashCharcoalBorder
+
+  Box(
+    modifier = modifier
+      .height(48.dp)
+      .pointerInput(enabled) {
+        if (!enabled) return@pointerInput
+        awaitEachGesture {
+          val down = awaitFirstDown(requireUnconsumed = false)
+          isTouching = true
+          val halfWidth = size.width / 2f
+          touchX = ((down.position.x - halfWidth) / halfWidth).coerceIn(-1f, 1f)
+
+          do {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull()
+            if (change != null) {
+              touchX = ((change.position.x - halfWidth) / halfWidth).coerceIn(-1f, 1f)
+            }
+          } while (event.changes.any { it.pressed })
+
+          isTouching = false
+          touchX = 0f
+        }
+      }
+      .elasticStretchPress(
+        horizontalStretch = 1.04f,
+        verticalSquash = 0.95f,
+        onClick = {
+          if (enabled) {
+            VibrationHelper.click(context)
+            onClick()
+          }
+        }
+      ),
+    contentAlignment = Alignment.Center
+  ) {
+    // Dynamic specular edge glow border (illuminates towards touch direction)
+    val rightGlowAlpha = (animatedTargetX.coerceAtLeast(0f) * 0.85f)
+    val leftGlowAlpha = ((-animatedTargetX).coerceAtLeast(0f) * 0.85f)
+
+    Canvas(modifier = Modifier.matchParentSize()) {
+      val strokeW = 2.dp.toPx()
+      // Base Solid Border
+      drawRoundRect(
+        color = accentRim.copy(alpha = 0.5f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
+        style = Stroke(width = strokeW)
+      )
+
+      // Active Edge Glow Highlight
+      if (rightGlowAlpha > 0.01f) {
+        drawRoundRect(
+          brush = Brush.horizontalGradient(
+            0.5f to Color.Transparent,
+            1.0f to glowColor.copy(alpha = rightGlowAlpha)
+          ),
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
+          style = Stroke(width = strokeW * 1.5f)
+        )
+      }
+      if (leftGlowAlpha > 0.01f) {
+        drawRoundRect(
+          brush = Brush.horizontalGradient(
+            0.0f to glowColor.copy(alpha = leftGlowAlpha),
+            0.5f to Color.Transparent
+          ),
+          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
+          style = Stroke(width = strokeW * 1.5f)
+        )
+      }
+    }
+
+    // Solid core pill body
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 2.dp, vertical = 2.dp)
+        .clip(CircleShape)
+        .background(solidBg)
+        .padding(horizontal = 22.dp, vertical = 10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.Center
+    ) {
+      if (icon != null) {
+        icon()
+        Spacer(modifier = Modifier.width(8.dp))
+      }
+      Text(
+        text = text,
+        style = TextStyle(
+          fontFamily = SFProFontFamily,
+          fontSize = 14.sp,
+          fontWeight = FontWeight.Bold,
+          color = solidText,
+          letterSpacing = 0.5.sp
+        )
+      )
+    }
   }
 }
