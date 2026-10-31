@@ -90,14 +90,14 @@ function initGlassButtons() {
     btn.classList.add('lg-button', 'lg-button--filled');
   });
 
-  // Outline / secondary buttons → clear glass
+  // Outline / secondary buttons → fluid lensed glass (replaces hollow clear glass)
   document.querySelectorAll('.btn-outline').forEach(btn => {
-    btn.classList.add('lg-button', 'lg-button--clear', 'lg-glass');
+    btn.classList.add('lg-button', 'lg-glass');
   });
 
-  // Theme toggle button → clear glass
+  // Theme toggle button → fluid lensed glass
   const themeBtn = document.getElementById('theme-toggle-btn');
-  if (themeBtn) themeBtn.classList.add('lg-button', 'lg-button--clear', 'lg-glass');
+  if (themeBtn) themeBtn.classList.add('lg-button', 'lg-glass');
 
   // Press glow feedback for all glass buttons
   document.querySelectorAll('.lg-glass').forEach(el => {

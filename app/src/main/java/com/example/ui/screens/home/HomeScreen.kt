@@ -74,6 +74,7 @@ import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSegmented
+import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchProgressBar
 import com.example.ui.components.SketchSegmentedControl
@@ -397,9 +398,12 @@ fun HomeScreen(
                 Box(
                   modifier = Modifier
                     .pulseEntrance(delayMs = 180)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isDarkLocal) Color(0x26FFFFFF) else Color(0x18000000))
-                    .border(0.6.dp, if (isDarkLocal) Color(0x35FFFFFF) else Color(0x20000000), RoundedCornerShape(10.dp))
+                    .fluidLensedGlass(
+                      shape = RoundedCornerShape(10.dp),
+                      elevation = 1.dp,
+                      borderWidth = 0.6.dp,
+                      isElevated = true
+                    )
                     .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                   Text(
@@ -458,13 +462,17 @@ fun HomeScreen(
               val isGridTasks = todayTasksViewMode == "GRID"
               Box(
                 modifier = Modifier
-                  .clip(RoundedCornerShape(8.dp))
-                  .background(if (isGridTasks) (if (isDarkTasksView) Color(0x28FFFFFF) else Color(0xEEFFFFFF)) else Color.Transparent)
-                  .border(0.6.dp, if (isGridTasks) (if (isDarkTasksView) Color(0x38FFFFFF) else Color(0x30000000)) else CardBorder, RoundedCornerShape(8.dp))
-                  .bounceClick {
-                    val next = if (todayTasksViewMode == "GRID") "LIST" else "GRID"
-                    AppPreferences.setTodayTasksViewMode(context, next)
-                  }
+                  .fluidLensedGlass(
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = if (isGridTasks) 1.dp else 0.dp,
+                    borderWidth = 0.6.dp,
+                    isElevated = isGridTasks,
+                    isInteractive = true,
+                    onClick = {
+                      val next = if (todayTasksViewMode == "GRID") "LIST" else "GRID"
+                      AppPreferences.setTodayTasksViewMode(context, next)
+                    }
+                  )
                   .padding(horizontal = 9.dp, vertical = 4.dp)
               ) {
                 Text(
@@ -594,13 +602,17 @@ fun HomeScreen(
               val isGridHabits = todayHabitsViewMode == "GRID"
               Box(
                 modifier = Modifier
-                  .clip(RoundedCornerShape(8.dp))
-                  .background(if (isGridHabits) (if (isDarkHabitsView) Color(0x28FFFFFF) else Color(0xEEFFFFFF)) else Color.Transparent)
-                  .border(0.6.dp, if (isGridHabits) (if (isDarkHabitsView) Color(0x38FFFFFF) else Color(0x30000000)) else CardBorder, RoundedCornerShape(8.dp))
-                  .bounceClick {
-                    val next = if (todayHabitsViewMode == "GRID") "LIST" else "GRID"
-                    AppPreferences.setTodayHabitsViewMode(context, next)
-                  }
+                  .fluidLensedGlass(
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = if (isGridHabits) 1.dp else 0.dp,
+                    borderWidth = 0.6.dp,
+                    isElevated = isGridHabits,
+                    isInteractive = true,
+                    onClick = {
+                      val next = if (todayHabitsViewMode == "GRID") "LIST" else "GRID"
+                      AppPreferences.setTodayHabitsViewMode(context, next)
+                    }
+                  )
                   .padding(horizontal = 9.dp, vertical = 4.dp)
               ) {
                 Text(

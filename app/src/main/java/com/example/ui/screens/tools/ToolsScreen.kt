@@ -90,6 +90,7 @@ import com.example.ui.components.AppHeader
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.GlassMenu
 import com.example.ui.components.GlassMenuItem
 import com.example.ui.components.SketchFilterChip
@@ -330,20 +331,14 @@ fun ToolsScreen(
                   verticalAlignment = Alignment.CenterVertically,
                   modifier = Modifier.weight(1f)
                 ) {
-                  val isDarkTools = com.example.ui.theme.LocalAppColors.current.isDark
                   Box(
                     modifier = Modifier
                       .size(38.dp)
-                      .clip(RoundedCornerShape(10.dp))
-                      .background(
-                        if (isFav) AccentTerracotta.copy(alpha = 0.15f)
-                        else (if (isDarkTools) Color(0x1EFFFFFF) else Color(0x10000000))
-                      )
-                      .border(
-                        0.6.dp,
-                        if (isFav) AccentTerracotta.copy(alpha = 0.5f)
-                        else (if (isDarkTools) Color(0x28FFFFFF) else Color(0x18000000)),
-                        RoundedCornerShape(10.dp)
+                      .fluidLensedGlass(
+                        shape = RoundedCornerShape(10.dp),
+                        elevation = 1.dp,
+                        borderWidth = 0.6.dp,
+                        isElevated = isFav
                       ),
                     contentAlignment = Alignment.Center
                   ) {

@@ -132,6 +132,7 @@ import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSheet
+import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.bounceClick
 import com.example.ui.components.elasticStretchPress
 import com.example.ui.screens.auth.AuthenticationScreen
@@ -1297,32 +1298,11 @@ fun SketchBottomNavigationBar(
       modifier = Modifier
         .fillMaxWidth()
         .height(64.dp)
-        .shadow(
-          elevation = if (isDark) 8.dp else 5.dp,
+        .fluidLensedGlass(
           shape = CircleShape,
-          ambientColor = if (isDark) Color(0x30000000) else Color(0x10000000),
-          spotColor = if (isDark) Color(0x20000000) else Color(0x0A000000)
-        )
-        .clip(CircleShape)
-        .background(
-          color = if (isDark) com.example.ui.theme.CanonicalGlassFillElevatedDark else com.example.ui.theme.CanonicalGlassFillElevatedLight
-        )
-        .border(
-          width = 0.75.dp,
-          brush = Brush.verticalGradient(
-            colors = if (isDark) {
-              listOf(
-                com.example.ui.theme.CanonicalGlassBorderTopDark,
-                com.example.ui.theme.CanonicalGlassBorderBottomDark
-              )
-            } else {
-              listOf(
-                com.example.ui.theme.CanonicalGlassBorderTopLight,
-                com.example.ui.theme.CanonicalGlassBorderBottomLight
-              )
-            }
-          ),
-          shape = CircleShape
+          elevation = if (isDark) 8.dp else 5.dp,
+          borderWidth = 0.75.dp,
+          isElevated = true
         ),
       contentAlignment = Alignment.Center
     ) {
@@ -1516,26 +1496,11 @@ private fun LiquidGlassNavItem(
             scaleX = liquidScale
             scaleY = liquidScale
           }
-          .shadow(
-            elevation = if (isDark) 2.dp else 1.dp,
+          .fluidLensedGlass(
             shape = CircleShape,
-            ambientColor = Color(0x20000000),
-            spotColor = Color(0x10000000)
-          )
-          .clip(CircleShape)
-          .background(
-            color = if (isDark) Color(0x26FFFFFF) else Color(0x14000000)
-          )
-          .border(
-            width = 0.6.dp,
-            brush = Brush.verticalGradient(
-              colors = if (isDark) {
-                listOf(Color(0x38FFFFFF), Color(0x10FFFFFF))
-              } else {
-                listOf(Color(0x30000000), Color(0x0C000000))
-              }
-            ),
-            shape = CircleShape
+            elevation = if (isDark) 2.dp else 1.dp,
+            borderWidth = 0.6.dp,
+            isElevated = true
           )
       )
     }
