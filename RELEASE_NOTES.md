@@ -1,3 +1,36 @@
+# TDlxHT Release Notes — Version 2.5.6 (Build 43)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.6.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Emergency Predictive Back Navigation Bug Fix & Transition System Repair
+
+TDlxHT 2.5.6 repairs the predictive back navigation architecture across the entire application, resolving 4 critical visual and lifecycle defects while retaining a responsive, physical two-layer predictive back gesture with live previous-screen previews.
+
+### 1. Fixed Screen Overlapping During Predictive Back (Edit Habit & Today)
+* **Off-Screen Commit Physics:** Replaced fixed 120dp shift with full-viewport translation (`fullWidthPx * progress * direction`). When releasing the gesture, the foreground card animates 100% off-screen and fades to `alpha = 0f` before the stack entry is popped.
+* **Unified Status Bar Alignment:** Standardized `WindowInsets.statusBars` across all subscreen destinations (`TaskDetail`, `HabitDetail`, `Settings`, `Diagnostics`, `Search`), eliminating toolbar clashes and card duplication.
+* **Solid Foreground Card:** Active card remains 100% solid and opaque with drop shadow while dragging, preventing double-exposure ghosting.
+
+### 2. Guarded Against Unexpected App Closures & Launcher Exits
+* **Two-Tier System Back Guard:** Implemented Tier-1 `PredictiveBackHandler` for gesture popping and Tier-2 `BackHandler` in `MainActivity` covering secondary tabs and modals.
+* **Protected BackStack:** The app will never terminate or finish unexpectedly when inside any subscreen, modal sheet, or secondary tab. Only on the root Today screen with an empty stack does standard system exit apply.
+* **Transition State Lock:** Added `isTransitioning` atomic guard to absorb rapid multi-touch or double-swipe events.
+
+### 3. Eliminated Black Screen Frames During Navigation
+* **Continuous Canvas Compositing:** Bound solid `PaperBackground` at the root of `PredictiveNavigationHost`, in `MainActivity`, and around all destination containers.
+* **Smooth Cross-Fading:** Cross-fading prevents transparent gaps between exiting and entering destinations, ensuring seamless visual continuity with zero pitch-black frames.
+
+### 4. Repaired Quick Create & Modal Backdrop Architecture
+* **Dedicated Overlay Architecture:** Separated full-screen stack destinations from floating modal overlays (`QuickCreate`, `FocusTimer`, `ToolRunner`).
+* **Persistent Underlying Screen:** Modals float directly over the active screen without unmounting it. The underlying screen remains 100% visible beneath the dimmed glass scrim with zero reloading or flickering upon dismissal.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.5 (Build 42)
 
 **Release Date:** 2026-10-31  
