@@ -58,6 +58,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -177,6 +178,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.annotation.RawRes
 import com.example.ui.components.AnimatedIcon
 import com.example.ui.navigation.AppNavDestination
+import com.example.ui.navigation.AppNavOverlay
 import com.example.ui.navigation.PredictiveNavController
 import com.example.ui.navigation.PredictiveNavigationHost
 import com.example.ui.navigation.rememberPredictiveNavController
@@ -408,21 +410,46 @@ fun MainApp(
     }
   }
 
-  PredictiveNavigationHost(
-    navController = navController,
-    modifier = Modifier.fillMaxSize()
-  ) { destination ->
-    when (destination) {
-      is AppNavDestination.Main -> {
-        Scaffold(
-          modifier = Modifier.fillMaxSize(),
-          containerColor = PaperBackground,
-          bottomBar = {
-            if (navController.backStack.size == 1) {
+  // Centralized physical back handling: guards against unexpected application exit
+  BackHandler(
+    enabled = navController.activeOverlay != null ||
+      navController.backStack.size > 1 ||
+      pagerState.currentPage != 0
+  ) {
+    when {
+      navController.activeOverlay != null -> {
+        navController.dismissOverlay()
+      }
+      navController.backStack.size > 1 -> {
+        navController.navigateBack()
+      }
+      pagerState.currentPage != 0 -> {
+        coroutineScope.launch {
+          pagerState.animateScrollToPage(0)
+        }
+      }
+    }
+  }
+
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(PaperBackground)
+  ) {
+    PredictiveNavigationHost(
+      navController = navController,
+      modifier = Modifier.fillMaxSize()
+    ) { destination ->
+      when (destination) {
+        is AppNavDestination.Main -> {
+          Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = PaperBackground,
+            bottomBar = {
               SketchBottomNavigationBar(
                 destinations = destinations,
                 pagerState = pagerState,
-                isQuickAddOpen = false,
+                isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
                 onDestinationSelected = { dest ->
                   val targetIndex = destinations.indexOf(dest)
                   if (targetIndex >= 0) {
@@ -434,122 +461,163 @@ fun MainApp(
                 onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) }
               )
             }
-          }
-        ) { innerPadding ->
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .padding(top = innerPadding.calculateTopPadding())
-          ) {
-            HorizontalPager(
-              state = pagerState,
-              modifier = Modifier.fillMaxSize(),
-              userScrollEnabled = navController.backStack.size == 1
-            ) { page ->
-              when (destinations[page]) {
-                AppDestination.TODAY -> {
-                  HomeScreen(
-                    viewModel = viewModel,
-                    onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
-                    onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
-                    onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
-                    onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
-                    onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
-                    onNavigateToSearch = { navController.navigate(AppNavDestination.Search) }
-                  )
-                }
-                AppDestination.PRODUCTIVITY -> {
-                  ProductivityScreen(
-                    viewModel = viewModel,
-                    onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
-                    onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
-                    onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
-                    onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
-                    onBackToHome = { coroutineScope.launch { pagerState.animateScrollToPage(0) } }
-                  )
-                }
-                AppDestination.TOOLS -> {
-                  ToolsScreen(
-                    onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
-                    onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
-                    onCreateTaskFromResult = { title, notes ->
-                      navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
-                    }
-                  )
-                }
-                AppDestination.INSIGHTS -> {
-                  ReportsScreen(
-                    onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
-                    onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
-                  )
+          ) { innerPadding ->
+            Box(
+              modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
+            ) {
+              HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                userScrollEnabled = navController.backStack.size == 1 && navController.activeOverlay == null
+              ) { page ->
+                when (destinations[page]) {
+                  AppDestination.TODAY -> {
+                    HomeScreen(
+                      viewModel = viewModel,
+                      onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
+                      onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                      onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
+                      onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                      onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
+                      onNavigateToSearch = { navController.navigate(AppNavDestination.Search) }
+                    )
+                  }
+                  AppDestination.PRODUCTIVITY -> {
+                    ProductivityScreen(
+                      viewModel = viewModel,
+                      onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
+                      onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                      onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
+                      onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                      onBackToHome = { coroutineScope.launch { pagerState.animateScrollToPage(0) } }
+                    )
+                  }
+                  AppDestination.TOOLS -> {
+                    ToolsScreen(
+                      onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
+                      onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
+                      onCreateTaskFromResult = { title, notes ->
+                        navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
+                      }
+                    )
+                  }
+                  AppDestination.INSIGHTS -> {
+                    ReportsScreen(
+                      onBack = { coroutineScope.launch { pagerState.animateScrollToPage(0) } },
+                      onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
+                    )
+                  }
                 }
               }
             }
           }
         }
-      }
 
-      is AppNavDestination.TaskDetail -> {
-        TaskDetailEditScreen(
-          viewModel = viewModel,
-          existingTask = destination.task,
-          initialTitle = destination.initialTitle,
-          initialNotes = destination.initialNotes,
-          initialIsShortTerm = destination.initialIsShortTerm,
-          onDismiss = { navController.navigateBack() }
-        )
-      }
-
-      is AppNavDestination.HabitDetail -> {
-        HabitDetailEditScreen(
-          viewModel = viewModel,
-          existingHabit = destination.habit,
-          onDismiss = { navController.navigateBack() }
-        )
-      }
-
-      is AppNavDestination.Settings -> {
-        SettingsScreen(
-          viewModel = viewModel,
-          authViewModel = authViewModel,
-          onBack = { navController.navigateBack() },
-          onNavigateToDiagnostics = { navController.navigate(AppNavDestination.Diagnostics) }
-        )
-      }
-
-      is AppNavDestination.Diagnostics -> {
-        DiagnosticsScreen(
-          taskRepository = HabitTaskApplication.instance.taskRepository,
-          habitRepository = HabitTaskApplication.instance.habitRepository,
-          onNavigateBack = { navController.navigateBack() }
-        )
-      }
-
-      is AppNavDestination.Search -> {
-        SearchScreen(
-          viewModel = viewModel,
-          onTaskClick = { navController.replaceTop(AppNavDestination.TaskDetail(task = it)) },
-          onHabitClick = { navController.replaceTop(AppNavDestination.HabitDetail(habit = it)) },
-          onBack = { navController.navigateBack() }
-        )
-      }
-
-      is AppNavDestination.ToolRunner -> {
-        ToolRunnerModal(
-          tool = destination.tool,
-          onCreateTaskFromResult = { title, notes ->
-            navController.replaceTop(
-              AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes)
+        is AppNavDestination.TaskDetail -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .windowInsetsPadding(WindowInsets.statusBars)
+              .windowInsetsPadding(WindowInsets.navigationBars)
+          ) {
+            TaskDetailEditScreen(
+              viewModel = viewModel,
+              existingTask = destination.task,
+              initialTitle = destination.initialTitle,
+              initialNotes = destination.initialNotes,
+              initialIsShortTerm = destination.initialIsShortTerm,
+              onDismiss = { navController.navigateBack() }
             )
-          },
-          onDismiss = { navController.navigateBack() }
-        )
-      }
+          }
+        }
 
-      is AppNavDestination.QuickCreate -> {
+        is AppNavDestination.HabitDetail -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .windowInsetsPadding(WindowInsets.statusBars)
+              .windowInsetsPadding(WindowInsets.navigationBars)
+          ) {
+            HabitDetailEditScreen(
+              viewModel = viewModel,
+              existingHabit = destination.habit,
+              onDismiss = { navController.navigateBack() }
+            )
+          }
+        }
+
+        is AppNavDestination.Settings -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .windowInsetsPadding(WindowInsets.statusBars)
+              .windowInsetsPadding(WindowInsets.navigationBars)
+          ) {
+            SettingsScreen(
+              viewModel = viewModel,
+              authViewModel = authViewModel,
+              onBack = { navController.navigateBack() },
+              onNavigateToDiagnostics = { navController.navigate(AppNavDestination.Diagnostics) }
+            )
+          }
+        }
+
+        is AppNavDestination.Diagnostics -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .windowInsetsPadding(WindowInsets.statusBars)
+              .windowInsetsPadding(WindowInsets.navigationBars)
+          ) {
+            DiagnosticsScreen(
+              taskRepository = HabitTaskApplication.instance.taskRepository,
+              habitRepository = HabitTaskApplication.instance.habitRepository,
+              onNavigateBack = { navController.navigateBack() }
+            )
+          }
+        }
+
+        is AppNavDestination.Search -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .windowInsetsPadding(WindowInsets.statusBars)
+              .windowInsetsPadding(WindowInsets.navigationBars)
+          ) {
+            SearchScreen(
+              viewModel = viewModel,
+              onTaskClick = { navController.replaceTop(AppNavDestination.TaskDetail(task = it)) },
+              onHabitClick = { navController.replaceTop(AppNavDestination.HabitDetail(habit = it)) },
+              onBack = { navController.navigateBack() }
+            )
+          }
+        }
+
+        is AppNavDestination.ToolRunner -> {
+          ToolRunnerModal(
+            tool = destination.tool,
+            onCreateTaskFromResult = { title, notes ->
+              navController.replaceTop(
+                AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes)
+              )
+            },
+            onDismiss = { navController.navigateBack() }
+          )
+        }
+
+        is AppNavDestination.QuickCreate -> {}
+        is AppNavDestination.FocusTimer -> {}
+      }
+    }
+
+    // OVERLAY LAYER: Renders modals/sheets over whatever screen is currently active
+    when (val overlay = navController.activeOverlay) {
+      is AppNavOverlay.QuickCreate -> {
         GlassSheet(
           visible = true,
-          onDismissRequest = { navController.navigateBack() }
+          onDismissRequest = { navController.dismissOverlay() }
         ) {
           val isDark = com.example.ui.theme.LocalAppColors.current.isDark
           val optionIconAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
@@ -570,7 +638,7 @@ fun MainApp(
             )
 
             GlassButton(
-              onClick = { navController.navigateBack() },
+              onClick = { navController.dismissOverlay() },
               contentDescription = "Close",
               size = 34.dp
             ) {
@@ -590,7 +658,8 @@ fun MainApp(
             modifier = Modifier
               .fillMaxWidth()
               .bounceClick {
-                navController.replaceTop(AppNavDestination.TaskDetail())
+                navController.dismissOverlay()
+                navController.navigate(AppNavDestination.TaskDetail())
               },
             cornerRadius = 16.dp,
             elevation = 2.dp
@@ -636,7 +705,8 @@ fun MainApp(
             modifier = Modifier
               .fillMaxWidth()
               .bounceClick {
-                navController.replaceTop(AppNavDestination.HabitDetail())
+                navController.dismissOverlay()
+                navController.navigate(AppNavDestination.HabitDetail())
               },
             cornerRadius = 16.dp,
             elevation = 2.dp
@@ -682,7 +752,8 @@ fun MainApp(
             modifier = Modifier
               .fillMaxWidth()
               .bounceClick {
-                navController.replaceTop(
+                navController.dismissOverlay()
+                navController.navigate(
                   AppNavDestination.TaskDetail(initialIsShortTerm = true)
                 )
               },
@@ -732,16 +803,31 @@ fun MainApp(
         }
       }
 
-      is AppNavDestination.FocusTimer -> {
-        Dialog(onDismissRequest = { navController.navigateBack() }) {
+      is AppNavOverlay.FocusTimer -> {
+        Dialog(onDismissRequest = { navController.dismissOverlay() }) {
           AnimatedDialogContent {
             FocusTimerDialog(
-              initialMinutes = destination.initialMinutes,
-              onClose = { navController.navigateBack() }
+              initialMinutes = overlay.initialMinutes,
+              onClose = { navController.dismissOverlay() }
             )
           }
         }
       }
+
+      is AppNavOverlay.ToolRunner -> {
+        ToolRunnerModal(
+          tool = overlay.tool,
+          onCreateTaskFromResult = { title, notes ->
+            navController.dismissOverlay()
+            navController.navigate(
+              AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes)
+            )
+          },
+          onDismiss = { navController.dismissOverlay() }
+        )
+      }
+
+      null -> {}
     }
   }
 

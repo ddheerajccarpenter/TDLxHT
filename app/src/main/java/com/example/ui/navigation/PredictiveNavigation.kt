@@ -3,7 +3,6 @@ package com.example.ui.navigation
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -18,10 +17,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -32,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -39,12 +39,13 @@ import androidx.compose.ui.unit.dp
 import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.data.tools.ToolDefinition
+import com.example.ui.theme.PaperBackground
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 /**
- * Type-safe representation of every navigation destination and modal across the TDlxHT application.
+ * Type-safe representation of every full-screen stack destination across TDlxHT.
  */
 sealed interface AppNavDestination {
   // 1. Primary Bottom Navigation (Home, Productivity, Tools, Insights)
@@ -67,9 +68,18 @@ sealed interface AppNavDestination {
   data object Search : AppNavDestination
   data class ToolRunner(val tool: ToolDefinition) : AppNavDestination
 
-  // 3. Modal Surfaces & Overlays
+  // 3. Modal Surfaces & Overlays (Mapped to AppNavOverlay)
   data object QuickCreate : AppNavDestination
   data class FocusTimer(val initialMinutes: Int = 25) : AppNavDestination
+}
+
+/**
+ * Modal surfaces that float above the active destination without unmounting it.
+ */
+sealed interface AppNavOverlay {
+  data object QuickCreate : AppNavOverlay
+  data class FocusTimer(val initialMinutes: Int = 25) : AppNavOverlay
+  data class ToolRunner(val tool: ToolDefinition) : AppNavOverlay
 }
 
 /**
@@ -86,14 +96,16 @@ class PredictiveBackGestureState {
 }
 
 /**
- * Centralized stateful navigation controller managing the global backstack and transitions.
+ * Centralized stateful navigation controller managing the global backstack, overlays, and transitions.
  */
 @Stable
 class PredictiveNavController(
   val initialDestination: AppNavDestination = AppNavDestination.Main(0)
 ) {
   val backStack = mutableStateListOf<AppNavDestination>(initialDestination)
+  var activeOverlay by mutableStateOf<AppNavOverlay?>(null)
   val gestureState = PredictiveBackGestureState()
+  var isTransitioning by mutableStateOf(false)
 
   // Tracks navigation direction for AnimatedContent transitions (true = forward, false = backward)
   var isForwardNavigation by mutableStateOf(true)
@@ -106,21 +118,70 @@ class PredictiveNavController(
     get() = if (backStack.size > 1) backStack[backStack.size - 2] else null
 
   val canNavigateBack: Boolean
-    get() = backStack.size > 1 || (currentDestination is AppNavDestination.Main && (currentDestination as AppNavDestination.Main).tabIndex != 0)
+    get() = activeOverlay != null || backStack.size > 1 || (currentDestination is AppNavDestination.Main && (currentDestination as AppNavDestination.Main).tabIndex != 0)
+
+  val canPredictiveBack: Boolean
+    get() = activeOverlay == null && backStack.size > 1 && !isTransitioning
 
   /**
-   * Navigate forward to a new destination.
+   * Navigate forward to a new destination or open an overlay.
    */
   fun navigate(destination: AppNavDestination) {
-    if (backStack.lastOrNull() == destination) return
-    isForwardNavigation = true
-    backStack.add(destination)
+    if (isTransitioning) return
+    when (destination) {
+      is AppNavDestination.QuickCreate -> {
+        activeOverlay = AppNavOverlay.QuickCreate
+      }
+      is AppNavDestination.FocusTimer -> {
+        activeOverlay = AppNavOverlay.FocusTimer(destination.initialMinutes)
+      }
+      is AppNavDestination.ToolRunner -> {
+        activeOverlay = AppNavOverlay.ToolRunner(destination.tool)
+      }
+      else -> {
+        activeOverlay = null
+        if (backStack.lastOrNull() == destination) return
+        isForwardNavigation = true
+        backStack.add(destination)
+      }
+    }
   }
 
   /**
-   * Pop the current destination from the stack.
+   * Replace the top destination without expanding stack depth.
+   */
+  fun replaceTop(destination: AppNavDestination) {
+    if (isTransitioning) return
+    activeOverlay = null
+    when (destination) {
+      is AppNavDestination.QuickCreate -> {
+        activeOverlay = AppNavOverlay.QuickCreate
+      }
+      is AppNavDestination.FocusTimer -> {
+        activeOverlay = AppNavOverlay.FocusTimer(destination.initialMinutes)
+      }
+      is AppNavDestination.ToolRunner -> {
+        activeOverlay = AppNavOverlay.ToolRunner(destination.tool)
+      }
+      else -> {
+        if (backStack.isNotEmpty()) {
+          backStack[backStack.size - 1] = destination
+        } else {
+          backStack.add(destination)
+        }
+      }
+    }
+  }
+
+  /**
+   * Pop the current destination or dismiss the active overlay.
    */
   fun navigateBack(): Boolean {
+    if (isTransitioning) return true
+    if (activeOverlay != null) {
+      activeOverlay = null
+      return true
+    }
     if (backStack.size > 1) {
       isForwardNavigation = false
       backStack.removeAt(backStack.size - 1)
@@ -134,20 +195,29 @@ class PredictiveNavController(
   }
 
   /**
-   * Replace the top destination without expanding stack depth.
+   * Directly pop the top backstack entry upon gesture commit completion.
    */
-  fun replaceTop(destination: AppNavDestination) {
-    if (backStack.isNotEmpty()) {
-      backStack[backStack.size - 1] = destination
-    } else {
-      backStack.add(destination)
+  fun popBackStackDirect(): Boolean {
+    if (backStack.size > 1) {
+      isForwardNavigation = false
+      backStack.removeAt(backStack.size - 1)
+      return true
     }
+    return false
+  }
+
+  /**
+   * Dismiss the active overlay modal.
+   */
+  fun dismissOverlay() {
+    activeOverlay = null
   }
 
   /**
    * Dismiss an active modal or pop to root Main(0).
    */
   fun popToRoot() {
+    activeOverlay = null
     isForwardNavigation = false
     backStack.clear()
     backStack.add(AppNavDestination.Main(0))
@@ -165,10 +235,11 @@ fun rememberPredictiveNavController(
  * Universal, global Predictive Navigation Host.
  *
  * Provides:
- * 1. Live gesture-progress tracking (scale, translationX, corner squircle, depth dimming)
- * 2. Real previous-screen live rendering underneath during back gesture
- * 3. Matching smooth forward and backward AnimatedContent transitions
- * 4. Android 13–15 system PredictiveBackHandler integration with older OS fallback
+ * 1. Physical two-layer navigation transition during Android Predictive Back gestures.
+ * 2. Background layer: Real previous screen from the back stack in its exact natural position.
+ * 3. Foreground layer: Solid, elevated active screen card moving cleanly off-screen with drop shadow.
+ * 4. Zero black screens: Guaranteed continuous PaperBackground compositing.
+ * 5. Safe backstack popping: Destination removed only after moving 100% off-screen.
  */
 @Composable
 fun PredictiveNavigationHost(
@@ -179,12 +250,12 @@ fun PredictiveNavigationHost(
   val currentDest = navController.currentDestination
   val previousDest = navController.previousDestination
   val gestureState = navController.gestureState
-  val coroutineScope = rememberCoroutineScope()
   val density = LocalDensity.current
 
-  // Handle system edge-swipe and back gestures via PredictiveBackHandler
-  PredictiveBackHandler(enabled = navController.canNavigateBack) { progressFlow: Flow<BackEventCompat> ->
+  // System PredictiveBackHandler integration with strict backstack guards
+  PredictiveBackHandler(enabled = navController.canPredictiveBack) { progressFlow: Flow<BackEventCompat> ->
     gestureState.isPredictingBack = true
+    navController.isTransitioning = true
     try {
       progressFlow.collect { backEvent ->
         gestureState.progress = backEvent.progress
@@ -193,17 +264,18 @@ fun PredictiveNavigationHost(
         gestureState.touchY = backEvent.touchY
         gestureState.animProgress.snapTo(backEvent.progress)
       }
-      // Gesture completed past commit threshold: animate smoothly to 1f and pop destination
+      // Gesture committed past threshold: animate foreground card smoothly off-screen
       gestureState.animProgress.animateTo(
         targetValue = 1f,
         animationSpec = spring(
-          dampingRatio = Spring.DampingRatioLowBouncy,
+          dampingRatio = Spring.DampingRatioNoBouncy,
           stiffness = Spring.StiffnessMediumLow
         )
       )
-      navController.navigateBack()
+      // Pop the destination after the card has cleanly exited the viewport
+      navController.popBackStackDirect()
     } catch (_: CancellationException) {
-      // Gesture cancelled: restore current screen smoothly back to 0f
+      // Gesture cancelled: spring active screen smoothly back to rest (0f)
       gestureState.animProgress.animateTo(
         targetValue = 0f,
         animationSpec = spring(
@@ -215,36 +287,47 @@ fun PredictiveNavigationHost(
       gestureState.isPredictingBack = false
       gestureState.animProgress.snapTo(0f)
       gestureState.progress = 0f
+      navController.isTransitioning = false
     }
   }
 
-  Box(modifier = modifier.fillMaxSize()) {
+  BoxWithConstraints(
+    modifier = modifier
+      .fillMaxSize()
+      .background(PaperBackground)
+  ) {
+    val fullWidthPx = with(density) { maxWidth.toPx() }
+
     // -------------------------------------------------------------
     // LAYER 0: PREVIOUS SCREEN (UNDERNEATH PREVIEW DURING GESTURE)
     // -------------------------------------------------------------
     if (gestureState.isPredictingBack && previousDest != null) {
       val progress = gestureState.animProgress.value
-      // Previous screen rises from depth: scale 0.93f -> 1.0f
-      val prevScale = 0.93f + (progress * 0.07f)
-      val scrimAlpha = (1f - progress) * 0.28f
+      // Previous screen rises smoothly from depth: scale 0.95f -> 1.0f
+      val prevScale = 0.95f + (progress * 0.05f)
+      val prevCorner = ((1f - progress) * 16).dp
+      val scrimAlpha = ((1f - progress) * 0.18f).coerceIn(0f, 0.18f)
 
       Box(
         modifier = Modifier
           .fillMaxSize()
+          .background(PaperBackground)
           .graphicsLayer {
             scaleX = prevScale
             scaleY = prevScale
-            shape = RoundedCornerShape(((1f - progress) * 16).dp)
-            clip = true
+            shape = RoundedCornerShape(prevCorner)
+            clip = prevCorner > 0.dp
           }
       ) {
         content(previousDest)
-        // Subtle ambient dimming scrim that fades out as previous screen arrives
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = scrimAlpha))
-        )
+        // Subtle ambient scrim that fades out cleanly as the previous screen arrives
+        if (scrimAlpha > 0f) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .background(Color.Black.copy(alpha = scrimAlpha))
+          )
+        }
       }
     }
 
@@ -253,14 +336,20 @@ fun PredictiveNavigationHost(
     // -------------------------------------------------------------
     if (gestureState.isPredictingBack) {
       val progress = gestureState.animProgress.value
-      // Active screen scales down subtly to 0.92f and rounds corners to 24dp
+      // Foreground card scales subtly and rounds its corners
       val activeScale = 1f - (progress * 0.08f)
       val activeCorner = (progress * 24).dp
       val direction = if (gestureState.swipeEdge == BackEventCompat.EDGE_RIGHT) -1f else 1f
-      val maxShiftPx = with(density) { 120.dp.toPx() }
-      val translationPx = maxShiftPx * progress * direction
-      val shadowElevationPx = with(density) { 16.dp.toPx() }
-      val activeAlpha = 1f - (progress * 0.12f)
+
+      // Translation starts tactile and accelerates off-screen on commit (progress -> 1f)
+      val translationPx = fullWidthPx * progress * direction
+      val shadowElevationPx = with(density) { 20.dp.toPx() }
+      // Card stays 100% solid and opaque while dragging; fades only near the very edge (progress > 0.7f)
+      val activeAlpha = if (progress > 0.70f) {
+        ((1f - progress) / 0.30f).coerceIn(0f, 1f)
+      } else {
+        1f
+      }
 
       Box(
         modifier = Modifier
@@ -274,6 +363,7 @@ fun PredictiveNavigationHost(
             shadowElevation = shadowElevationPx
             alpha = activeAlpha
           }
+          .background(PaperBackground)
       ) {
         content(currentDest)
       }
@@ -285,45 +375,63 @@ fun PredictiveNavigationHost(
           if (navController.isForwardNavigation) {
             // Forward Navigation: Destination enters with subtle slide & elevation scale
             (slideInHorizontally(
-              initialOffsetX = { fullWidth -> fullWidth / 5 },
-              animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)
+              initialOffsetX = { fullWidth -> fullWidth / 4 },
+              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
             ) + scaleIn(
               initialScale = 0.96f,
-              animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)
-            ) + fadeIn(animationSpec = tween(200, easing = FastOutSlowInEasing)))
-              .togetherWith(
-                slideOutHorizontally(
-                  targetOffsetX = { fullWidth -> -fullWidth / 6 },
-                  animationSpec = tween(180, easing = FastOutSlowInEasing)
-                ) + scaleOut(
-                  targetScale = 0.96f,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing)
-                ) + fadeOut(animationSpec = tween(160))
+              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
+            ) + fadeIn(
+              animationSpec = tween(220, easing = FastOutSlowInEasing),
+              initialAlpha = 0.5f
+            )).togetherWith(
+              slideOutHorizontally(
+                targetOffsetX = { fullWidth -> -fullWidth / 6 },
+                animationSpec = tween(200, easing = FastOutSlowInEasing)
+              ) + scaleOut(
+                targetScale = 0.96f,
+                animationSpec = tween(200, easing = FastOutSlowInEasing)
+              ) + fadeOut(
+                animationSpec = tween(180, easing = FastOutSlowInEasing),
+                targetAlpha = 0.3f
               )
+            )
           } else {
             // Backward Navigation: Previous destination returns from depth
             (slideInHorizontally(
               initialOffsetX = { fullWidth -> -fullWidth / 6 },
-              animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)
+              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
             ) + scaleIn(
               initialScale = 0.96f,
-              animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)
-            ) + fadeIn(animationSpec = tween(200, easing = FastOutSlowInEasing)))
-              .togetherWith(
-                slideOutHorizontally(
-                  targetOffsetX = { fullWidth -> fullWidth / 5 },
-                  animationSpec = tween(180, easing = FastOutSlowInEasing)
-                ) + scaleOut(
-                  targetScale = 0.96f,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing)
-                ) + fadeOut(animationSpec = tween(160))
+              animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
+            ) + fadeIn(
+              animationSpec = tween(220, easing = FastOutSlowInEasing),
+              initialAlpha = 0.5f
+            )).togetherWith(
+              slideOutHorizontally(
+                targetOffsetX = { fullWidth -> fullWidth / 4 },
+                animationSpec = tween(200, easing = FastOutSlowInEasing)
+              ) + scaleOut(
+                targetScale = 0.96f,
+                animationSpec = tween(200, easing = FastOutSlowInEasing)
+              ) + fadeOut(
+                animationSpec = tween(180, easing = FastOutSlowInEasing),
+                targetAlpha = 0.3f
               )
+            )
           }
         },
         label = "predictiveNavHost",
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+          .fillMaxSize()
+          .background(PaperBackground)
       ) { destination ->
-        content(destination)
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(PaperBackground)
+        ) {
+          content(destination)
+        }
       }
     }
   }
