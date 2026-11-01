@@ -112,6 +112,7 @@ data class Task(
   val repeatRule: RepeatRule = RepeatRule.NONE,
   val repeatDays: List<DayOfWeek> = emptyList(),
   val isShortTerm: Boolean = false,
+  val completedDate: String? = null, // Format: YYYY-MM-DD
   val creationTimestamp: Long = System.currentTimeMillis(),
   val updatedTimestamp: Long = System.currentTimeMillis()
 ) {

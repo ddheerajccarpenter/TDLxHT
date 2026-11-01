@@ -120,6 +120,7 @@ class TaskRepository(
 
     val updatedTask = task.copy(
       isCompleted = newCompletedState,
+      completedDate = if (newCompletedState) LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) else null,
       updatedTimestamp = System.currentTimeMillis()
     )
     taskDao.updateTask(updatedTask.toEntity())

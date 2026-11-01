@@ -34,6 +34,7 @@ fun TaskEntity.toDomainModel(): Task {
     repeatRule = RepeatRule.fromString(repeatRule),
     repeatDays = repeatDayList,
     isShortTerm = isShortTerm,
+    completedDate = completedDate,
     creationTimestamp = creationTimestamp,
     updatedTimestamp = updatedTimestamp
   )
@@ -55,6 +56,7 @@ fun Task.toEntity(): TaskEntity {
     repeatRule = repeatRule.name,
     repeatDaysJson = repeatDays.joinToString(",") { it.name },
     isShortTerm = isShortTerm,
+    completedDate = completedDate,
     creationTimestamp = creationTimestamp,
     updatedTimestamp = updatedTimestamp
   )

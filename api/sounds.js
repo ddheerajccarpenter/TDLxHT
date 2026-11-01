@@ -15,35 +15,35 @@ const DEFAULT_SOUNDS = [
     id: "task_complete",
     title: "Task Completed (Organic Chime)",
     url: "https://tdlxht.vercel.app/sounds/task_complete.ogg",
-    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    sha256: "c10c174c1da938a700825f950446d5025e7746aaf8a807210c50c6e9b5f2e539",
     updated_at: "2026-11-01T00:00:00Z"
   },
   {
     id: "habit_tick",
     title: "Habit Completed (Pop)",
     url: "https://tdlxht.vercel.app/sounds/habit_tick.ogg",
-    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    sha256: "29ba8ea28a089de1a3d0b3a83b83e9d2530e13f0807e61d5a74d25c9b5ffe858",
     updated_at: "2026-11-01T00:00:00Z"
   },
   {
     id: "button_click",
     title: "Button Click (Haptic Wood)",
     url: "https://tdlxht.vercel.app/sounds/button_click.ogg",
-    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    sha256: "3299ade6b42e052637b2c412048ab4bf2173aadd4963f7e9d5712e07729a64e3",
     updated_at: "2026-11-01T00:00:00Z"
   },
   {
     id: "timer_end",
     title: "Timer Finished (Harmonic Bell)",
     url: "https://tdlxht.vercel.app/sounds/timer_end.ogg",
-    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    sha256: "63e9879ddc3d22382e813daacdb2f92aaa829115921447a566e4c2d006732686",
     updated_at: "2026-11-01T00:00:00Z"
   },
   {
     id: "swipe_nav",
     title: "Swipe Navigation (Subtle Woosh)",
     url: "https://tdlxht.vercel.app/sounds/swipe_nav.ogg",
-    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    sha256: "f7a5b6f8de261ca58b582a8285e9d6b099a5591d1437eed735f0e93f01078b2c",
     updated_at: "2026-11-01T00:00:00Z"
   }
 ];

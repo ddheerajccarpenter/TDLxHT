@@ -31,6 +31,31 @@ val CanonicalDividerDark = Color(0xFF4A4A4A) // Solid interior separator
 val CanonicalAccentActionDark = Color(0xFFFFFFE3)
 val CanonicalDestructiveDark = Color(0xFF8C5252)
 
+// =========================================================================
+// Authentic Liquid Glass Design System Tokens (Zero Blur)
+// Smoky transparent graphite, neutral grey translucency, crisp silver highlights
+// =========================================================================
+val LiquidGlassCanvasDark = Color(0xFF0E0F12) // Deep charcoal near-black background
+val LiquidGlassCanvasSecondaryDark = Color(0xFF15161A)
+
+// Translucent Layered Materials
+val LiquidGlassCardTopDark = Color(0x3822242B)      // 22% alpha smoky graphite
+val LiquidGlassCardBottomDark = Color(0x1F16171C)   // 12% alpha deep tone
+val LiquidGlassCapsuleTopDark = Color(0x452A2D36)   // 27% alpha layered capsule
+val LiquidGlassCapsuleBottomDark = Color(0x281C1E24)// 16% alpha
+val LiquidGlassLensTopDark = Color(0x5A444858)      // 35% alpha convex lens highlight
+val LiquidGlassLensMidDark = Color(0x3A303442)      // 23% alpha lens core
+val LiquidGlassLensBottomDark = Color(0x221A1C24)   // 13% alpha lower shading
+
+// Specular Rims & Hairline Highlights (Zero Blur)
+val LiquidGlassBorderSpecularTop = Color(0x66FFFFFF)// 40% crisp overhead specular highlight
+val LiquidGlassBorderSpecularMid = Color(0x20FFFFFF)// 12% lateral decay
+val LiquidGlassBorderSpecularBottom = Color(0x0AFFFFFF)// 4% subtle dark rim
+val LiquidGlassBorderSubtle = Color(0x18FFFFFF)     // Interior capsule separators
+
+val LiquidGlassButtonResting = Color(0x33282B34)    // 20% alpha
+val LiquidGlassButtonPressed = Color(0x523C404E)    // 32% alpha
+
 // Canonical Light Tokens (Warm Ivory & Solid Surface System)
 val CanonicalCanvasLight = Color(0xFFFFFFE3) // Warm Ivory
 val CanonicalCanvasSecondaryLight = Color(0xFFF4F3D6)

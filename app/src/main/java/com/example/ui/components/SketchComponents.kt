@@ -2,7 +2,6 @@ package com.example.ui.components
 
 import android.content.Context
 import android.os.Build
-import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.IntOffset
@@ -994,9 +993,21 @@ fun Modifier.fluidLensedGlass(
   val outerBorderBrush = if (customBorderColor != null && customBorderColor != Color.Unspecified && customBorderColor != defaultCardBrd) {
     SolidColor(customBorderColor)
   } else if (isDark) {
-    SolidColor(InkWashCharcoalBorder)
+    Brush.verticalGradient(
+      colors = listOf(
+        com.example.ui.theme.LiquidGlassBorderSpecularTop,
+        com.example.ui.theme.LiquidGlassBorderSpecularMid,
+        com.example.ui.theme.LiquidGlassBorderSpecularBottom
+      )
+    )
   } else {
-    SolidColor(InkWashMist)
+    Brush.verticalGradient(
+      colors = listOf(
+        Color(0x60FFFFFF),
+        Color(0x30CBCBCB),
+        Color(0x10CBCBCB)
+      )
+    )
   }
 
   val baseModifier = this
@@ -1020,31 +1031,31 @@ fun Modifier.fluidLensedGlass(
       if (customBackgroundColor != null && customBackgroundColor != Color.Unspecified && customBackgroundColor != defaultCardBg) {
         drawRect(color = customBackgroundColor)
       } else {
-        // 1. Solid Body Fill (Deep charcoal on dark, refined off-white ivory on light)
+        // 1. Translucent Liquid Glass Body (Zero Blur - revealing underlying canvas)
         drawRect(
           brush = Brush.verticalGradient(
             colors = if (isDark) {
               if (isElevated) {
                 listOf(
-                  InkWashCharcoalElevated,
-                  InkWashCharcoalSurface
+                  com.example.ui.theme.LiquidGlassCapsuleTopDark,
+                  com.example.ui.theme.LiquidGlassCapsuleBottomDark
                 )
               } else {
                 listOf(
-                  InkWashCharcoalSurface,
-                  InkWashCharcoalDeep
+                  com.example.ui.theme.LiquidGlassCardTopDark,
+                  com.example.ui.theme.LiquidGlassCardBottomDark
                 )
               }
             } else {
               if (isElevated) {
                 listOf(
-                  InkWashIvoryElevated,
-                  InkWashIvoryCard
+                  Color(0xD8FFFFFF),
+                  Color(0xB8FFFFFF)
                 )
               } else {
                 listOf(
-                  InkWashIvoryCard,
-                  InkWashIvoryPaper
+                  Color(0xB8FFFFFF),
+                  Color(0x88FFFFFF)
                 )
               }
             }
@@ -1107,44 +1118,32 @@ fun Modifier.fluidLensedGlass(
  * Creates a soft 20-degree light band traversing smoothly across surfaces,
  * providing genuine specular glass reflection without heavy blur.
  */
+/**
+ * Physically-grounded specular highlight for Liquid Glass surfaces.
+ * Replaces fake infinite looping shine with authentic overhead ambient light capture.
+ */
 @Composable
 fun Modifier.glassSheen(
   enabled: Boolean = true,
   sheenColor: Color = LightGlassSpecular,
   shape: androidx.compose.ui.graphics.Shape = OuterCornerShape
-): Modifier = composed {
-  if (!enabled) return@composed this
-  val transition = rememberInfiniteTransition(label = "glassSheen")
-  val progress by transition.animateFloat(
-    initialValue = -0.6f,
-    targetValue = 1.6f,
-    animationSpec = infiniteRepeatable(
-      animation = tween(durationMillis = 4500, delayMillis = 2000, easing = LinearEasing),
-      repeatMode = RepeatMode.Restart
-    ),
-    label = "glassSheenProgress"
-  )
-
-  this
+): Modifier {
+  if (!enabled) return this
+  return this
     .clip(shape)
     .drawWithContent {
       drawContent()
-      val w = size.width
       val h = size.height
-      val bandWidth = (w * 0.35f).coerceAtLeast(40.dp.toPx())
-      val startX = (w + bandWidth * 2) * progress - bandWidth
-      val brush = Brush.linearGradient(
+      val specularBrush = Brush.verticalGradient(
         colors = listOf(
-          Color.Transparent,
-          sheenColor.copy(alpha = sheenColor.alpha * 0.35f),
-          sheenColor,
-          sheenColor.copy(alpha = sheenColor.alpha * 0.35f),
+          sheenColor.copy(alpha = 0.12f),
+          sheenColor.copy(alpha = 0.03f),
           Color.Transparent
         ),
-        start = Offset(startX, 0f),
-        end = Offset(startX + bandWidth, h)
+        startY = 0f,
+        endY = (h * 0.35f).coerceAtLeast(20.dp.toPx())
       )
-      drawRect(brush = brush)
+      drawRect(brush = specularBrush)
     }
 }
 

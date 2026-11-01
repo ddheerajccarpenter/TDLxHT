@@ -1,5 +1,6 @@
 import java.io.File
 import java.io.FileInputStream
+import java.security.MessageDigest
 import java.util.Date
 import java.util.Locale
 import java.util.Properties
@@ -44,8 +45,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 47
-    versionName = "2.5.10"
+    versionCode = 49
+    versionName = "2.5.12"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -221,14 +222,25 @@ tasks.register("syncReleaseApk") {
       releaseApk.copyTo(File(releaseOutputDir, targetFileName), overwrite = true)
       releaseApk.copyTo(File(releaseOutputDir, genericFileName), overwrite = true)
 
-      // Automatically generate version.json for dynamic web auto-fetching pointing directly to GitHub Release assets
+      val digest = MessageDigest.getInstance("SHA-256")
+      val buffer = ByteArray(8192)
+      releaseApk.inputStream().use { input ->
+        var bytesRead: Int
+        while (input.read(buffer).also { bytesRead = it } != -1) {
+          digest.update(buffer, 0, bytesRead)
+        }
+      }
+      val apkSha256 = digest.digest().joinToString("") { "%02x".format(it) }
+
+      // Automatically generate version.json for dynamic web auto-fetching pointing to high-speed CDN with GitHub Release fallback
       val versionJsonContent = """
         {
           "version": "$ver",
           "versionCode": $code,
           "filename": "$targetFileName",
-          "apkUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v$ver/$targetFileName",
-          "fallbackUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/latest/download/$genericFileName",
+          "sha256": "$apkSha256",
+          "apkUrl": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/$targetFileName",
+          "fallbackUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v$ver/$targetFileName",
           "githubReleaseUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v$ver",
           "releaseDate": "${SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())}"
         }

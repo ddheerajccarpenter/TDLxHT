@@ -45,6 +45,10 @@ import com.example.ui.components.motionBlurOnScroll
 import com.example.ui.components.UndoConfirmationPill
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -66,6 +70,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -94,6 +99,12 @@ import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassCapsule
+import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.LiquidGlassButton
+import com.example.ui.components.LiquidGlassIconButton
+import com.example.ui.components.LiquidGlassProgressIndicator
 import com.example.ui.components.GlassSegmented
 import com.example.ui.components.BentoHeroCard
 import com.example.ui.components.CircularProgressGauge
@@ -165,6 +176,8 @@ fun HomeScreen(
   val sectionVisibility by DashboardLayoutManager.sectionVisibility.collectAsStateWithLifecycle()
   var editOrder by remember(isDashboardEditMode, sectionOrder) { mutableStateOf(sectionOrder) }
   var editVisibility by remember(isDashboardEditMode, sectionVisibility) { mutableStateOf(sectionVisibility) }
+  var draggedSectionId by remember { mutableStateOf<String?>(null) }
+  var dragAccumulatedY by remember { mutableFloatStateOf(0f) }
 
   val today = LocalDate.now()
   val todayStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -249,23 +262,25 @@ fun HomeScreen(
                   .clip(CircleShape)
                   .border(1.dp, CardBorder, CircleShape)
               )
-              Text(
-                text = if (isDashboardEditMode) "Done" else "Layout",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 15.sp,
-                  fontWeight = FontWeight.SemiBold,
-                  color = if (isDashboardEditMode) PrimaryAccentLime else InkPrimary
-                ),
-                modifier = Modifier
-                  .bounceClick {
-                    if (isDashboardEditMode) {
-                      DashboardLayoutManager.saveLayout(context, editOrder, editVisibility)
-                    }
-                    isDashboardEditMode = !isDashboardEditMode
+              LiquidGlassButton(
+                onClick = {
+                  if (isDashboardEditMode) {
+                    DashboardLayoutManager.saveLayout(context, editOrder, editVisibility)
                   }
-                  .testTag("home_edit_mode_btn")
-              )
+                  isDashboardEditMode = !isDashboardEditMode
+                },
+                modifier = Modifier.testTag("home_edit_mode_btn")
+              ) {
+                Text(
+                  text = if (isDashboardEditMode) "Done" else "Layout",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isDashboardEditMode) PrimaryAccentLime else InkPrimary
+                  )
+                )
+              }
             }
           },
           rightContent = {
@@ -274,7 +289,7 @@ fun HomeScreen(
               horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
               if (onNavigateToSearch != null) {
-                GlassButton(
+                LiquidGlassIconButton(
                   onClick = onNavigateToSearch,
                   contentDescription = "Search",
                   size = 38.dp,
@@ -289,7 +304,7 @@ fun HomeScreen(
                 }
               }
 
-              GlassButton(
+              LiquidGlassIconButton(
                 onClick = {
                   if (onNavigateToSettings != null) {
                     onNavigateToSettings()
@@ -355,14 +370,24 @@ fun HomeScreen(
           val isVisible = editVisibility[section] != false
           val isFirst = index == 0
           val isLast = index == editOrder.size - 1
+          val isBeingDragged = draggedSectionId == section.id
+          val dragScale by animateFloatAsState(
+            targetValue = if (isBeingDragged) 1.03f else 1.0f,
+            animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f),
+            label = "dragCardScale"
+          )
 
           SketchCard(
             modifier = Modifier
               .fillMaxWidth()
+              .graphicsLayer {
+                scaleX = dragScale
+                scaleY = dragScale
+              }
               .animateItem(),
             cornerRadius = InnerCornerRadius,
-            borderWidth = 1.dp,
-            borderColor = if (isVisible) CardBorder else CardBorder.copy(alpha = 0.4f)
+            borderWidth = if (isBeingDragged) 1.5.dp else 1.dp,
+            borderColor = if (isBeingDragged) InkPrimary else if (isVisible) CardBorder else CardBorder.copy(alpha = 0.4f)
           ) {
             Row(
               modifier = Modifier
@@ -371,6 +396,69 @@ fun HomeScreen(
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+              // Touch Drag Handle
+              Box(
+                modifier = Modifier
+                  .size(34.dp)
+                  .clip(CircleShape)
+                  .background(
+                    if (isBeingDragged) (if (isDark) Color(0x33FFFFFF) else Color(0x22000000))
+                    else Color.Transparent
+                  )
+                  .pointerInput(editOrder) {
+                    detectVerticalDragGestures(
+                      onDragStart = {
+                        draggedSectionId = section.id
+                        dragAccumulatedY = 0f
+                        com.example.util.VibrationHelper.tick(context)
+                      },
+                      onDragEnd = {
+                        draggedSectionId = null
+                        dragAccumulatedY = 0f
+                      },
+                      onDragCancel = {
+                        draggedSectionId = null
+                        dragAccumulatedY = 0f
+                      },
+                      onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        dragAccumulatedY += dragAmount
+                        val thresholdPx = 48.dp.toPx()
+                        val curIdx = editOrder.indexOfFirst { it.id == section.id }
+                        if (curIdx != -1) {
+                          if (dragAccumulatedY > thresholdPx && curIdx < editOrder.size - 1) {
+                            val newOrder = editOrder.toMutableList()
+                            val temp = newOrder[curIdx]
+                            newOrder[curIdx] = newOrder[curIdx + 1]
+                            newOrder[curIdx + 1] = temp
+                            editOrder = newOrder
+                            dragAccumulatedY = 0f
+                            com.example.util.VibrationHelper.tick(context)
+                            com.example.util.SoundManager.playSwipeNav(context)
+                          } else if (dragAccumulatedY < -thresholdPx && curIdx > 0) {
+                            val newOrder = editOrder.toMutableList()
+                            val temp = newOrder[curIdx]
+                            newOrder[curIdx] = newOrder[curIdx - 1]
+                            newOrder[curIdx - 1] = temp
+                            editOrder = newOrder
+                            dragAccumulatedY = 0f
+                            com.example.util.VibrationHelper.tick(context)
+                            com.example.util.SoundManager.playSwipeNav(context)
+                          }
+                        }
+                      }
+                    )
+                  },
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(
+                  imageVector = Icons.Default.DragHandle,
+                  contentDescription = "Drag to reorder",
+                  tint = if (isBeingDragged) InkPrimary else InkSecondary.copy(alpha = 0.6f),
+                  modifier = Modifier.size(20.dp)
+                )
+              }
+
               // Up / Down Reorder Arrows
               Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -378,7 +466,7 @@ fun HomeScreen(
               ) {
                 Box(
                   modifier = Modifier
-                    .size(28.dp)
+                    .size(26.dp)
                     .clip(CircleShape)
                     .background(if (!isFirst) (if (isDark) Color(0x18FFFFFF) else Color(0x10000000)) else Color.Transparent)
                     .clickable(enabled = !isFirst) {
@@ -389,6 +477,7 @@ fun HomeScreen(
                         newOrder[index - 1] = temp
                         editOrder = newOrder
                         com.example.util.VibrationHelper.tick(context)
+                        com.example.util.SoundManager.playSwipeNav(context)
                       }
                     },
                   contentAlignment = Alignment.Center
@@ -397,13 +486,13 @@ fun HomeScreen(
                     imageVector = Icons.Default.KeyboardArrowUp,
                     contentDescription = "Move Up",
                     tint = if (!isFirst) InkPrimary else InkSecondary.copy(alpha = 0.3f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                   )
                 }
 
                 Box(
                   modifier = Modifier
-                    .size(28.dp)
+                    .size(26.dp)
                     .clip(CircleShape)
                     .background(if (!isLast) (if (isDark) Color(0x18FFFFFF) else Color(0x10000000)) else Color.Transparent)
                     .clickable(enabled = !isLast) {
@@ -414,6 +503,7 @@ fun HomeScreen(
                         newOrder[index + 1] = temp
                         editOrder = newOrder
                         com.example.util.VibrationHelper.tick(context)
+                        com.example.util.SoundManager.playSwipeNav(context)
                       }
                     },
                   contentAlignment = Alignment.Center
@@ -422,7 +512,7 @@ fun HomeScreen(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Move Down",
                     tint = if (!isLast) InkPrimary else InkSecondary.copy(alpha = 0.3f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                   )
                 }
               }
@@ -562,82 +652,87 @@ fun HomeScreen(
         }
       } else {
         if (sectionVisibility[DashboardSection.BENTO_HERO] != false) {
-          // BENTO HERO DASHBOARD (OKLCH Ring Gauge + Momentum Flame)
+          // BENTO HERO DASHBOARD (Translucent Smoked Glass + Zero-Blur Optical Gauge)
           item {
-            BentoHeroCard(
+            LiquidGlassCard(
               modifier = Modifier
                 .fillMaxWidth()
                 .heroEntrance(delayMs = 100),
-              accentColor = OklchIndigo
+              shape = RoundedCornerShape(24.dp)
             ) {
-              Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+              Column(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(18.dp)
               ) {
-                // Circular Arc Progress Ring Gauge
-                CircularProgressGauge(
-                  progress = summary.overallProgress,
-                  modifier = Modifier.size(72.dp),
-                  strokeWidth = 7.dp,
-                  primaryColor = OklchIndigo,
-                  secondaryColor = OklchEmerald
-                )
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  // Authentic Zero-Blur Circular Progress Gauge
+                  LiquidGlassProgressIndicator(
+                    progress = summary.overallProgress,
+                    modifier = Modifier.size(72.dp),
+                    strokeWidth = 7.dp,
+                    progressColor = OklchIndigo
+                  )
 
-                Spacer(modifier = Modifier.width(16.dp))
+                  Spacer(modifier = Modifier.width(16.dp))
 
-                Column(modifier = Modifier.weight(1f)) {
-                  Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                  ) {
+                  Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.SpaceBetween,
+                      verticalAlignment = Alignment.CenterVertically
+                    ) {
+                      Text(
+                        text = "TODAY'S MOMENTUM",
+                        style = TextStyle(
+                          fontFamily = SFProFontFamily,
+                          fontSize = 11.sp,
+                          fontWeight = FontWeight.Bold,
+                          letterSpacing = 1.sp,
+                          color = OklchIndigo
+                        )
+                      )
+
+                      if (summary.maxStreak > 0) {
+                        StreakFlameBadge(streakCount = summary.maxStreak)
+                      }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
-                      text = "TODAY'S MOMENTUM",
+                      text = "${summary.tasksCompleted}/${summary.tasksTotal} Tasks • ${summary.habitsCompleted}/${summary.habitsTotal} Habits",
                       style = TextStyle(
                         fontFamily = SFProFontFamily,
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        color = OklchIndigo
+                        color = InkPrimary
                       )
                     )
 
-                    if (summary.maxStreak > 0) {
-                      StreakFlameBadge(streakCount = summary.maxStreak)
-                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Text(
+                      text = todayFormattedDate,
+                      style = TextStyle(
+                        fontSize = 12.sp,
+                        color = InkSecondary
+                      )
+                    )
                   }
-
-                  Spacer(modifier = Modifier.height(4.dp))
-
-                  Text(
-                    text = "${summary.tasksCompleted}/${summary.tasksTotal} Tasks • ${summary.habitsCompleted}/${summary.habitsTotal} Habits",
-                    style = TextStyle(
-                      fontFamily = SFProFontFamily,
-                      fontSize = 14.sp,
-                      fontWeight = FontWeight.Bold,
-                      color = InkPrimary
-                    )
-                  )
-
-                  Spacer(modifier = Modifier.height(2.dp))
-
-                  Text(
-                    text = todayFormattedDate,
-                    style = TextStyle(
-                      fontSize = 12.sp,
-                      color = InkSecondary
-                    )
-                  )
                 }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                SketchProgressBar(
+                  progress = summary.overallProgress,
+                  modifier = Modifier.fillMaxWidth(),
+                  height = 6.dp
+                )
               }
-
-              Spacer(modifier = Modifier.height(14.dp))
-
-              SketchProgressBar(
-                progress = summary.overallProgress,
-                modifier = Modifier.fillMaxWidth(),
-                height = 6.dp
-              )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -645,37 +740,62 @@ fun HomeScreen(
         }
 
         if (sectionVisibility[DashboardSection.QUICK_METRICS] != false) {
-          // QUICK METRICS 4-STAT ROW
+          // QUICK METRICS 4-STAT UNIFIED GLASS CAPSULE
           item {
-            SketchCard(
+            LiquidGlassCapsule(
               modifier = Modifier.fillMaxWidth(),
-              cornerRadius = OuterCornerRadius
+              shape = RoundedCornerShape(20.dp)
             ) {
               Row(
                 modifier = Modifier
                   .fillMaxWidth()
-                  .padding(horizontal = 16.dp, vertical = 14.dp),
+                  .padding(horizontal = 14.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
               ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Metric 1: Tasks
+                Column(
+                  modifier = Modifier.weight(1f),
+                  horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                   Text("TASKS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(2.dp))
+                  Spacer(modifier = Modifier.height(3.dp))
                   Text("${todayTasks.count { it.isCompleted }}/${todayTasks.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                Box(modifier = Modifier.width(0.75.dp).height(26.dp).background(Color(0x18FFFFFF)))
+
+                // Metric 2: Habits
+                Column(
+                  modifier = Modifier.weight(1f),
+                  horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                   Text("HABITS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(2.dp))
+                  Spacer(modifier = Modifier.height(3.dp))
                   Text("${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                Box(modifier = Modifier.width(0.75.dp).height(26.dp).background(Color(0x18FFFFFF)))
+
+                // Metric 3: Streak
+                Column(
+                  modifier = Modifier.weight(1f),
+                  horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                   Text("STREAK", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(2.dp))
+                  Spacer(modifier = Modifier.height(3.dp))
                   Text("${summary.maxStreak}d", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                Box(modifier = Modifier.width(0.75.dp).height(26.dp).background(Color(0x18FFFFFF)))
+
+                // Metric 4: Rate
+                Column(
+                  modifier = Modifier.weight(1f),
+                  horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                   Text("RATE", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(2.dp))
+                  Spacer(modifier = Modifier.height(3.dp))
                   Text("${(summary.overallProgress * 100).toInt()}%", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = OklchIndigo))
                 }
               }
@@ -742,9 +862,9 @@ fun HomeScreen(
         }
       }
 
-      // Filter Segment: [All] [Tasks] [Habits] - Apple Liquid Glass Segmented
+      // Filter Segment: [All] [Tasks] [Habits] - Liquid Glass Segmented with Gliding Curved Lens
       item {
-        GlassSegmented(
+        LiquidGlassSegmentedControl(
           items = listOf("All", "Tasks", "Habits"),
           selectedIndex = selectedTab,
           onItemSelected = { selectedTab = it },
@@ -796,20 +916,12 @@ fun HomeScreen(
               // Independent View Switcher (List / Grid)
               val isDarkTasksView = com.example.ui.theme.LocalAppColors.current.isDark
               val isGridTasks = todayTasksViewMode == "GRID"
-              Box(
-                modifier = Modifier
-                  .fluidLensedGlass(
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = if (isGridTasks) 1.dp else 0.dp,
-                    borderWidth = 0.6.dp,
-                    isElevated = isGridTasks,
-                    isInteractive = true,
-                    onClick = {
-                      val next = if (todayTasksViewMode == "GRID") "LIST" else "GRID"
-                      AppPreferences.setTodayTasksViewMode(context, next)
-                    }
-                  )
-                  .padding(horizontal = 9.dp, vertical = 4.dp)
+              LiquidGlassButton(
+                onClick = {
+                  val next = if (todayTasksViewMode == "GRID") "LIST" else "GRID"
+                  AppPreferences.setTodayTasksViewMode(context, next)
+                },
+                shape = RoundedCornerShape(10.dp)
               ) {
                 Text(
                   text = if (todayTasksViewMode == "GRID") "Grid" else "List",
@@ -821,8 +933,9 @@ fun HomeScreen(
                 )
               }
 
-              GlassButton(
+              LiquidGlassButton(
                 onClick = onNavigateToAddTask,
+                shape = RoundedCornerShape(10.dp),
                 icon = {
                   Icon(
                     imageVector = Icons.Default.Add,
@@ -915,14 +1028,14 @@ fun HomeScreen(
       if (sectionVisibility[DashboardSection.TIME_BLOCKS] != false) {
         // TIME BLOCKS SECTION
         item {
-          SketchCard(
+          LiquidGlassCard(
             modifier = Modifier.fillMaxWidth(),
-            cornerRadius = OuterCornerRadius
+            shape = RoundedCornerShape(24.dp)
           ) {
             Column(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(18.dp)
             ) {
               Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1035,20 +1148,12 @@ fun HomeScreen(
               // Independent View Switcher (List / Grid)
               val isDarkHabitsView = com.example.ui.theme.LocalAppColors.current.isDark
               val isGridHabits = todayHabitsViewMode == "GRID"
-              Box(
-                modifier = Modifier
-                  .fluidLensedGlass(
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = if (isGridHabits) 1.dp else 0.dp,
-                    borderWidth = 0.6.dp,
-                    isElevated = isGridHabits,
-                    isInteractive = true,
-                    onClick = {
-                      val next = if (todayHabitsViewMode == "GRID") "LIST" else "GRID"
-                      AppPreferences.setTodayHabitsViewMode(context, next)
-                    }
-                  )
-                  .padding(horizontal = 9.dp, vertical = 4.dp)
+              LiquidGlassButton(
+                onClick = {
+                  val next = if (todayHabitsViewMode == "GRID") "LIST" else "GRID"
+                  AppPreferences.setTodayHabitsViewMode(context, next)
+                },
+                shape = RoundedCornerShape(10.dp)
               ) {
                 Text(
                   text = if (todayHabitsViewMode == "GRID") "Grid" else "List",
@@ -1060,8 +1165,9 @@ fun HomeScreen(
                 )
               }
 
-              GlassButton(
+              LiquidGlassButton(
                 onClick = onNavigateToAddHabit,
+                shape = RoundedCornerShape(10.dp),
                 icon = {
                   Icon(
                     imageVector = Icons.Default.Add,

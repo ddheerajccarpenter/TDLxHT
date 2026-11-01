@@ -225,18 +225,72 @@ object ApkDownloadManager {
           throw Exception("Downloaded file is incomplete (${finalFile.length()} bytes)")
         }
 
-        // Verify package archive info
-        val pm = context.packageManager
-        val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          pm.getPackageArchiveInfo(finalFile.absolutePath, PackageManager.PackageInfoFlags.of(0))
-        } else {
-          @Suppress("DEPRECATION")
-          pm.getPackageArchiveInfo(finalFile.absolutePath, 0)
+        // 1. Validate SHA-256 digest if present in manifest
+        if (update.sha256.isNotBlank()) {
+          val actualSha = computeSha256(finalFile)
+          if (!actualSha.equals(update.sha256, ignoreCase = true)) {
+            finalFile.delete()
+            throw SecurityException("Security Violation: APK SHA-256 integrity mismatch. Expected ${update.sha256}, got $actualSha")
+          }
+          Log.i(TAG, "APK SHA-256 integrity verified successfully: $actualSha")
         }
 
-        if (pkgInfo != null && pkgInfo.packageName != context.packageName) {
+        // 2. Strict fail-closed package archive validation
+        val pm = context.packageManager
+        val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+          pm.getPackageArchiveInfo(finalFile.absolutePath, PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
+        } else {
+          @Suppress("DEPRECATION")
+          pm.getPackageArchiveInfo(finalFile.absolutePath, PackageManager.GET_SIGNATURES)
+        }
+
+        if (pkgInfo == null) {
           finalFile.delete()
-          throw Exception("Package mismatch: expected ${context.packageName}, got ${pkgInfo.packageName}")
+          throw SecurityException("Security Violation: Downloaded file is corrupt or not a valid Android package archive.")
+        }
+
+        if (pkgInfo.packageName != context.packageName) {
+          finalFile.delete()
+          throw SecurityException("Security Violation: Package name mismatch. Expected ${context.packageName}, got ${pkgInfo.packageName}")
+        }
+
+        // 3. Verify APK signing certificate matches installed application
+        try {
+          val currentPkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
+          } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES)
+          }
+
+          val currentSignatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            currentPkgInfo.signingInfo?.apkContentsSigners
+          } else {
+            @Suppress("DEPRECATION")
+            currentPkgInfo.signatures
+          }
+
+          val downloadedSignatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            pkgInfo.signingInfo?.apkContentsSigners
+          } else {
+            @Suppress("DEPRECATION")
+            pkgInfo.signatures
+          }
+
+          if (currentSignatures != null && downloadedSignatures != null) {
+            val currentCertBytes = currentSignatures.firstOrNull()?.toByteArray()
+            val downloadedCertBytes = downloadedSignatures.firstOrNull()?.toByteArray()
+            if (currentCertBytes != null && downloadedCertBytes != null) {
+              if (!currentCertBytes.contentEquals(downloadedCertBytes)) {
+                finalFile.delete()
+                throw SecurityException("Security Violation: APK signing certificate mismatch. Refusing installation.")
+              }
+            }
+          }
+        } catch (se: SecurityException) {
+          throw se
+        } catch (e: Exception) {
+          Log.w(TAG, "Signing certificate pre-check skipped: ${e.message}")
         }
 
         Log.d(TAG, "Download and verification succeeded: ${finalFile.absolutePath} (${finalFile.length()} bytes)")
@@ -291,6 +345,18 @@ object ApkDownloadManager {
     } catch (e: Exception) {
       Log.e(TAG, "Failed to launch package installer", e)
       _downloadState.value = ApkDownloadState.Failed("Could not open package installer: ${e.message}")
+    }
+  }
+
+  private fun computeSha256(file: File): String {
+    return try {
+      val md = java.security.MessageDigest.getInstance("SHA-256")
+      file.forEachBlock { buffer, bytesRead ->
+        md.update(buffer, 0, bytesRead)
+      }
+      md.digest().joinToString("") { "%02x".format(it) }
+    } catch (e: Exception) {
+      ""
     }
   }
 }

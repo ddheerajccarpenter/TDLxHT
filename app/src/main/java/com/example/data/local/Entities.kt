@@ -20,6 +20,7 @@ data class TaskEntity(
   val repeatRule: String, // RepeatRule
   val repeatDaysJson: String,
   val isShortTerm: Boolean = false,
+  val completedDate: String? = null, // YYYY-MM-DD
   val creationTimestamp: Long,
   val updatedTimestamp: Long
 )

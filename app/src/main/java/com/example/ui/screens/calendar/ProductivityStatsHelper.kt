@@ -127,7 +127,7 @@ object ProductivityStatsHelper {
     val taskCompletionByDay = daysForTrend.map { date ->
       val dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
       val label = date.format(DateTimeFormatter.ofPattern("EEE"))
-      val count = tasks.count { it.dueDate == dateStr && it.isCompleted }
+      val count = tasks.count { it.isCompleted && (it.completedDate == dateStr || (it.completedDate == null && it.dueDate == dateStr)) }
       Pair(label, count)
     }
 

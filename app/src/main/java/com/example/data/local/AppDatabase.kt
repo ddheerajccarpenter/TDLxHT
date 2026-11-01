@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
     HabitCompletionRecordEntity::class,
     SettingsEntity::class
   ],
-  version = 3,
+  version = 4,
   exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,6 +41,16 @@ abstract class AppDatabase : RoomDatabase() {
       }
     }
 
+    val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+      override fun migrate(db: SupportSQLiteDatabase) {
+        try {
+          db.execSQL("ALTER TABLE tasks ADD COLUMN completedDate TEXT DEFAULT NULL")
+        } catch (e: Exception) {
+          com.example.util.SafeLog.w("AppDatabase", "MIGRATION_3_4: completedDate column already exists or error", e)
+        }
+      }
+    }
+
     fun getDatabase(context: Context): AppDatabase {
       return INSTANCE ?: synchronized(this) {
         val instance = Room.databaseBuilder(
@@ -49,7 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
           "habit_task_database"
         )
           .addCallback(DatabaseCallback())
-          .addMigrations(MIGRATION_2_3)
+          .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
           .fallbackToDestructiveMigration(true)
           .build()
         INSTANCE = instance

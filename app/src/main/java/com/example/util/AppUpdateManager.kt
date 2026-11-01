@@ -25,7 +25,8 @@ data class AppUpdateInfo(
   val filename: String,
   val apkUrl: String,
   val fallbackUrl: String = "/TDlxHT.apk",
-  val releaseDate: String = ""
+  val releaseDate: String = "",
+  val sha256: String = ""
 ) {
   val fullDownloadUrl: String
     get() {
@@ -71,6 +72,7 @@ object AppUpdateManager {
       val apkUrl = json.optString("apkUrl", "/TDlxHT.apk")
       val fallbackUrl = json.optString("fallbackUrl", "/TDlxHT.apk")
       val releaseDate = json.optString("releaseDate", "")
+      val sha256 = json.optString("sha256", "")
 
       val currentVersionCode = BuildConfig.VERSION_CODE
       Log.d(TAG, "Current versionCode: $currentVersionCode, remote versionCode: $remoteVersionCode")
@@ -82,7 +84,8 @@ object AppUpdateManager {
           filename = filename,
           apkUrl = apkUrl,
           fallbackUrl = fallbackUrl,
-          releaseDate = releaseDate
+          releaseDate = releaseDate,
+          sha256 = sha256
         )
       } else {
         return@withContext null

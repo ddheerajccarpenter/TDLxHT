@@ -69,7 +69,7 @@ object MonthlyDotMatrixRenderer {
             val date = yearMonth.atDay(day)
             val dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
-            val tasksDone = tasks.count { it.dueDate == dateStr && it.isCompleted }
+            val tasksDone = tasks.count { it.isCompleted && (it.completedDate == dateStr || (it.completedDate == null && it.dueDate == dateStr)) }
             val habitsDone = records.count { it.date == dateStr && it.isCompleted }
             activityMap[date] = tasksDone + habitsDone
         }

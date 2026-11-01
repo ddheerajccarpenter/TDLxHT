@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -383,12 +384,17 @@ fun PredictiveNavigationHost(
         content(currentDest)
       }
     } else {
+      LaunchedEffect(currentDest) {
+        if (navController.skipNextTransition) {
+          navController.skipNextTransition = false
+        }
+      }
+
       // Standard forward/backward transitions when not actively dragging in gesture
       AnimatedContent(
         targetState = currentDest,
         transitionSpec = {
           if (navController.skipNextTransition) {
-            navController.skipNextTransition = false
             EnterTransition.None togetherWith ExitTransition.None
           } else {
             val zIndex = if (navController.isForwardNavigation) 1f else 0f
