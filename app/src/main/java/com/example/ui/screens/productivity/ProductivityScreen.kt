@@ -1,10 +1,13 @@
 package com.example.ui.screens.productivity
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +38,7 @@ import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.ui.components.GlassSegmented
 import com.example.ui.components.paperDotBackground
+import com.example.ui.navigation.horizontalSwipeNavigation
 import com.example.ui.screens.calendar.CalendarScreen
 import com.example.ui.screens.habits.HabitListScreen
 import com.example.ui.screens.tasks.TaskListScreen
@@ -50,9 +54,14 @@ fun ProductivityScreen(
   onTaskClick: (Task) -> Unit,
   onHabitClick: (Habit) -> Unit,
   onBackToHome: () -> Unit,
+  onSwipeToTools: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   var selectedTab by remember { mutableIntStateOf(0) } // 0: Tasks, 1: Habits, 2: Calendar
+
+  BackHandler(enabled = selectedTab > 0) {
+    selectedTab = 0
+  }
 
   val isDark = isSystemInDarkTheme()
   val separatorBrush = remember(isDark) {
@@ -79,13 +88,34 @@ fun ProductivityScreen(
     modifier = modifier
       .fillMaxSize()
       .paperDotBackground()
+      .horizontalSwipeNavigation(
+        onSwipeLeft = {
+          if (selectedTab < 2) {
+            selectedTab += 1
+          } else {
+            onSwipeToTools?.invoke()
+          }
+        },
+        onSwipeRight = {
+          if (selectedTab > 0) {
+            selectedTab -= 1
+          } else {
+            onBackToHome()
+          }
+        }
+      )
   ) {
     // Tab Content (Tasks / Habits / Calendar)
     AnimatedContent(
       targetState = selectedTab,
       transitionSpec = {
-        fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing)) togetherWith
-          fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing))
+        if (targetState > initialState) {
+          (slideInHorizontally { (it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
+            (slideOutHorizontally { (-it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
+        } else {
+          (slideInHorizontally { (-it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
+            (slideOutHorizontally { (it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
+        }
       },
       label = "productivityTab",
       modifier = Modifier.fillMaxSize()

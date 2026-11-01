@@ -45,16 +45,21 @@ This ledger tracks all identified, audited, resolved, and verified defects acros
 | **BUG-25** | `PredictiveNavigation.kt` | Committing a Predictive Back gesture caused an immediate secondary backward exit animation and intermediate black frames. | **P1** | When `popBackStackDirect()` popped the stack and `isPredictingBack` turned false, `AnimatedContent` observed the destination change and started a redundant transition. | Added `skipNextTransition = true` upon gesture completion, triggering `EnterTransition.None togetherWith ExitTransition.None`. | **Verified** |
 | **BUG-26** | `MainActivity.kt` | Bottom navigation dock recomposed on every pixel of horizontal scroll, causing noticeable touch lag. | **P2** | `LiquidGlassNavItem` computed continuous layout offset fractions from `pagerState.currentPageOffsetFraction`. | Refactored `LiquidGlassNavItem` to accept a stable boolean `isSelected: Boolean`, moving active indicator animations entirely to GPU RenderNode properties. | **Verified** |
 | **BUG-27** | `SketchComponents.kt` | Entrance animations (`heroEntrance`, `sectionEntrance`, `staggeredEntrance`, `pulseEntrance`) reset to alpha 0 and re-animated on recomposition. | **P2** | Local state used plain `remember { mutableStateOf(false) }`, losing the appearance flag when items were unmounted or recycled. | Converted appearance flags to `rememberSaveable { mutableStateOf(false) }`, guaranteeing entrance animations execute exactly once per item lifecycle. | **Verified** |
+| **BUG-28** | `TaskDetailEditScreen.kt` | Editing existing task (e.g. `App update`) showed false "Please enter a task name" error and cleared input state. | **P1** | Form state variables used un-keyed `remember { mutableStateOf(...) }`, retaining stale or empty values upon recomposition. | Keyed all form `remember` calls by `existingTask?.id` and added `LaunchedEffect(existingTask?.id)` for 100% reliable state synchronization. | **Verified** |
+| **BUG-29** | `TaskDetailEditScreen.kt` | Due date calendar grid was hardcoded to 35 cells (5 rows × 7), truncating days 30 and 31 on 6-row months (e.g. Aug 2026 starting on Sat). | **P1** | `totalCells = 35` was fixed regardless of first-day offset + month length. | Dynamically computed `totalCells = if (dayOfWeekOffset + daysInMonth > 35) 42 else 35` and `rows = totalCells / 7`. | **Verified** |
+| **BUG-30** | `HomeScreen.kt` | Completed tasks displayed with low contrast (double attenuation: 0.70f card alpha + muted gray text), failing WCAG readability. | **P2** | Layered opacity reduction made strikethrough text excessively washed out on dark and light glass canvases. | Standardized `cardAlpha = 0.92f` and set `textColor = if (isCompleted) InkSecondary else InkPrimary`, maintaining crisp > 4.5:1 contrast. | **Verified** |
+| **BUG-31** | `SketchComponents.kt` | Unchecked `SketchCheckbox` rendered a dashed circular stroke that resembled a frozen or broken loading spinner. | **P3** | `PathEffect.dashPathEffect` was used for the idle ring state, visually miscommunicating pending background progress. | Replaced dashed path with a clean, solid circular rim (`Stroke(width = strokeWidth, cap = StrokeCap.Round)`). | **Verified** |
+| **BUG-32** | `MainActivity.kt` & `ProductivityScreen.kt` | Lack of horizontal swipe navigation between primary tabs and productivity subtabs; bottom dock indicator did not follow user touch. | **P1** | Touch events only responded to discrete tap clicks; no swipe modifier or continuous drag tracking was implemented. | Built `horizontalSwipeNavigation` with directional arbitration (`dx > 1.5 * dy`) and 28dp edge exclusion; implemented direct 1:1 finger-tracking draggable glass indicator dock clamped between tabs 0..3 with release spring snap. | **Verified** |
 
 ---
 
 ## 3. Bug Resolution Summary
 
-* **Total Issues Audited:** 27
+* **Total Issues Audited:** 32
 * **P0 Issues Resolved:** 1 (100%)
-* **P1 Issues Resolved:** 11 (100%)
-* **P2 Issues Resolved:** 11 (100%)
-* **P3 Issues Resolved:** 4 (100%)
-* **Total Issues Verified:** 27 / 27 (100%)
+* **P1 Issues Resolved:** 14 (100%)
+* **P2 Issues Resolved:** 12 (100%)
+* **P3 Issues Resolved:** 5 (100%)
+* **Total Issues Verified:** 32 / 32 (100%)
 * **Remaining Unresolved Issues:** 0
 

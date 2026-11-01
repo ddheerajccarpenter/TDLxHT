@@ -1987,20 +1987,14 @@ fun SketchCheckbox(
         val arcSize = androidx.compose.ui.geometry.Size(diameter, diameter)
 
         if (!checked) {
-          // ProgressRingCheck Idle State: 8 subtle dashed intervals around the ring
-          val circumference = Math.PI.toFloat() * diameter
-          val dashLen = circumference / 16f
-          drawArc(
+          // ProgressRingCheck Idle State: Solid refined circular rim
+          drawCircle(
             color = ringColor,
-            startAngle = -90f,
-            sweepAngle = 360f,
-            useCenter = false,
-            topLeft = topLeftOffset,
-            size = arcSize,
+            radius = diameter / 2f,
+            center = center,
             style = Stroke(
               width = strokeWidth,
-              cap = StrokeCap.Round,
-              pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLen, dashLen * 1.2f), 0f)
+              cap = StrokeCap.Round
             )
           )
         } else {

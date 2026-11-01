@@ -153,7 +153,7 @@ fun HomeScreen(
   val todayFormattedDate = today.format(DateTimeFormatter.ofPattern("EEE, MMM d", Locale.getDefault()))
 
   val todayTasks = remember(tasks, today) {
-    tasks.filter { it.isDueToday(today) && !(it.isShortTerm && it.isCompleted) }
+    tasks.filter { it.isDueToday(today) }
   }
 
   val todayHabits = remember(habits, today) {
@@ -845,12 +845,12 @@ fun TaskItemCard(
   modifier: Modifier = Modifier
 ) {
   val textColor by animateColorAsState(
-    targetValue = if (task.isCompleted) InkMuted else InkPrimary,
+    targetValue = if (task.isCompleted) InkSecondary else InkPrimary,
     animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
     label = "taskTextCol"
   )
   val cardAlpha by animateFloatAsState(
-    targetValue = if (task.isCompleted) 0.70f else 1.0f,
+    targetValue = if (task.isCompleted) 0.92f else 1.0f,
     animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
     label = "taskAlpha"
   )

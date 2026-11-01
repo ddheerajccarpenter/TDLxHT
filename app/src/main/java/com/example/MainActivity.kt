@@ -19,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -40,6 +41,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.lerp
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import com.example.ui.navigation.horizontalSwipeNavigation
 import com.example.util.AppPreferences
 import com.example.util.ShakeDetector
 import com.example.util.VibrationHelper
@@ -424,6 +431,18 @@ fun MainApp(
               modifier = Modifier
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
+                .horizontalSwipeNavigation(
+                  onSwipeLeft = {
+                    if (navController.selectedTab < destinations.size - 1) {
+                      navController.switchTab(navController.selectedTab + 1)
+                    }
+                  },
+                  onSwipeRight = {
+                    if (navController.selectedTab > 0) {
+                      navController.switchTab(navController.selectedTab - 1)
+                    }
+                  }
+                )
             ) {
               AnimatedContent(
                 targetState = navController.selectedTab,
@@ -467,7 +486,8 @@ fun MainApp(
                       onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
                       onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
                       onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
-                      onBackToHome = { navController.switchTab(0) }
+                      onBackToHome = { navController.switchTab(0) },
+                      onSwipeToTools = { navController.switchTab(2) }
                     )
                   }
                   AppDestination.TOOLS -> {
@@ -1296,6 +1316,32 @@ fun SketchBottomNavigationBar(
 ) {
   val context = LocalContext.current
   val isDark = com.example.ui.theme.LocalAppColors.current.isDark
+  val density = LocalDensity.current
+  val coroutineScope = rememberCoroutineScope()
+
+  var tabsWidthPx by remember { mutableFloatStateOf(0f) }
+  val slotWidth = if (tabsWidthPx > 0f) tabsWidthPx / 4f else 0f
+  val indicatorX = remember { Animatable(0f) }
+  var isDragging by remember { mutableStateOf(false) }
+  var lastHapticTab by remember { mutableIntStateOf(selectedTab) }
+
+  // Synchronize indicator position with selectedTab when not dragging
+  LaunchedEffect(selectedTab, slotWidth) {
+    if (!isDragging && slotWidth > 0f) {
+      val targetX = slotWidth * (selectedTab + 0.5f)
+      indicatorX.animateTo(
+        targetValue = targetX,
+        animationSpec = spring(dampingRatio = 0.72f, stiffness = 420f)
+      )
+    }
+  }
+
+  // Snap to initial position on first layout
+  LaunchedEffect(slotWidth) {
+    if (slotWidth > 0f && indicatorX.value == 0f) {
+      indicatorX.snapTo(slotWidth * (selectedTab + 0.5f))
+    }
+  }
 
   Box(
     modifier = Modifier
@@ -1325,53 +1371,142 @@ fun SketchBottomNavigationBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        // Tab 0: Home (weight 1f)
-        LiquidGlassNavItem(
-          modifier = Modifier.weight(1f),
-          destination = destinations[0],
-          isSelected = selectedTab == 0,
-          isDark = isDark,
-          onClick = {
-            VibrationHelper.tick(context)
-            onDestinationSelected(destinations[0])
-          }
-        )
+        // Tab strip area (weight 1f) — handles direct 1:1 finger tracking, clamped to tabs 0..3
+        Box(
+          modifier = Modifier
+            .weight(1f)
+            .height(48.dp)
+            .onSizeChanged { tabsWidthPx = it.width.toFloat() }
+            .pointerInput(slotWidth, destinations) {
+              if (slotWidth <= 0f) return@pointerInput
+              val minX = slotWidth * 0.5f
+              val maxX = slotWidth * 3.5f
+              val touchSlop = viewConfiguration.touchSlop
 
-        // Tab 1: Productivity (weight 1f)
-        LiquidGlassNavItem(
-          modifier = Modifier.weight(1f),
-          destination = destinations[1],
-          isSelected = selectedTab == 1,
-          isDark = isDark,
-          onClick = {
-            VibrationHelper.tick(context)
-            onDestinationSelected(destinations[1])
-          }
-        )
+              awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false)
+                var dragStarted = false
+                var totalDx = 0f
+                var totalDy = 0f
 
-        // Tab 2: Tools (weight 1f)
-        LiquidGlassNavItem(
-          modifier = Modifier.weight(1f),
-          destination = destinations[2],
-          isSelected = selectedTab == 2,
-          isDark = isDark,
-          onClick = {
-            VibrationHelper.tick(context)
-            onDestinationSelected(destinations[2])
-          }
-        )
+                do {
+                  val event = awaitPointerEvent()
+                  val change = event.changes.firstOrNull { it.id == down.id } ?: break
 
-        // Tab 3: Insights (weight 1f)
-        LiquidGlassNavItem(
-          modifier = Modifier.weight(1f),
-          destination = destinations[3],
-          isSelected = selectedTab == 3,
-          isDark = isDark,
-          onClick = {
-            VibrationHelper.tick(context)
-            onDestinationSelected(destinations[3])
+                  val dx = change.position.x - change.previousPosition.x
+                  val dy = change.position.y - change.previousPosition.y
+                  totalDx += dx
+                  totalDy += dy
+
+                  if (!dragStarted) {
+                    if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
+                      dragStarted = true
+                      isDragging = true
+                      change.consume()
+                    }
+                  }
+
+                  if (dragStarted) {
+                    change.consume()
+                    val targetX = change.position.x.coerceIn(minX, maxX)
+                    coroutineScope.launch {
+                      indicatorX.snapTo(targetX)
+                    }
+
+                    val currentTab = ((targetX / slotWidth) - 0.5f).roundToInt().coerceIn(0, 3)
+                    if (currentTab != lastHapticTab) {
+                      lastHapticTab = currentTab
+                      VibrationHelper.tick(context)
+                    }
+                  }
+                } while (event.changes.any { it.pressed })
+
+                if (dragStarted) {
+                  isDragging = false
+                  val finalTab = ((indicatorX.value / slotWidth) - 0.5f).roundToInt().coerceIn(0, 3)
+                  onDestinationSelected(destinations[finalTab])
+                  VibrationHelper.tick(context)
+                  coroutineScope.launch {
+                    indicatorX.animateTo(
+                      slotWidth * (finalTab + 0.5f),
+                      spring(dampingRatio = 0.72f, stiffness = 420f)
+                    )
+                  }
+                } else {
+                  // Direct tap detected
+                  val tappedTab = (down.position.x / slotWidth).toInt().coerceIn(0, 3)
+                  VibrationHelper.tick(context)
+                  onDestinationSelected(destinations[tappedTab])
+                  coroutineScope.launch {
+                    indicatorX.animateTo(
+                      slotWidth * (tappedTab + 0.5f),
+                      spring(dampingRatio = 0.72f, stiffness = 420f)
+                    )
+                  }
+                }
+              }
+            },
+          contentAlignment = Alignment.CenterStart
+        ) {
+          // 1. Sliding Liquid Glass Capsule (RenderNode GPU-only, no remeasure)
+          if (slotWidth > 0f) {
+            val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 40.dp.toPx() })
+            val capsuleWidthDp = with(density) { capsuleWidthPx.toDp() }
+
+            Box(
+              modifier = Modifier
+                .width(capsuleWidthDp)
+                .height(42.dp)
+                .graphicsLayer {
+                  translationX = indicatorX.value - (capsuleWidthPx / 2f)
+                }
+                .fluidLensedGlass(
+                  shape = CircleShape,
+                  elevation = if (isDark) 2.dp else 1.dp,
+                  borderWidth = 0.6.dp,
+                  isElevated = true
+                )
+            )
           }
-        )
+
+          // 2. Navigation Tab Icons Row
+          Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            destinations.take(4).forEachIndexed { index, destination ->
+              val activeColor = if (isDark) InkWashIvory else InkWashCharcoal
+              val inactiveColor = if (isDark) InkWashMist.copy(alpha = 0.50f) else InkWashCharcoal.copy(alpha = 0.45f)
+
+              val tabCenterX = if (slotWidth > 0f) slotWidth * (index + 0.5f) else 0f
+              val dist = if (slotWidth > 0f) abs(indicatorX.value - tabCenterX) / slotWidth else if (selectedTab == index) 0f else 1f
+              val proximity = (1f - dist).coerceIn(0f, 1f)
+              val iconTint = lerp(inactiveColor, activeColor, proximity)
+              val iconScale = 1.0f + 0.12f * proximity
+              val isSelected = proximity > 0.5f
+
+              Box(
+                modifier = Modifier
+                  .weight(1f)
+                  .fillMaxHeight()
+                  .testTag("nav_${destination.name.lowercase()}"),
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(
+                  imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
+                  contentDescription = destination.label,
+                  tint = iconTint,
+                  modifier = Modifier
+                    .size(23.dp)
+                    .graphicsLayer {
+                      scaleX = iconScale
+                      scaleY = iconScale
+                    }
+                )
+              }
+            }
+          }
+        }
 
         // Far-Right Quick Add (+) Button — Apple Liquid Glass Circular Button with Kern Elastic Rotation
         val fabRotation by animateFloatAsState(
@@ -1405,81 +1540,6 @@ fun SketchBottomNavigationBar(
         }
       }
     }
-  }
-}
-
-@Composable
-private fun LiquidGlassNavItem(
-  modifier: Modifier = Modifier,
-  destination: AppDestination,
-  isSelected: Boolean,
-  isDark: Boolean,
-  onClick: () -> Unit
-) {
-  val activeColor = if (isDark) InkWashIvory else InkWashCharcoal
-  val inactiveColor = if (isDark) InkWashMist.copy(alpha = 0.50f) else InkWashCharcoal.copy(alpha = 0.45f)
-
-  // Liquid capsule animated presence using pure GPU RenderNode transforms (zero layout remeasurement!)
-  val liquidAlpha by animateFloatAsState(
-    targetValue = if (isSelected) 1f else 0f,
-    animationSpec = spring(dampingRatio = 0.80f, stiffness = 450f),
-    label = "liquidAlpha"
-  )
-  val liquidScale by animateFloatAsState(
-    targetValue = if (isSelected) 1f else 0.84f,
-    animationSpec = spring(dampingRatio = 0.65f, stiffness = 420f),
-    label = "liquidScale"
-  )
-  val iconScale by animateFloatAsState(
-    targetValue = if (isSelected) 1.10f else 1.0f,
-    animationSpec = spring(dampingRatio = 0.58f, stiffness = 450f),
-    label = "iconScale"
-  )
-
-  Box(
-    modifier = modifier
-      .height(48.dp)
-      .clip(CircleShape)
-      .elasticStretchPress(
-        horizontalStretch = 1.06f,
-        verticalSquash = 0.93f,
-        onClick = onClick
-      )
-      .testTag("nav_${destination.name.lowercase()}"),
-    contentAlignment = Alignment.Center
-  ) {
-    // 1. Sliding Liquid Glass Capsule (RenderNode GPU-only, no remeasure)
-    if (liquidAlpha > 0.01f) {
-      Box(
-        modifier = Modifier
-          .fillMaxWidth(0.92f)
-          .height(42.dp)
-          .graphicsLayer {
-            alpha = liquidAlpha
-            scaleX = liquidScale
-            scaleY = liquidScale
-          }
-          .fluidLensedGlass(
-            shape = CircleShape,
-            elevation = if (isDark) 2.dp else 1.dp,
-            borderWidth = 0.6.dp,
-            isElevated = true
-          )
-      )
-    }
-
-    // 2. Icon Only (Centered, No text labels, accessible contentDescription)
-    Icon(
-      imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
-      contentDescription = destination.label,
-      tint = if (isSelected) activeColor else inactiveColor,
-      modifier = Modifier
-        .size(23.dp)
-        .graphicsLayer {
-          scaleX = iconScale
-          scaleY = iconScale
-        }
-    )
   }
 }
 

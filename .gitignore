@@ -29,4 +29,10 @@ scratch/
 !/README.md
 !/design.md
 !/technical.md
+!/BUGS.md
+!/ANIMATION_AUDIT.md
+!/RELEASE_NOTES.md
+!/GESTURE_NAVIGATION_AUDIT.md
+!/WORKFLOW_CONNECTIVITY_AUDIT.md
+!/TEST_REPORT.md
 .neon

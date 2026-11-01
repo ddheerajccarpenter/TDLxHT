@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary
 
-This document provides a comprehensive technical audit of the motion, transitions, physics curves, and animation lifecycle across **TDlxHT v2.5.7**.
+This document provides a comprehensive technical audit of the motion, transitions, physics curves, and animation lifecycle across **TDlxHT v2.5.8**.
 
 Prior releases suffered from animation resets, ghosting at 30% alpha, frame drops during scroll, and duplicate simultaneous transitions caused by dual router contention (`PredictiveNavigationHost` vs `HorizontalPager`). This audit certifies the transition specs, layer depth ordering, and hardware-accelerated RenderNode mechanics established in the unified navigation overhaul.
 
@@ -74,6 +74,19 @@ During edge swipe navigation on Android 14+ (API 34+), the two-layer physical mo
 | `sectionEntrance` | Section headers ("TODAY'S TASKS", etc.) | Slide and fade restarted when scrolling back into view | Persisted via `rememberSaveable { mutableStateOf(false) }` |
 | `staggeredEntrance` | List items and options | Reset to alpha 0 and slid repeatedly on lazy recycling | Uses indexed `rememberSaveable(index) { mutableStateOf(false) }` |
 | `pulseEntrance` | Streak flame badges and achievement chips | Scaled up and down on list redraws | Persisted via `rememberSaveable { mutableStateOf(false) }` |
+
+---
+
+### 2.5 Draggable Liquid Glass Indicator & Horizontal Swipe Navigation Dynamics
+
+In **TDlxHT v2.5.8**, the bottom dock and screen body incorporate real-time physical touch tracking:
+
+| Gesture / Animation Component | Physics Model | Specifications & Math | Hardware Acceleration |
+| :--- | :--- | :--- | :--- |
+| **Draggable Stadium Glass Lens** | Real-time direct touch tracking with release snap | Drag tracking: `indicatorX.snapTo(x.coerceIn(minX, maxX))`<br>Release snap: `spring(dampingRatio = 0.72f, stiffness = 420f)` | Single RenderNode lens with `graphicsLayer { translationX = ... }`; zero layout remeasurement |
+| **Tab Icon Proximity Lens Morph** | Proximity curve $\text{clamp}(1 - d / W, 0, 1)$ | Scale: $1.0 \to 1.12$, Color: `lerp(Inactive, Active, proximity)`, Icon: Filled when $>0.5$ | RenderNode `scaleX/scaleY` transforms + color lerp without layout passes |
+| **Global Horizontal Screen Swipe** | Touch slop + directional ratio arbitration | `abs(dx) > 1.5 * abs(dy)` and $|dx| > 56\text{dp}$ activation threshold; 28dp edge margins guarded | Directional slide transitions with `slideInHorizontally` + `fadeIn` |
+| **Productivity Subtab Transition** | Directional momentum | Forward: `slideInHorizontally(+25%)`<br>Backward: `slideInHorizontally(-25%)` | GPU accelerated `AnimatedContent` with boundary delegation |
 
 ---
 

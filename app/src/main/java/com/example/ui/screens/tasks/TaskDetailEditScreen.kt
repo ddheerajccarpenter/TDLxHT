@@ -34,6 +34,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -100,43 +101,43 @@ fun TaskDetailEditScreen(
   val context = LocalContext.current
   val isEditing = existingTask != null
 
-  var title by remember { mutableStateOf(existingTask?.title ?: initialTitle) }
-  var titleError by remember { mutableStateOf<String?>(null) }
-  var notes by remember { mutableStateOf(existingTask?.notes ?: initialNotes) }
-  var isShortTerm by remember { mutableStateOf(existingTask?.isShortTerm ?: initialIsShortTerm) }
+  var title by remember(existingTask?.id) { mutableStateOf(existingTask?.title ?: initialTitle) }
+  var titleError by remember(existingTask?.id) { mutableStateOf<String?>(null) }
+  var notes by remember(existingTask?.id) { mutableStateOf(existingTask?.notes ?: initialNotes) }
+  var isShortTerm by remember(existingTask?.id) { mutableStateOf(existingTask?.isShortTerm ?: initialIsShortTerm) }
 
   val defaultCategories = listOf("Work", "Personal", "Urgent!", "Study", "Shopping", "College")
   val initialIsCustom = existingTask != null && !defaultCategories.contains(existingTask.category)
-  var selectedCategory by remember { mutableStateOf(if (initialIsCustom) "Other" else (existingTask?.category ?: "Work")) }
-  var customCategoryText by remember { mutableStateOf(if (initialIsCustom) existingTask?.category ?: "" else "") }
+  var selectedCategory by remember(existingTask?.id) { mutableStateOf(if (initialIsCustom) "Other" else (existingTask?.category ?: "Work")) }
+  var customCategoryText by remember(existingTask?.id) { mutableStateOf(if (initialIsCustom) existingTask?.category ?: "" else "") }
 
-  var priority by remember { mutableStateOf(existingTask?.priority ?: TaskPriority.MEDIUM) }
-  var repeatRule by remember { mutableStateOf(existingTask?.repeatRule ?: RepeatRule.NONE) }
+  var priority by remember(existingTask?.id) { mutableStateOf(existingTask?.priority ?: TaskPriority.MEDIUM) }
+  var repeatRule by remember(existingTask?.id) { mutableStateOf(existingTask?.repeatRule ?: RepeatRule.NONE) }
 
   // Initial selected date
-  val initialDate = remember(existingTask) {
+  val initialDate = remember(existingTask?.id) {
     if (existingTask != null) {
       try { LocalDate.parse(existingTask.dueDate, DateTimeFormatter.ISO_LOCAL_DATE) } catch (e: Exception) { LocalDate.now() }
     } else {
       LocalDate.now()
     }
   }
-  var selectedDate by remember { mutableStateOf(initialDate) }
-  var displayMonth by remember { mutableStateOf(YearMonth.from(initialDate)) }
+  var selectedDate by remember(existingTask?.id) { mutableStateOf(initialDate) }
+  var displayMonth by remember(existingTask?.id) { mutableStateOf(YearMonth.from(initialDate)) }
 
-  var dueTime by remember { mutableStateOf(existingTask?.dueTime ?: "10:00") }
-  var reminderEnabled by remember {
+  var dueTime by remember(existingTask?.id) { mutableStateOf(existingTask?.dueTime ?: "10:00") }
+  var reminderEnabled by remember(existingTask?.id) {
     mutableStateOf(existingTask?.reminderSetting != null && existingTask.reminderSetting != ReminderOption.NONE)
   }
-  var reminderOption by remember {
+  var reminderOption by remember(existingTask?.id) {
     mutableStateOf(if (existingTask?.reminderSetting != ReminderOption.NONE) existingTask?.reminderSetting ?: ReminderOption.MIN_15 else ReminderOption.MIN_15)
   }
 
   // Subtasks list
-  val existingSubtasks = remember(existingTask) {
+  val existingSubtasks = remember(existingTask?.id) {
     if (existingTask != null) viewModel.getSubtasksForTask(existingTask.id) else emptyList()
   }
-  val subtaskList = remember {
+  val subtaskList = remember(existingTask?.id) {
     mutableStateListOf<Subtask>().apply { addAll(existingSubtasks) }
   }
   var newSubtaskText by remember { mutableStateOf("") }
@@ -144,6 +145,28 @@ fun TaskDetailEditScreen(
 
   val settings by viewModel.settings.collectAsStateWithLifecycle()
   var isSaving by remember { mutableStateOf(false) }
+
+  LaunchedEffect(existingTask?.id) {
+    if (existingTask != null) {
+      title = existingTask.title
+      titleError = null
+      notes = existingTask.notes
+      isShortTerm = existingTask.isShortTerm
+      val isCustom = !defaultCategories.contains(existingTask.category)
+      selectedCategory = if (isCustom) "Other" else existingTask.category
+      customCategoryText = if (isCustom) existingTask.category else ""
+      priority = existingTask.priority
+      repeatRule = existingTask.repeatRule
+      val parsedDate = try { LocalDate.parse(existingTask.dueDate, DateTimeFormatter.ISO_LOCAL_DATE) } catch (e: Exception) { LocalDate.now() }
+      selectedDate = parsedDate
+      displayMonth = YearMonth.from(parsedDate)
+      dueTime = existingTask.dueTime ?: "10:00"
+      reminderEnabled = existingTask.reminderSetting != ReminderOption.NONE
+      reminderOption = if (existingTask.reminderSetting != ReminderOption.NONE) existingTask.reminderSetting else ReminderOption.MIN_15
+      subtaskList.clear()
+      subtaskList.addAll(viewModel.getSubtasksForTask(existingTask.id))
+    }
+  }
 
   val categories = listOf("Work", "Personal", "Urgent!", "Study", "Shopping", "College", "Other")
 
@@ -692,7 +715,7 @@ fun TaskDetailEditScreen(
             val daysInMonth = displayMonth.lengthOfMonth()
             val prevMonthDays = displayMonth.minusMonths(1).lengthOfMonth()
 
-            val totalCells = 35
+            val totalCells = if (dayOfWeekOffset + daysInMonth > 35) 42 else 35
             val rows = totalCells / 7
 
             for (r in 0 until rows) {

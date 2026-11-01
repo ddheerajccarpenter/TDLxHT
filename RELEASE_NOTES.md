@@ -1,3 +1,56 @@
+# TDlxHT Release Notes — Version 2.5.8 (Build 45)
+
+**Release Date:** 2026-11-01  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.8.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Global Swipe Navigation, Draggable Glass Indicator & Workflow Connectivity
+
+TDlxHT 2.5.8 introduces an intuitive, physics-driven gesture navigation architecture across the entire application, featuring an interactive draggable bottom dock indicator, global horizontal screen swiping with predictive back arbitration, productivity subtab swipe navigation, and critical task editing and validation bug fixes.
+
+### 1. Interactive Bottom Dock with Draggable Liquid Glass Indicator
+* **Direct 1:1 Finger Tracking:** The bottom navigation dock's Liquid Glass indicator physically follows the user's touch in real-time with zero input lag on a dedicated GPU RenderNode layer.
+* **Strict Range Clamping:** Clamped between tabs 0..3 (`0.5*w .. 3.5*w`), physically preventing the indicator from ever entering the elevated Quick Add (+) button or drifting off-screen.
+* **Haptic Boundary Feedback:** Triggers subtle tactile ticks as the indicator glides across tab boundaries.
+* **Release Spring Snapping:** Springs gracefully into the nearest tab center on touch release (`spring(dampingRatio = 0.72f, stiffness = 420f)`) with single-dispatch navigation.
+* **Icon Proximity Morphing:** Tab icons continuously scale ($1.0 \to 1.12$), transition glyphs, and blend color based on real-time distance from the sliding glass lens.
+
+### 2. Global Horizontal Swipe Navigation & Android Predictive Back Guarding
+* **Directional Arbitration:** Horizontal swipes are recognized strictly when horizontal movement dominates vertical movement ($|dx| > 1.5 \times |dy|$), ensuring smooth, unhindered vertical list scrolling in `LazyColumn`.
+* **28dp System Edge Margin Exclusion:** Swipes originating within 28dp of either screen edge are preserved exclusively for Android System Predictive Back gestures.
+* **Momentum Slide Transitions:** Screen shifts feature hardware-accelerated RenderNode directional slide and fade transitions.
+
+### 3. Productivity Subtab Swipe Navigation & Boundary Delegation
+* **Inner Subtab Swiping:** Seamlessly swipe between **Tasks (0) ↔ Habits (1) ↔ Calendar (2)** within the Productivity section.
+* **Boundary Delegation:** Swiping right from Tasks navigates back to Home; swiping left from Calendar navigates forward to Tools.
+* **Nested Back Handling:** Pressing Back while on Habits or Calendar smoothly returns to Tasks (0) before popping the root stack.
+
+### 4. Task Detail Edit Form Resiliency & Validation Fixes
+* **Eliminated False Name Error (BUG-28):** Keyed form `remember` states to `existingTask?.id` and added a synchronization `LaunchedEffect`, ensuring existing task titles (e.g. `App update`) load immediately without triggering false "Please enter a task name" errors.
+* **Calendar Grid Truncation Fix (BUG-29):** Dynamically expanded the month grid to 42 cells (6 rows) when offset + days in month > 35, ensuring days 30 and 31 are rendered and selectable in all months.
+* **Completed Task Contrast (BUG-30):** Standardized completed task card opacity to 0.92f and used readable `InkSecondary` text to satisfy WCAG contrast standards.
+* **Solid Glass Checkbox Rim (BUG-31):** Replaced dashed circular stroke with a solid circular rim in `SketchCheckbox`, eliminating the broken loading spinner appearance.
+
+---
+
+# TDlxHT Release Notes — Version 2.5.7 (Build 44)
+
+**Release Date:** 2026-10-31  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.7.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Universal Navigation Stability & Lag Elimination Overhaul
+
+TDlxHT 2.5.7 delivers an extensive performance and rendering architecture overhaul that eliminates navigation lag, visual stuttering, screen ghosting, and z-fighting.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.6 (Build 43)
 
 **Release Date:** 2026-10-31  
