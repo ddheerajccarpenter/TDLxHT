@@ -86,39 +86,23 @@
     },
     {
       "source": "/download",
-      "destination": "/#download"
+      "destination": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.apk"
     },
     {
       "source": "/TDlxHT.apk",
-      "destination": "/TDLxHT.2.3.7.apk"
+      "destination": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.apk"
     },
     {
       "source": "/tdlxht.apk",
-      "destination": "/TDLxHT.2.3.7.apk"
-    },
-    {
-      "source": "/TDlxHT-release.apk",
-      "destination": "/TDLxHT.2.3.7.apk"
-    },
-    {
-      "source": "/tdlxht-release.apk",
-      "destination": "/TDLxHT.2.3.7.apk"
-    },
-    {
-      "source": "/TrackSelfMoney.apk",
-      "destination": "/TDLxHT.2.3.7.apk"
-    },
-    {
-      "source": "/trackselfmoney.apk",
-      "destination": "/TDLxHT.2.3.7.apk"
+      "destination": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.apk"
     },
     {
       "source": "/TDLxHT(.*).apk",
-      "destination": "/TDLxHT.2.3.7.apk"
+      "destination": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.apk"
     },
     {
       "source": "/tdlxht(.*).apk",
-      "destination": "/TDLxHT.2.3.7.apk"
+      "destination": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.apk"
     }
   ]
 }

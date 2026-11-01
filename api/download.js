@@ -1,12 +1,15 @@
-// Vercel Serverless Function: Dynamic Latest APK Download Redirect
-// Follows nodejs-backend-patterns: dynamically resolves the current release version
-// from version.json to ensure download requests are always routed to the latest binary.
+// Vercel Serverless Function: High-Speed APK Download Redirect
+// Directs downloads to Cloudflare-backed Supabase Storage Edge CDN for instant 10 MB/s line-rate downloads,
+// with graceful fallback to GitHub Releases.
 
 import fs from 'fs';
 import path from 'path';
 
+const CLOUDFLARE_CDN_BASE = 'https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk';
+const GITHUB_FALLBACK = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/latest/download/TDlxHT.apk';
+
 export default function handler(req, res) {
-  let latestApkUrl = 'https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.4.3/TDLxHT.2.4.3.apk';
+  let latestApkUrl = `${CLOUDFLARE_CDN_BASE}/TDlxHT.apk`;
 
   try {
     const candidates = [
@@ -19,6 +22,9 @@ export default function handler(req, res) {
         const vData = JSON.parse(fs.readFileSync(candidate, 'utf8'));
         if (vData.apkUrl) {
           latestApkUrl = vData.apkUrl;
+          break;
+        } else if (vData.filename) {
+          latestApkUrl = `${CLOUDFLARE_CDN_BASE}/${vData.filename}`;
           break;
         }
       }

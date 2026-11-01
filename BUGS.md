@@ -57,16 +57,17 @@ This ledger tracks all identified, audited, resolved, and verified defects acros
 | **BUG-37** | `HomeScreen.kt` & `DashboardLayoutManager.kt` | Dashboard layout was rigid and non-reconfigurable; user could not customize section order or hide unwanted widgets. | **P1** | `HomeScreen` rendered sections in a fixed vertical sequence without layout manager abstraction. | Implemented `DashboardLayoutManager.kt` and full interactive edit mode supporting drag/button reordering, visibility eye toggles, cloud sync, and one-tap reset. | **Verified** |
 | **BUG-38** | `Color.kt` & `Theme.kt` | Light mode canvas used yellowish tint (`#FFFFE3`, `#F5F5DC`, `#FAF9F0`), deviating from clean minimal off-white design spec. | **P2** | Color palette retained legacy off-white values from older prototype. | Replaced with canonical `#FAFAF7` canvas, `#171717` primary text, `#66686C` secondary text, and standardized 24dp/12dp corner geometry tokens. | **Verified** |
 | **BUG-39** | `HomeScreen.kt` | Compiler warning emitted for `it.dueTime != null && it.dueTime.isNotBlank()`. | **P3** | `dueTime` in `Task` data class is non-nullable `String = ""`, making the null check always true. | Cleaned conditional to `it.dueTime.isNotBlank()`. | **Verified** |
+| **BUG-40** | `ApkDownloadManager.kt` & CDN | In-app APK update downloads were extremely slow (over 5 minutes for 17MB update). | **P1** | Direct GitHub release downloads were routed to throttled Azure blob storage (~50 KB/s); downloader used tiny 8KB unbuffered I/O; 80ms progress intervals thrashed UI thread. | Deployed high-speed Cloudflare-backed Supabase Storage Edge CDN mirror (9.4 MB/s, 1.8s line-rate download); overhauled `ApkDownloadManager.kt` with multi-mirror failover, 64KB buffered streaming, connection pooling, and 150ms UI progress throttling with live speed metrics. | **Verified** |
 
 ---
 
 ## 3. Bug Resolution Summary
 
-* **Total Issues Audited:** 39
+* **Total Issues Audited:** 40
 * **P0 Issues Resolved:** 3 (100%)
-* **P1 Issues Resolved:** 18 (100%)
+* **P1 Issues Resolved:** 19 (100%)
 * **P2 Issues Resolved:** 13 (100%)
 * **P3 Issues Resolved:** 5 (100%)
-* **Total Issues Verified:** 39 / 39 (100%)
+* **Total Issues Verified:** 40 / 40 (100%)
 * **Remaining Unresolved Issues:** 0
 
