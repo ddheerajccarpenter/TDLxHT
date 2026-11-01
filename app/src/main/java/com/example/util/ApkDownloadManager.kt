@@ -15,8 +15,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
@@ -38,17 +41,22 @@ sealed interface ApkDownloadState {
 
 object ApkDownloadManager {
   private const val TAG = "ApkDownloadManager"
+  private const val BUFFER_SIZE = 64 * 1024 // 64 KB buffer for high-throughput socket transfers
 
   private val _downloadState = MutableStateFlow<ApkDownloadState>(ApkDownloadState.Idle)
   val downloadState: StateFlow<ApkDownloadState> = _downloadState.asStateFlow()
 
   private var activeJob: Job? = null
 
+  // Tuned OkHttpClient for maximum download throughput & resilient connection pooling
   private val httpClient by lazy {
     OkHttpClient.Builder()
-      .connectTimeout(15, TimeUnit.SECONDS)
-      .readTimeout(60, TimeUnit.SECONDS)
+      .connectTimeout(12, TimeUnit.SECONDS)
+      .readTimeout(45, TimeUnit.SECONDS)
+      .connectionPool(ConnectionPool(8, 5, TimeUnit.MINUTES))
       .followRedirects(true)
+      .followSslRedirects(true)
+      .retryOnConnectionFailure(true)
       .build()
   }
 
@@ -75,54 +83,133 @@ object ApkDownloadManager {
         if (tempFile.exists()) tempFile.delete()
         if (finalFile.exists()) finalFile.delete()
 
-        val request = Request.Builder()
-          .url(update.fullDownloadUrl)
-          .header("User-Agent", "TDlxHT-Android-Updater")
-          .build()
+        // Build prioritized mirror candidate list:
+        // 1. Dedicated ultra-fast Cloudflare Edge CDN mirror (Supabase storage)
+        // 2. Supplied apkUrl from remote version manifest
+        // 3. Fallback direct release URL
+        val candidateUrls = mutableListOf<String>()
+        val cdnMirror = "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/${update.filename}"
+        val cdnGeneric = "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.apk"
 
-        httpClient.newCall(request).execute().use { response ->
-          if (!response.isSuccessful) {
-            throw Exception("Server responded with HTTP ${response.code}")
+        if (update.fullDownloadUrl.isNotBlank()) {
+          if (update.fullDownloadUrl.contains("supabase.co")) {
+            candidateUrls.add(update.fullDownloadUrl)
+          } else {
+            // Prioritize edge CDN mirror first to avoid throttled GitHub blob storage
+            candidateUrls.add(cdnMirror)
+            candidateUrls.add(cdnGeneric)
+            candidateUrls.add(update.fullDownloadUrl)
           }
+        } else {
+          candidateUrls.add(cdnMirror)
+          candidateUrls.add(cdnGeneric)
+        }
 
-          val body = response.body ?: throw Exception("Empty response body from update server")
-          val totalBytes = body.contentLength()
-          val inputStream = body.byteStream()
-          val outputStream = FileOutputStream(tempFile)
+        if (update.fallbackUrl.isNotBlank()) {
+          val fullFallback = if (update.fallbackUrl.startsWith("http")) {
+            update.fallbackUrl
+          } else {
+            "https://tdlxht.vercel.app${if (update.fallbackUrl.startsWith("/")) "" else "/"}${update.fallbackUrl}"
+          }
+          if (!candidateUrls.contains(fullFallback)) {
+            candidateUrls.add(fullFallback)
+          }
+        }
 
-          val buffer = ByteArray(8192)
-          var bytesRead: Int
-          var totalRead = 0L
-          var lastEmittedTime = 0L
+        var downloadSuccess = false
+        var lastError: Exception? = null
 
+        for (candidateUrl in candidateUrls) {
+          Log.i(TAG, "Attempting high-speed APK download from: $candidateUrl")
           try {
-            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-              outputStream.write(buffer, 0, bytesRead)
-              totalRead += bytesRead
+            if (tempFile.exists()) tempFile.delete()
 
-              val now = System.currentTimeMillis()
-              // Throttle state updates to avoid excessive Compose recompositions
-              if (now - lastEmittedTime > 80 || totalRead == totalBytes) {
-                lastEmittedTime = now
-                val percent = if (totalBytes > 0) ((totalRead * 100) / totalBytes).toInt().coerceIn(0, 100) else -1
-                val formatted = if (totalBytes > 0) {
-                  String.format(Locale.US, "%.1f MB / %.1f MB", totalRead / 1048576.0, totalBytes / 1048576.0)
-                } else {
-                  String.format(Locale.US, "%.1f MB", totalRead / 1048576.0)
+            val request = Request.Builder()
+              .url(candidateUrl)
+              .header("User-Agent", "Mozilla/5.0 (Linux; Android ${Build.VERSION.RELEASE}; ${Build.MODEL}) TDlxHT-Updater")
+              .header("Accept", "application/vnd.android.package-archive, application/octet-stream, */*")
+              .header("Accept-Encoding", "identity") // Disable server gzip compression on binary APKs
+              .header("Connection", "keep-alive")
+              .build()
+
+            httpClient.newCall(request).execute().use { response ->
+              if (!response.isSuccessful) {
+                throw Exception("Mirror responded with HTTP ${response.code}")
+              }
+
+              val body = response.body ?: throw Exception("Empty response body from mirror")
+              val totalBytes = body.contentLength()
+              val inputStream = BufferedInputStream(body.byteStream(), BUFFER_SIZE)
+              val outputStream = BufferedOutputStream(FileOutputStream(tempFile), BUFFER_SIZE)
+
+              val buffer = ByteArray(BUFFER_SIZE)
+              var bytesRead: Int
+              var totalRead = 0L
+              var lastEmittedTime = 0L
+              var speedCalcTime = System.currentTimeMillis()
+              var bytesSinceLastSpeedCalc = 0L
+              var speedMBs = 0.0
+
+              try {
+                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                  outputStream.write(buffer, 0, bytesRead)
+                  totalRead += bytesRead
+                  bytesSinceLastSpeedCalc += bytesRead
+
+                  val now = System.currentTimeMillis()
+                  val deltaSpeedMs = now - speedCalcTime
+                  if (deltaSpeedMs >= 400) {
+                    val deltaSec = deltaSpeedMs / 1000.0
+                    speedMBs = (bytesSinceLastSpeedCalc / 1048576.0) / deltaSec
+                    speedCalcTime = now
+                    bytesSinceLastSpeedCalc = 0L
+                  }
+
+                  // Throttle UI state emissions to 150ms to prevent recomposition thrashing on the Main thread
+                  if (now - lastEmittedTime > 150 || (totalBytes > 0 && totalRead == totalBytes)) {
+                    lastEmittedTime = now
+                    val percent = if (totalBytes > 0) ((totalRead * 100) / totalBytes).toInt().coerceIn(0, 100) else -1
+                    val speedStr = if (speedMBs >= 0.05) String.format(Locale.US, " • %.1f MB/s", speedMBs) else ""
+                    val formatted = if (totalBytes > 0) {
+                      String.format(Locale.US, "%.1f MB / %.1f MB%s", totalRead / 1048576.0, totalBytes / 1048576.0, speedStr)
+                    } else {
+                      String.format(Locale.US, "%.1f MB%s", totalRead / 1048576.0, speedStr)
+                    }
+                    _downloadState.value = ApkDownloadState.Downloading(
+                      bytesDownloaded = totalRead,
+                      totalBytes = totalBytes,
+                      percentage = percent,
+                      formattedSize = formatted
+                    )
+                  }
                 }
-                _downloadState.value = ApkDownloadState.Downloading(
-                  bytesDownloaded = totalRead,
-                  totalBytes = totalBytes,
-                  percentage = percent,
-                  formattedSize = formatted
-                )
+                outputStream.flush()
+              } finally {
+                outputStream.close()
+                inputStream.close()
+              }
+
+              // Verify file has non-trivial size
+              if (tempFile.exists() && tempFile.length() > 2_000_000) {
+                downloadSuccess = true
+                Log.i(TAG, "Successfully downloaded ${tempFile.length()} bytes from $candidateUrl")
+                return@use
+              } else {
+                throw Exception("Downloaded file too small (${tempFile.length()} bytes)")
               }
             }
-            outputStream.flush()
-          } finally {
-            outputStream.close()
-            inputStream.close()
+
+            if (downloadSuccess) break
+          } catch (ce: CancellationException) {
+            throw ce
+          } catch (e: Exception) {
+            Log.w(TAG, "Mirror failed ($candidateUrl): ${e.message}, trying next mirror...")
+            lastError = e
           }
+        }
+
+        if (!downloadSuccess) {
+          throw lastError ?: Exception("All download mirrors failed")
         }
 
         // Rename part file to final file
@@ -134,8 +221,8 @@ object ApkDownloadManager {
         _downloadState.value = ApkDownloadState.Verifying
 
         // Validate downloaded file
-        if (!finalFile.exists() || finalFile.length() < 1_000_000) {
-          throw Exception("Downloaded file is incomplete or corrupted (${finalFile.length()} bytes)")
+        if (!finalFile.exists() || finalFile.length() < 2_000_000) {
+          throw Exception("Downloaded file is incomplete (${finalFile.length()} bytes)")
         }
 
         // Verify package archive info
@@ -179,25 +266,28 @@ object ApkDownloadManager {
     _downloadState.value = ApkDownloadState.Idle
   }
 
-  fun installApk(context: Context, file: File) {
-    try {
-      if (!file.exists()) {
-        Log.e(TAG, "Cannot install: APK file does not exist at ${file.absolutePath}")
-        return
-      }
+  fun installApk(context: Context, apkFile: File) {
+    if (!apkFile.exists()) {
+      Log.e(TAG, "Cannot install: APK file does not exist at ${apkFile.absolutePath}")
+      _downloadState.value = ApkDownloadState.Failed("APK file not found on disk")
+      return
+    }
 
-      val uri = FileProvider.getUriForFile(
+    try {
+      val apkUri = FileProvider.getUriForFile(
         context,
         "${context.packageName}.fileprovider",
-        file
+        apkFile
       )
 
       val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "application/vnd.android.package-archive")
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+        setDataAndType(apkUri, "application/vnd.android.package-archive")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       }
+
       context.startActivity(intent)
-      Log.d(TAG, "Triggered package installer for ${file.name}")
+      Log.i(TAG, "Package installer triggered successfully for ${apkFile.name}")
     } catch (e: Exception) {
       Log.e(TAG, "Failed to launch package installer", e)
       _downloadState.value = ApkDownloadState.Failed("Could not open package installer: ${e.message}")
