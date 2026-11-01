@@ -24,20 +24,8 @@ Thumbs.db
 scratch/
 *.aab
 *.apk
+# Markdown Policy: ONLY README.md is allowed to be published
 **/*.md
 *.md
 !/README.md
-!/design.md
-!/technical.md
-!/BUGS.md
-!/ANIMATION_AUDIT.md
-!/RELEASE_NOTES.md
-!/GESTURE_NAVIGATION_AUDIT.md
-!/MASTER_AUDIT.md
-!/SECURITY_AUDIT.md
-!/UI_UX_AUDIT.md
-!/WORKFLOW_CONNECTIVITY_AUDIT.md
-!/TEST_REPORT.md
-!/WORKFLOW_CONNECTIVITY_AUDIT.md
-!/TEST_REPORT.md
 .neon

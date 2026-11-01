@@ -8,16 +8,16 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%207.0%2B%20(API%2024%2B)-2ea44f?style=flat-square&logo=android)](https://developer.android.com)
 [![Language](https://img.shields.io/badge/Language-Kotlin%20%7C%20Jetpack%20Compose-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
 [![Storage](https://img.shields.io/badge/Storage-Room%20SQLite%20(Offline%20First)-4285F4?style=flat-square&logo=sqlite)](https://developer.android.com/training/data-storage/room)
-[![Version](https://img.shields.io/badge/Version-v2.4.3%20(Build%2030)-black?style=flat-square)](version.json)
+[![Version](https://img.shields.io/badge/Version-v2.5.10%20(Build%2047)-black?style=flat-square)](version.json)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-> 📖 **Master Documentation:**
-> - 🎨 **[Master Design System & UI/UX Compendium (`design.md`)](design.md)**: Apple-Style Liquid Glass, centralized design tokens, physics, 5-level surface hierarchy, component specifications, and screen UX matrix.
-> - ⚙️ **[Master Technical Manual & Architecture Compendium (`technical.md`)](technical.md)**: Clean architecture, Room SQLite schema, background scheduling, Napkin AI engine, Vercel serverless APIs, Supabase RLS, and release playbook.
+> ⚙️ **Developer & Execution Guidelines:**
+> - **Parallel Terminal Commands:** All independent CLI workflows, test suites, and build checks must be executed in parallel.
+> - **Single Markdown Publication Policy:** Per project policy, **only `README.md` is permitted to be tracked, committed, and published to Git/GitHub.** All internal design specifications, audit ledgers, test reports, and technical manuals are strictly local development artifacts and must remain untracked.
 
 ---
 
@@ -115,7 +115,7 @@ TDlxHT is crafted to stand out from generic template designs:
 
 You can install the latest release directly onto any Android device running **Android 8.0 (API 24) or higher**:
 
-1. Download [**TDLxHT.2.4.3.apk (v2.4.3)**](https://github.com/ddheerajccarpenter/TDLxHT/releases/latest) directly from GitHub Releases or from the web portal at **[tdlxht.vercel.app](https://tdlxht.vercel.app)**.
+1. Download [**TDLxHT.2.5.10.apk (v2.5.10)**](https://tdlxht.vercel.app/download) directly from GitHub Releases or from the web portal at **[tdlxht.vercel.app](https://tdlxht.vercel.app)**.
 2. Open the downloaded `.apk` file on your Android device.
 3. If prompted, allow **"Install unknown apps"** for your browser or file manager.
 4. Tap **Install** and open **TDlxHT**!
