@@ -44,8 +44,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 45
-    versionName = "2.5.8"
+    versionCode = 46
+    versionName = "2.5.9"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -53,7 +53,6 @@ android {
     buildConfigField("String", "SUPABASE_ANON_KEY", "\"${findSecret("SUPABASE_ANON_KEY")}\"")
     buildConfigField("String", "NEON_DATABASE_URL", "\"${findSecret("NEON_DATABASE_URL")}\"")
     buildConfigField("String", "APP_WEB_URL", "\"${findSecret("APP_WEB_URL", "https://tdlxht.vercel.app/")}\"")
-    buildConfigField("String", "NAPKIN_API_KEY", "\"${findSecret("NAPKIN_API_KEY")}\"")
   }
 
   signingConfigs {
@@ -106,7 +105,6 @@ secrets {
   ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
   ignoreList.add("SUPABASE_URL")
   ignoreList.add("SUPABASE_ANON_KEY")
-  ignoreList.add("NAPKIN_API_KEY")
   ignoreList.add("GEMINI_API_KEY")
   ignoreList.add("APP_WEB_URL")
 }

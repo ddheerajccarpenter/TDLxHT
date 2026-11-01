@@ -9,6 +9,7 @@ object AppPreferences {
     private const val PREFS_NAME = "tdlxht_preferences"
     private const val KEY_SHAKE_TO_OPEN = "shake_to_open_enabled"
     private const val KEY_VIBRATIONS = "vibrations_enabled"
+    private const val KEY_SOUNDS = "sounds_enabled"
     private const val KEY_TODAY_TASKS_VIEW_MODE = "today_tasks_view_mode"
     private const val KEY_TODAY_HABITS_VIEW_MODE = "today_habits_view_mode"
     private const val KEY_FAVORITE_TOOL_IDS = "favorite_tool_ids"
@@ -33,6 +34,9 @@ object AppPreferences {
     private val _vibrations = MutableStateFlow(true)
     val vibrations: StateFlow<Boolean> = _vibrations.asStateFlow()
 
+    private val _sounds = MutableStateFlow(true)
+    val sounds: StateFlow<Boolean> = _sounds.asStateFlow()
+
     private val _todayTasksViewMode = MutableStateFlow("LIST")
     val todayTasksViewMode: StateFlow<String> = _todayTasksViewMode.asStateFlow()
 
@@ -55,6 +59,7 @@ object AppPreferences {
         _shakeAction.value = prefs.getString(KEY_SHAKE_ACTION, "CREATE_TASK") ?: "CREATE_TASK"
         _shakeTimerDuration.value = prefs.getInt(KEY_SHAKE_TIMER_DURATION, 25)
         _vibrations.value = prefs.getBoolean(KEY_VIBRATIONS, true)
+        _sounds.value = prefs.getBoolean(KEY_SOUNDS, true)
         _todayTasksViewMode.value = prefs.getString(KEY_TODAY_TASKS_VIEW_MODE, "LIST") ?: "LIST"
         _todayHabitsViewMode.value = prefs.getString(KEY_TODAY_HABITS_VIEW_MODE, "LIST") ?: "LIST"
         _favoriteToolIds.value = prefs.getStringSet(KEY_FAVORITE_TOOL_IDS, emptySet())?.toSet() ?: emptySet()
@@ -108,6 +113,20 @@ object AppPreferences {
             .putBoolean(KEY_VIBRATIONS, enabled)
             .apply()
         _vibrations.value = enabled
+    }
+
+    fun isSoundsEnabled(context: Context): Boolean {
+        init(context)
+        return _sounds.value
+    }
+
+    fun setSoundsEnabled(context: Context, enabled: Boolean) {
+        init(context)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_SOUNDS, enabled)
+            .apply()
+        _sounds.value = enabled
     }
 
     fun getTodayTasksViewMode(context: Context): String {

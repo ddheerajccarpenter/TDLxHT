@@ -72,41 +72,42 @@ val PaletteBerryCrush = BrandCharcoalDark
 val PaletteMintLeaf = BrandTextPrimary
 
 // =========================================================================
-// Ink Wash Universal Palette (Authentic Japanese Ink & Parchment)
-// Canonical Swatches:
-// 1. Charcoal Slate:   #4A4A4A
-// 2. Mist Silver:      #CBCBCB
-// 3. Warm Ivory:       #FFFFE3
-// 4. Slate Steel Wash: #6D8196
-// Zero purple, zero neon blue, zero neon green, zero AI-sloped colors.
+// Ink Wash Universal Palette (Authentic Japanese Ink & Neutral Parchment)
+// Canonical Swatches (Premium Monochromatic & Refined Warm Off-White):
+// 1. Charcoal Slate:      #171717 / #4A4A4A
+// 2. Mist Silver:         #CBCBCB / #D6D6DC
+// 3. Off-White Canvas:    #FAFAF7 (Purged all yellow/cream #FFFFE3)
+// 4. Slate Steel Wash:    #5E6E82 / #6D8196
+// Zero yellow cast, zero neon blue, zero neon green, zero AI-sloped colors.
 // =========================================================================
-val InkWashCharcoal = Color(0xFF4A4A4A)       // Primary deep neutral / Dark text / Light primary button
-val InkWashMist = Color(0xFFCBCBCB)           // Mid neutral / Hairlines / Muted accents
-val InkWashIvory = Color(0xFFFFFFE3)          // Warm cream ivory / Light canvas / Dark text primary
-val InkWashSlate = Color(0xFF6D8196)          // Slate steel wash / Universal active highlight & badge
+val InkWashCharcoal = Color(0xFF171717)       // Primary deep charcoal / Dark text / Light primary button
+val InkWashMist = Color(0xFFD6D6DC)           // Mid neutral / Soft gray edge definition
+val InkWashIvory = Color(0xFFFAFAF7)          // Clean off-white canvas with subtle warm undertone
+val InkWashSlate = Color(0xFF5E6E82)          // Slate steel wash / Universal active highlight & badge
 
 // Tonal derivatives ensuring Dark Mode is darker than Light Mode
 val InkWashCharcoalDeep = Color(0xFF1E2022)   // Dark Canvas base (darker than #4A4A4A)
 val InkWashCharcoalSurface = Color(0xFF2B2D30)// Dark Card Surface
 val InkWashCharcoalElevated = Color(0xFF35383C)// Dark Elevated Dock & Modals
 val InkWashCharcoalBorder = Color(0xFF4A4A4A) // Dark Hairline Border
-val InkWashIvoryPaper = Color(0xFFFFFFE3)     // Light Canvas (Warm Ivory)
-val InkWashIvoryCard = Color(0xFFFAF9F0)      // Light Card Surface
+val InkWashIvoryPaper = Color(0xFFFAFAF7)     // Light Canvas (#FAFAF7)
+val InkWashIvoryCard = Color(0xB8FFFFFF)      // Primary glass surface: rgba(255, 255, 255, 0.72)
+val InkWashIvoryElevated = Color(0xD6FFFFFF)  // Elevated glass surface: rgba(255, 255, 255, 0.84)
 val InkWashRustMuted = Color(0xFF8C5252)      // Subtle muted rust for delete/destructive actions
 
 // Semantic Tokens redirected to Ink Wash
 val OklchIndigo = InkWashSlate
-val OklchIndigoSoft = Color(0x336D8196)
+val OklchIndigoSoft = Color(0x335E6E82)
 val OklchEmerald = InkWashSlate
-val OklchEmeraldSoft = Color(0x266D8196)
+val OklchEmeraldSoft = Color(0x265E6E82)
 val OklchAmber = InkWashSlate
-val OklchAmberSoft = Color(0x266D8196)
+val OklchAmberSoft = Color(0x265E6E82)
 val OklchCoral = InkWashRustMuted
 val OklchCoralSoft = Color(0x268C5252)
 val OklchCyan = InkWashSlate
-val OklchCyanSoft = Color(0x266D8196)
+val OklchCyanSoft = Color(0x265E6E82)
 val OklchPurple = InkWashSlate
-val OklchPurpleSoft = Color(0x266D8196)
+val OklchPurpleSoft = Color(0x265E6E82)
 
 // --- Dark Mode Tokens (Deep Charcoal & Translucent Glass) ---
 val GrapeCanvasDark = InkWashCharcoalDeep
@@ -117,7 +118,7 @@ val GrapeHairline = InkWashCharcoalBorder
 val GrapeHairlineStrong = InkWashMist
 
 val PrimaryDarkCanvas = InkWashCharcoalDeep
-val PrimaryAccentLime = InkWashIvory
+val PrimaryAccentLime = Color(0xFFF0F0F2)
 
 val BugattiCanvas = InkWashCharcoalDeep
 val BugattiSurfaceSoft = GrapeSurfaceSoft
@@ -126,9 +127,9 @@ val BugattiSurfaceElevated = GrapeSurfaceElevated
 val BugattiHairline = GrapeHairline
 val BugattiHairlineStrong = GrapeHairlineStrong
 
-val BugattiInk = InkWashIvory
+val BugattiInk = Color(0xFFF5F5F7)
 val BugattiBody = InkWashMist
-val BugattiBodyStrong = InkWashIvory
+val BugattiBodyStrong = Color(0xFFF5F5F7)
 val BugattiMuted = Color(0xFF8E9296)
 val BugattiMutedSoft = Color(0xFF8E9296)
 
@@ -137,22 +138,24 @@ val BugattiWarning = InkWashSlate
 val BugattiSuccess = InkWashSlate
 val BugattiDanger = InkWashRustMuted
 
-// --- Light Mode Tokens (Clean White Canvas & Translucent Soft Surfaces) ---
-val LightCanvas = InkWashIvoryPaper
-val LightCanvasSoft = Color(0xFFF5F5DC)
-val LightSurfaceCard = InkWashIvoryCard
-val LightHairline = InkWashMist
-val LightHairlineStrong = InkWashCharcoal
+// --- Light Mode Tokens (Clean Off-White Canvas & Translucent Soft Surfaces) ---
+val LightCanvas = InkWashIvoryPaper           // #FAFAF7
+val LightCanvasSoft = Color(0xFFF5F5F0)       // #F5F5F0
+val LightSurfaceCard = InkWashIvoryCard       // rgba(255, 255, 255, 0.72)
+val LightSurfaceElevated = InkWashIvoryElevated// rgba(255, 255, 255, 0.84)
+val LightHairline = Color(0x171E1E1E)         // rgba(30, 30, 30, 0.09)
+val LightHairlineStrong = Color(0xFF4A4A4A)
+val LightGlassSpecular = Color(0xCCFFFFFF)    // rgba(255, 255, 255, 0.80)
 
-val LightInkPrimary = InkWashCharcoal
-val LightInkSecondary = InkWashSlate
-val LightInkMuted = Color(0xFF7A7D82)
+val LightInkPrimary = Color(0xFF171717)       // #171717
+val LightInkSecondary = Color(0xFF66686C)     // #66686C
+val LightInkMuted = Color(0xFF8E9096)
 
 val MobbinCanvas = LightCanvas
 val MobbinCanvasSoft = LightCanvasSoft
-val MobbinField = Color(0xFFF3F3E8)
+val MobbinField = Color(0xFFF2F2F5)
 val MobbinHairline = LightHairline
-val MobbinHairlineSoft = Color(0x184A4A4A)
+val MobbinHairlineSoft = Color(0x121E1E1E)
 
 val MobbinInk = LightInkPrimary
 val MobbinInkSoft = LightInkSecondary
@@ -196,21 +199,21 @@ data class AppColors(
 val LightColors = AppColors(
   paperBackground = InkWashIvoryPaper,
   paperDotColor = Color.Transparent,
-  inkPrimary = InkWashCharcoal,
-  inkSecondary = InkWashSlate,
-  inkMuted = Color(0xFF7A7D82),
+  inkPrimary = LightInkPrimary,
+  inkSecondary = LightInkSecondary,
+  inkMuted = LightInkMuted,
   cardBackground = InkWashIvoryCard,
-  cardBorder = InkWashMist,
-  pillBackgroundDark = InkWashCharcoal,
-  pillTextDark = InkWashIvory,
-  progressBarTrack = Color(0xFFE5E5DB),
+  cardBorder = LightHairline,
+  pillBackgroundDark = LightInkPrimary,
+  pillTextDark = Color(0xFFFAFAF7),
+  progressBarTrack = Color(0xFFE8E8EE),
   progressBarFilled = InkWashSlate,
   accentTerracotta = InkWashSlate,
   accentOrange = InkWashSlate,
-  accentYellowHighlight = Color(0x206D8196),
+  accentYellowHighlight = Color(0x205E6E82),
   accentRed = InkWashRustMuted,
-  chipBorder = InkWashMist,
-  chipUnselected = Color(0xFFF3F3E8),
+  chipBorder = LightHairline,
+  chipUnselected = Color(0xFFF2F2F5),
   isDark = false,
   oklchPrimary = InkWashSlate,
   oklchSuccess = InkWashSlate,
@@ -219,7 +222,7 @@ val LightColors = AppColors(
   oklchFocus = InkWashSlate,
   oklchPurple = InkWashSlate,
   surfaceCard = InkWashIvoryCard,
-  surfaceElevated = InkWashIvoryCard
+  surfaceElevated = InkWashIvoryElevated
 )
 
 val DarkColors = AppColors(

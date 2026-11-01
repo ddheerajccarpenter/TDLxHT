@@ -10,7 +10,8 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'web/index.html'),
         auth: resolve(__dirname, 'web/auth/index.html'),
-        callback: resolve(__dirname, 'web/auth/callback/index.html')
+        callback: resolve(__dirname, 'web/auth/callback/index.html'),
+        adminSounds: resolve(__dirname, 'web/admin/sounds.html')
       }
     }
   }

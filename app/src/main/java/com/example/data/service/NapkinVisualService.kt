@@ -42,7 +42,7 @@ class NapkinVisualService(
         stats: NapkinStats? = null,
         format: String = "png"
     ): Result<Bitmap> = withContext(Dispatchers.IO) {
-        val apiKey = com.example.BuildConfig.NAPKIN_API_KEY
+        val apiKey = "" // API key purged from client APK for zero-exposure security
         val cleanPrompt = formatProfessionalPrompt(contentPrompt, period, stats)
 
         // 1. Direct Napkin AI API call with clean, professional, non-slop technical formatting

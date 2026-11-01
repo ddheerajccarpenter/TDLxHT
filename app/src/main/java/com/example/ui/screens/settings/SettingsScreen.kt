@@ -22,6 +22,8 @@ import com.example.R
 import com.example.util.AppPreferences
 import com.example.util.SafeLog
 import com.example.util.VibrationHelper
+import com.example.ui.theme.InnerCornerShape
+import com.example.ui.theme.OuterCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -769,6 +771,69 @@ fun SettingsScreen(
                 }
               }
             )
+
+            GroupedDivider()
+
+            val sounds by AppPreferences.sounds.collectAsStateWithLifecycle()
+
+            SettingsToggleRow(
+              title = "Sound Effects",
+              subtitle = "Micro acoustic feedback on task & navigation",
+              checked = sounds,
+              onCheckedChange = { checked ->
+                AppPreferences.setSoundsEnabled(context, checked)
+                if (checked) {
+                  com.example.util.SoundManager.playTaskComplete(context)
+                }
+              }
+            )
+
+            if (sounds) {
+              GroupedDivider()
+              Column(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 16.dp, vertical = 10.dp)
+              ) {
+                Text(
+                  text = "AUDITION SOUNDS",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    color = InkSecondary
+                  )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                  listOf(
+                    "Task" to { com.example.util.SoundManager.playTaskComplete(context) },
+                    "Habit" to { com.example.util.SoundManager.playHabitTick(context) },
+                    "Click" to { com.example.util.SoundManager.playButtonClick(context) },
+                    "Timer" to { com.example.util.SoundManager.playTimerEnd(context) }
+                  ).forEach { (label, playAction) ->
+                    Box(
+                      modifier = Modifier
+                        .weight(1f)
+                        .height(34.dp)
+                        .clip(InnerCornerShape)
+                        .border(1.dp, CardBorder, InnerCornerShape)
+                        .bounceClick { playAction() },
+                      contentAlignment = Alignment.Center
+                    ) {
+                      Text(
+                        text = label,
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                      )
+                    }
+                  }
+                }
+              }
+            }
 
             GroupedDivider()
 

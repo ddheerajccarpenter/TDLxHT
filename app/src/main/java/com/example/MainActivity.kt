@@ -143,6 +143,7 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSheet
 import com.example.ui.components.fluidLensedGlass
+import com.example.ui.components.glassSheen
 import com.example.ui.components.bounceClick
 import com.example.ui.components.elasticStretchPress
 import com.example.ui.screens.auth.AuthenticationScreen
@@ -1323,6 +1324,7 @@ fun SketchBottomNavigationBar(
   val slotWidth = if (tabsWidthPx > 0f) tabsWidthPx / 4f else 0f
   val indicatorX = remember { Animatable(0f) }
   var isDragging by remember { mutableStateOf(false) }
+  var isHoldingDock by remember { mutableStateOf(false) }
   var lastHapticTab by remember { mutableIntStateOf(selectedTab) }
 
   // Synchronize indicator position with selectedTab when not dragging
@@ -1343,202 +1345,223 @@ fun SketchBottomNavigationBar(
     }
   }
 
-  Box(
+  // Hold-to-expand spring animation for dock (1.03x)
+  val dockScale by animateFloatAsState(
+    targetValue = if (isHoldingDock) 1.03f else 1.0f,
+    animationSpec = spring(dampingRatio = 0.75f, stiffness = 380f),
+    label = "dockScale"
+  )
+
+  // Floating Plus button rotation
+  val fabRotation by animateFloatAsState(
+    targetValue = if (isQuickAddOpen) 45f else 0f,
+    animationSpec = spring(
+      dampingRatio = 0.54f, // Kern Society snappy elastic rebound
+      stiffness = 450f
+    ),
+    label = "fabRotation"
+  )
+
+  Row(
     modifier = Modifier
       .fillMaxWidth()
       .windowInsetsPadding(WindowInsets.navigationBars)
       .padding(horizontal = 16.dp, vertical = 8.dp),
-    contentAlignment = Alignment.Center
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(10.dp)
   ) {
-    // Liquid Glass Floating Stadium Pill Navigation Dock (Apple-Style Optical Material)
-    // Layout: Home (0) -> Productivity (1) -> Tools (2) -> Insights (3) -> Plus (Far Right), Icons Only
+    // -------------------------------------------------------------
+    // Component A: LiquidGlassNavDock (4 Tabs: Home, Productivity, Tools, Insights)
+    // -------------------------------------------------------------
     Box(
       modifier = Modifier
-        .fillMaxWidth()
-        .height(64.dp)
+        .weight(1f)
+        .height(58.dp)
+        .graphicsLayer {
+          scaleX = dockScale
+          scaleY = dockScale
+        }
         .fluidLensedGlass(
           shape = CircleShape,
           elevation = if (isDark) 8.dp else 5.dp,
           borderWidth = 0.75.dp,
           isElevated = true
-        ),
+        )
+        .padding(horizontal = 8.dp),
       contentAlignment = Alignment.Center
     ) {
-      Row(
+      Box(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        // Tab strip area (weight 1f) — handles direct 1:1 finger tracking, clamped to tabs 0..3
-        Box(
-          modifier = Modifier
-            .weight(1f)
-            .height(48.dp)
-            .onSizeChanged { tabsWidthPx = it.width.toFloat() }
-            .pointerInput(slotWidth, destinations) {
-              if (slotWidth <= 0f) return@pointerInput
-              val minX = slotWidth * 0.5f
-              val maxX = slotWidth * 3.5f
-              val touchSlop = viewConfiguration.touchSlop
+          .height(44.dp)
+          .onSizeChanged { tabsWidthPx = it.width.toFloat() }
+          .pointerInput(slotWidth, destinations) {
+            if (slotWidth <= 0f) return@pointerInput
+            val minX = slotWidth * 0.5f
+            val maxX = slotWidth * 3.5f
+            val touchSlop = viewConfiguration.touchSlop
 
-              awaitEachGesture {
-                val down = awaitFirstDown(requireUnconsumed = false)
-                var dragStarted = false
-                var totalDx = 0f
-                var totalDy = 0f
+            awaitEachGesture {
+              val down = awaitFirstDown(requireUnconsumed = false)
+              isHoldingDock = true
+              var dragStarted = false
+              var totalDx = 0f
+              var totalDy = 0f
 
-                do {
-                  val event = awaitPointerEvent()
-                  val change = event.changes.firstOrNull { it.id == down.id } ?: break
+              do {
+                val event = awaitPointerEvent()
+                val change = event.changes.firstOrNull { it.id == down.id } ?: break
 
-                  val dx = change.position.x - change.previousPosition.x
-                  val dy = change.position.y - change.previousPosition.y
-                  totalDx += dx
-                  totalDy += dy
+                val dx = change.position.x - change.previousPosition.x
+                val dy = change.position.y - change.previousPosition.y
+                totalDx += dx
+                totalDy += dy
 
-                  if (!dragStarted) {
-                    if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
-                      dragStarted = true
-                      isDragging = true
-                      change.consume()
-                    }
-                  }
-
-                  if (dragStarted) {
+                if (!dragStarted) {
+                  if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
+                    dragStarted = true
+                    isDragging = true
                     change.consume()
-                    val targetX = change.position.x.coerceIn(minX, maxX)
-                    coroutineScope.launch {
-                      indicatorX.snapTo(targetX)
-                    }
-
-                    val currentTab = ((targetX / slotWidth) - 0.5f).roundToInt().coerceIn(0, 3)
-                    if (currentTab != lastHapticTab) {
-                      lastHapticTab = currentTab
-                      VibrationHelper.tick(context)
-                    }
-                  }
-                } while (event.changes.any { it.pressed })
-
-                if (dragStarted) {
-                  isDragging = false
-                  val finalTab = ((indicatorX.value / slotWidth) - 0.5f).roundToInt().coerceIn(0, 3)
-                  onDestinationSelected(destinations[finalTab])
-                  VibrationHelper.tick(context)
-                  coroutineScope.launch {
-                    indicatorX.animateTo(
-                      slotWidth * (finalTab + 0.5f),
-                      spring(dampingRatio = 0.72f, stiffness = 420f)
-                    )
-                  }
-                } else {
-                  // Direct tap detected
-                  val tappedTab = (down.position.x / slotWidth).toInt().coerceIn(0, 3)
-                  VibrationHelper.tick(context)
-                  onDestinationSelected(destinations[tappedTab])
-                  coroutineScope.launch {
-                    indicatorX.animateTo(
-                      slotWidth * (tappedTab + 0.5f),
-                      spring(dampingRatio = 0.72f, stiffness = 420f)
-                    )
                   }
                 }
+
+                if (dragStarted) {
+                  change.consume()
+                  val targetX = change.position.x.coerceIn(minX, maxX)
+                  coroutineScope.launch {
+                    indicatorX.snapTo(targetX)
+                  }
+
+                  val currentTab = ((targetX / slotWidth) - 0.5f).roundToInt().coerceIn(0, 3)
+                  if (currentTab != lastHapticTab) {
+                    lastHapticTab = currentTab
+                    VibrationHelper.tick(context)
+                    com.example.util.SoundManager.playSwipeNav(context)
+                  }
+                }
+              } while (event.changes.any { it.pressed })
+
+              isHoldingDock = false
+              if (dragStarted) {
+                isDragging = false
+                val finalTab = ((indicatorX.value / slotWidth) - 0.5f).roundToInt().coerceIn(0, 3)
+                onDestinationSelected(destinations[finalTab])
+                VibrationHelper.tick(context)
+                com.example.util.SoundManager.playSwipeNav(context)
+                coroutineScope.launch {
+                  indicatorX.animateTo(
+                    slotWidth * (finalTab + 0.5f),
+                    spring(dampingRatio = 0.72f, stiffness = 420f)
+                  )
+                }
+              } else {
+                // Direct tap detected
+                val tappedTab = (down.position.x / slotWidth).toInt().coerceIn(0, 3)
+                VibrationHelper.tick(context)
+                com.example.util.SoundManager.playSwipeNav(context)
+                onDestinationSelected(destinations[tappedTab])
+                coroutineScope.launch {
+                  indicatorX.animateTo(
+                    slotWidth * (tappedTab + 0.5f),
+                    spring(dampingRatio = 0.72f, stiffness = 420f)
+                  )
+                }
               }
-            },
-          contentAlignment = Alignment.CenterStart
+            }
+          },
+        contentAlignment = Alignment.CenterStart
+      ) {
+        // 1. Sliding Liquid Glass Capsule (RenderNode GPU-only, no remeasure)
+        if (slotWidth > 0f) {
+          val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 38.dp.toPx() })
+          val capsuleWidthDp = with(density) { capsuleWidthPx.toDp() }
+
+          Box(
+            modifier = Modifier
+              .width(capsuleWidthDp)
+              .height(38.dp)
+              .graphicsLayer {
+                translationX = indicatorX.value - (capsuleWidthPx / 2f)
+              }
+              .fluidLensedGlass(
+                shape = CircleShape,
+                elevation = if (isDark) 2.dp else 1.dp,
+                borderWidth = 0.6.dp,
+                isElevated = true
+              )
+          )
+        }
+
+        // 2. Navigation Tab Icons Row
+        Row(
+          modifier = Modifier.fillMaxSize(),
+          verticalAlignment = Alignment.CenterVertically
         ) {
-          // 1. Sliding Liquid Glass Capsule (RenderNode GPU-only, no remeasure)
-          if (slotWidth > 0f) {
-            val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 40.dp.toPx() })
-            val capsuleWidthDp = with(density) { capsuleWidthPx.toDp() }
+          destinations.take(4).forEachIndexed { index, destination ->
+            val activeColor = if (isDark) InkWashIvory else InkWashCharcoal
+            val inactiveColor = if (isDark) InkWashMist.copy(alpha = 0.50f) else InkWashCharcoal.copy(alpha = 0.45f)
+
+            val tabCenterX = if (slotWidth > 0f) slotWidth * (index + 0.5f) else 0f
+            val dist = if (slotWidth > 0f) abs(indicatorX.value - tabCenterX) / slotWidth else if (selectedTab == index) 0f else 1f
+            val proximity = (1f - dist).coerceIn(0f, 1f)
+            val iconTint = lerp(inactiveColor, activeColor, proximity)
+            val iconScale = 1.0f + 0.12f * proximity
+            val isSelected = proximity > 0.5f
 
             Box(
               modifier = Modifier
-                .width(capsuleWidthDp)
-                .height(42.dp)
-                .graphicsLayer {
-                  translationX = indicatorX.value - (capsuleWidthPx / 2f)
-                }
-                .fluidLensedGlass(
-                  shape = CircleShape,
-                  elevation = if (isDark) 2.dp else 1.dp,
-                  borderWidth = 0.6.dp,
-                  isElevated = true
-                )
-            )
-          }
-
-          // 2. Navigation Tab Icons Row
-          Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            destinations.take(4).forEachIndexed { index, destination ->
-              val activeColor = if (isDark) InkWashIvory else InkWashCharcoal
-              val inactiveColor = if (isDark) InkWashMist.copy(alpha = 0.50f) else InkWashCharcoal.copy(alpha = 0.45f)
-
-              val tabCenterX = if (slotWidth > 0f) slotWidth * (index + 0.5f) else 0f
-              val dist = if (slotWidth > 0f) abs(indicatorX.value - tabCenterX) / slotWidth else if (selectedTab == index) 0f else 1f
-              val proximity = (1f - dist).coerceIn(0f, 1f)
-              val iconTint = lerp(inactiveColor, activeColor, proximity)
-              val iconScale = 1.0f + 0.12f * proximity
-              val isSelected = proximity > 0.5f
-
-              Box(
+                .weight(1f)
+                .fillMaxHeight()
+                .testTag("nav_${destination.name.lowercase()}"),
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
+                contentDescription = destination.label,
+                tint = iconTint,
                 modifier = Modifier
-                  .weight(1f)
-                  .fillMaxHeight()
-                  .testTag("nav_${destination.name.lowercase()}"),
-                contentAlignment = Alignment.Center
-              ) {
-                Icon(
-                  imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
-                  contentDescription = destination.label,
-                  tint = iconTint,
-                  modifier = Modifier
-                    .size(23.dp)
-                    .graphicsLayer {
-                      scaleX = iconScale
-                      scaleY = iconScale
-                    }
-                )
-              }
+                  .size(23.dp)
+                  .graphicsLayer {
+                    scaleX = iconScale
+                    scaleY = iconScale
+                  }
+              )
             }
           }
         }
+      }
+    }
 
-        // Far-Right Quick Add (+) Button — Apple Liquid Glass Circular Button with Kern Elastic Rotation
-        val fabRotation by animateFloatAsState(
-          targetValue = if (isQuickAddOpen) 45f else 0f,
-          animationSpec = spring(
-            dampingRatio = 0.54f, // Kern Society snappy elastic rebound
-            stiffness = 450f
-          ),
-          label = "fabRotation"
-        )
-
-        GlassButton(
+    // -------------------------------------------------------------
+    // Component B: IndependentPlusButton (Separated 10dp Gap Floating Circle)
+    // -------------------------------------------------------------
+    Box(
+      modifier = Modifier
+        .size(54.dp)
+        .fluidLensedGlass(
+          shape = CircleShape,
+          elevation = if (isDark) 8.dp else 5.dp,
+          borderWidth = 0.75.dp,
+          isElevated = true,
+          isInteractive = true,
           onClick = {
             VibrationHelper.click(context)
+            com.example.util.SoundManager.playButtonClick(context)
             onQuickAdd()
-          },
-          contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create",
-          size = 46.dp,
-          modifier = Modifier
-            .padding(start = 4.dp, end = 2.dp)
-            .testTag("nav_center_fab")
-        ) {
-          Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = null,
-            tint = if (isDark) InkWashIvory else InkWashCharcoal,
-            modifier = Modifier
-              .size(24.dp)
-              .graphicsLayer(rotationZ = fabRotation)
-          )
-        }
-      }
+          }
+        )
+        .glassSheen(enabled = true, shape = CircleShape)
+        .testTag("nav_center_fab"),
+      contentAlignment = Alignment.Center
+    ) {
+      Icon(
+        imageVector = Icons.Default.Add,
+        contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create",
+        tint = if (isDark) InkWashIvory else InkWashCharcoal,
+        modifier = Modifier
+          .size(26.dp)
+          .graphicsLayer(rotationZ = fabRotation)
+      )
     }
   }
 }

@@ -17,8 +17,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
+import com.example.util.MonthlyDotMatrixRenderer
 
 enum class ReportPeriod { WEEKLY, MONTHLY }
 
@@ -49,6 +51,8 @@ data class ReportsUiState(
     val weekOffset: Int = 0,
     val monthOffset: Int = 0,
     val stats: ReportStats = ReportStats(),
+    val monthlyActivity: Map<LocalDate, Int> = emptyMap(),
+    val isSavingReport: Boolean = false,
     val isGeneratingVisual: Boolean = false,
     val visualBitmap: android.graphics.Bitmap? = null,
     val visualResult: NapkinVisualResult? = null,
@@ -149,6 +153,9 @@ class ReportsViewModel : ViewModel() {
             calculateStreak(habit, habitRecords, today)
         } ?: 0
 
+        val currentMonth = YearMonth.now().plusMonths(state.monthOffset.toLong())
+        val activityMap = MonthlyDotMatrixRenderer.computeMonthlyActivity(tasks, records, currentMonth)
+
         _uiState.value = state.copy(
             stats = ReportStats(
                 periodLabel = periodLabel,
@@ -163,7 +170,8 @@ class ReportsViewModel : ViewModel() {
                 dailyTaskCompletion = dailyTrend,
                 categoryDistribution = categoryDist,
                 topCategories = topCats
-            )
+            ),
+            monthlyActivity = activityMap
         )
     }
 
@@ -213,6 +221,41 @@ class ReportsViewModel : ViewModel() {
                     throw CancellationException("snapshot done")
                 }
         }
+    }
+
+    fun downloadMonthlyReport(context: android.content.Context, isDark: Boolean) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSavingReport = true)
+            val currentMonth = YearMonth.now().plusMonths(_uiState.value.monthOffset.toLong())
+            val bitmap = MonthlyDotMatrixRenderer.generateMonthlyDotMatrixBitmap(
+                context = context,
+                yearMonth = currentMonth,
+                activityMap = _uiState.value.monthlyActivity,
+                isDark = isDark
+            )
+            val result = MonthlyDotMatrixRenderer.saveReportToDownloads(context, bitmap, currentMonth)
+            result.fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(isSavingReport = false)
+                    android.widget.Toast.makeText(context, "Report saved to Downloads/TDlxHT", android.widget.Toast.LENGTH_SHORT).show()
+                },
+                onFailure = { err ->
+                    _uiState.value = _uiState.value.copy(isSavingReport = false)
+                    android.widget.Toast.makeText(context, "Failed to save: ${err.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    fun shareMonthlyReport(context: android.content.Context, isDark: Boolean) {
+        val currentMonth = YearMonth.now().plusMonths(_uiState.value.monthOffset.toLong())
+        val bitmap = MonthlyDotMatrixRenderer.generateMonthlyDotMatrixBitmap(
+            context = context,
+            yearMonth = currentMonth,
+            activityMap = _uiState.value.monthlyActivity,
+            isDark = isDark
+        )
+        MonthlyDotMatrixRenderer.shareReportImage(context, bitmap, currentMonth)
     }
 
     fun generateNapkinVisual(forceRegenerate: Boolean = false) {

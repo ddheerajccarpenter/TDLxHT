@@ -15,8 +15,21 @@ import androidx.core.view.WindowCompat
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+
+// =========================================================================
+// Standardized TDlxHT 24dp Outer / 12dp Inner Geometry System
+// =========================================================================
+val OuterCornerRadius = 24.dp
+val InnerCornerRadius = 12.dp
+val OuterCornerShape = RoundedCornerShape(24.dp)
+val InnerCornerShape = RoundedCornerShape(12.dp)
+val FloatingDockShape = CircleShape
+val PlusButtonShape = CircleShape
 
 @Composable
 fun MyApplicationTheme(

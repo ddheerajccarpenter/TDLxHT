@@ -81,6 +81,39 @@ sequenceDiagram
 
 ---
 
+### 2.5 Dashboard Layout Customization (`DashboardLayoutManager.kt` & `HomeScreen.kt`)
+
+| Interaction | Trigger Element | ViewModel / Manager Call | Persistence Layer | Result State |
+| :--- | :--- | :--- | :--- | :--- |
+| **Enter Edit Mode** | Tap header customize button | Sets `isLayoutEditing = true` | Local composable state | Shows section editor cards with drag handles, move arrows, and visibility toggles |
+| **Move Section Up / Down** | Up / Down chevron buttons | `layoutManager.moveSection(from, to)` | Reactive `StateFlow<List<SectionConfig>>` | Sections immediately reorder with fluid layout motion |
+| **Toggle Visibility** | Eye icon button | `layoutManager.toggleVisibility(sectionId)` | Local configuration update | Eye icon toggles strike, card dims to 0.5f, hidden on dashboard |
+| **Save Layout** | "Save Changes" button | `layoutManager.save(context)` | Writes JSON to `AppPreferences` and queues Supabase sync | Exits edit mode; persists across app cold boots & reinstalls |
+| **Reset to Default** | "Reset Default" button | `layoutManager.resetToDefault(context)` | Restores canonical 5-section sequence | Default hero, metrics, planner, timeblocks, habits sequence restored |
+
+---
+
+### 2.6 Deterministic Monthly Report Generation (`ReportsScreen.kt` & `MonthlyDotMatrixRenderer.kt`)
+
+| Interaction | Trigger Element | ViewModel / Service Call | Data Pipeline | Result State |
+| :--- | :--- | :--- | :--- | :--- |
+| **View Monthly Preview** | Select month in Reports | Computes `monthlyActivity` map | Queries Room `TaskRecord` & `HabitCompletionRecord` | Interactive Canvas preview renders exact 7-column calendar grid with color intensity |
+| **Save Report to Device** | "Save Report" action button | `viewModel.downloadMonthlyReport(context)` | Renders 1080x1350px Bitmap to `MediaStore.Downloads` | Saves `TDlxHT-Productivity-<Month>-<Year>.png` with system notification |
+| **Share Report Sheet** | "Share" action button | `viewModel.shareMonthlyReport(context)` | Generates cache PNG and gets `FileProvider` URI | Opens system sharesheet with image attachment for Instagram, WhatsApp, or Twitter |
+
+---
+
+### 2.7 Audio & Haptic Feedback Engine (`SoundManager.kt` & `HapticManager.kt`)
+
+| Interaction | Trigger Element | Sound Action | Haptic Action | Fallback Safety |
+| :--- | :--- | :--- | :--- | :--- |
+| **Complete Task** | Checkbox tap | `SoundManager.playSound(TASK_COMPLETE)` | `HapticManager.taskCompleted()` | Plays cached OGG; if absent, generates real-time C5$\to$E5 sine wave via AudioTrack |
+| **Tick Habit** | Habit counter tap | `SoundManager.playSound(HABIT_TICK)` | `HapticManager.buttonTap()` | Plays cached OGG; if absent, generates short organic pop |
+| **Button Click** | Primary action buttons | `SoundManager.playSound(BUTTON_CLICK)` | `HapticManager.buttonTap()` | Plays cached OGG; if absent, generates acoustic wood tick |
+| **Timer Finished** | Pomodoro timer zero | `SoundManager.playSound(TIMER_END)` | Continuous pulse vibration | Harmonic bell chime generated algorithmically or loaded from cache |
+
+---
+
 ## 3. End-to-End Integrity Verification Checklist
 
 * [x] Every DB write operation is executed on `Dispatchers.IO` via Room suspend functions.

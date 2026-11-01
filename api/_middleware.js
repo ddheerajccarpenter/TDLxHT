@@ -54,7 +54,7 @@ export function applySecurityHeaders(req, res, { allowedMethods = ['GET', 'POST'
 
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', allowedMethods.join(', '));
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Request-Id');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Request-Id, X-Admin-Key, x-admin-key');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

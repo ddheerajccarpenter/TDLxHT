@@ -7,6 +7,7 @@ import com.example.data.local.HabitEntity
 import com.example.data.local.SubtaskEntity
 import com.example.data.local.TaskEntity
 import com.example.util.AppPreferences
+import com.example.util.DashboardLayoutManager
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
@@ -35,7 +36,9 @@ data class CloudAppSettings(
     @SerialName("favorite_tool_ids") val favoriteToolIds: List<String> = emptyList(),
     @SerialName("custom_tool_order") val customToolOrder: List<String> = emptyList(),
     @SerialName("today_tasks_view_mode") val todayTasksViewMode: String = "LIST",
-    @SerialName("today_habits_view_mode") val todayHabitsViewMode: String = "LIST"
+    @SerialName("today_habits_view_mode") val todayHabitsViewMode: String = "LIST",
+    @SerialName("dashboard_section_order") val dashboardSectionOrder: String = "",
+    @SerialName("dashboard_section_visibility") val dashboardSectionVisibility: String = ""
 )
 
 @Serializable
@@ -225,6 +228,8 @@ class SyncService(private val db: AppDatabase) {
         val habitsViewMode = AppPreferences.getTodayHabitsViewMode(app)
         val prefTheme = AppPreferences.getThemeMode(app)
         val resolvedTheme = if (prefTheme.isNotBlank()) prefTheme else settings.themeMode
+        val dashboardOrder = DashboardLayoutManager.getOrderCsv(app)
+        val dashboardVisibility = DashboardLayoutManager.getVisibilityCsv(app)
 
         val cloud = CloudAppSettings(
             userId = uid,
@@ -241,7 +246,9 @@ class SyncService(private val db: AppDatabase) {
             favoriteToolIds = favTools,
             customToolOrder = toolOrder,
             todayTasksViewMode = tasksViewMode,
-            todayHabitsViewMode = habitsViewMode
+            todayHabitsViewMode = habitsViewMode,
+            dashboardSectionOrder = dashboardOrder,
+            dashboardSectionVisibility = dashboardVisibility
         )
         postgrest["app_settings"].upsert(cloud)
     }
@@ -384,6 +391,13 @@ class SyncService(private val db: AppDatabase) {
         }
         if (cloud.todayHabitsViewMode.isNotBlank()) {
             AppPreferences.setTodayHabitsViewMode(app, cloud.todayHabitsViewMode)
+        }
+        if (cloud.dashboardSectionOrder.isNotBlank() || cloud.dashboardSectionVisibility.isNotBlank()) {
+            DashboardLayoutManager.applyRemoteSettings(
+                app,
+                orderCsv = cloud.dashboardSectionOrder,
+                visibilityCsv = cloud.dashboardSectionVisibility
+            )
         }
     }
 

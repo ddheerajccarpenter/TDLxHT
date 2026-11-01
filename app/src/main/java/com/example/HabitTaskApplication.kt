@@ -33,6 +33,8 @@ class HabitTaskApplication : Application() {
 
     createNotificationChannels()
     com.example.util.AppPreferences.init(this)
+    com.example.util.DashboardLayoutManager.init(this)
+    com.example.util.SoundManager.init(this)
     // ShakeDetectionService is started safely in MainActivity.onResume() when app is in foreground
   }
 

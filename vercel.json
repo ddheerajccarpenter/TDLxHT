@@ -159,6 +159,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/admin/sounds",
+      "destination": "/admin/sounds.html"
+    },
+    {
       "source": "/auth/callback",
       "destination": "/auth/callback/index.html"
     },

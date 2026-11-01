@@ -50,16 +50,23 @@ This ledger tracks all identified, audited, resolved, and verified defects acros
 | **BUG-30** | `HomeScreen.kt` | Completed tasks displayed with low contrast (double attenuation: 0.70f card alpha + muted gray text), failing WCAG readability. | **P2** | Layered opacity reduction made strikethrough text excessively washed out on dark and light glass canvases. | Standardized `cardAlpha = 0.92f` and set `textColor = if (isCompleted) InkSecondary else InkPrimary`, maintaining crisp > 4.5:1 contrast. | **Verified** |
 | **BUG-31** | `SketchComponents.kt` | Unchecked `SketchCheckbox` rendered a dashed circular stroke that resembled a frozen or broken loading spinner. | **P3** | `PathEffect.dashPathEffect` was used for the idle ring state, visually miscommunicating pending background progress. | Replaced dashed path with a clean, solid circular rim (`Stroke(width = strokeWidth, cap = StrokeCap.Round)`). | **Verified** |
 | **BUG-32** | `MainActivity.kt` & `ProductivityScreen.kt` | Lack of horizontal swipe navigation between primary tabs and productivity subtabs; bottom dock indicator did not follow user touch. | **P1** | Touch events only responded to discrete tap clicks; no swipe modifier or continuous drag tracking was implemented. | Built `horizontalSwipeNavigation` with directional arbitration (`dx > 1.5 * dy`) and 28dp edge exclusion; implemented direct 1:1 finger-tracking draggable glass indicator dock clamped between tabs 0..3 with release spring snap. | **Verified** |
+| **BUG-33** | `MainActivity.kt` | Plus button was integrated inside bottom navigation dock capsule, causing visual overcrowding and preventing independent fluid scaling. | **P1** | Plus was treated as a 5th nav destination instead of an independent action element. | Separated Plus into Component B: an independent 54dp floating circular Liquid Glass button positioned 10dp to the right of the 4-tab stadium dock with rotating Add-to-Close icon and coordinated Quick Create emergence. | **Verified** |
+| **BUG-34** | `AndroidManifest.xml` & `backup_rules.xml` | App settings and dashboard layout preferences were lost across device reinstall and offline app restores. | **P0** | `android:allowBackup="false"` in manifest and commented-out backup rules excluded Room DB and Shared Preferences from Android backup manager. | Enabled `android:allowBackup="true"`, activated `backup_rules.xml` and `data_extraction_rules.xml`, and wired layout order/visibility sync to Supabase `CloudAppSettings`. | **Verified** |
+| **BUG-35** | `SoundManager.kt` & UI | Silent touch experience and potential missing raw audio file crash in production. | **P1** | No central audio controller existed; raw sound assets were not bundled, risking runtime failures. | Implemented `SoundManager.kt` with dual-mode architecture: remote manifest sync with SHA-256 verification and 100% offline native PCM micro-synthesizer fallback for zero-resource environments. | **Verified** |
+| **BUG-36** | `app/build.gradle.kts` & `NapkinVisualService.kt` | Insecure build-time API key exposure and third-party dependency for productivity report rendering. | **P0** | `NAPKIN_API_KEY` was embedded in `buildConfigField`, creating client-side credential exposure risk and non-deterministic chart output. | Purged `NAPKIN_API_KEY` from Gradle configuration; built 100% deterministic native Canvas `MonthlyDotMatrixRenderer.kt` drawing directly from Room SQLite database. | **Verified** |
+| **BUG-37** | `HomeScreen.kt` & `DashboardLayoutManager.kt` | Dashboard layout was rigid and non-reconfigurable; user could not customize section order or hide unwanted widgets. | **P1** | `HomeScreen` rendered sections in a fixed vertical sequence without layout manager abstraction. | Implemented `DashboardLayoutManager.kt` and full interactive edit mode supporting drag/button reordering, visibility eye toggles, cloud sync, and one-tap reset. | **Verified** |
+| **BUG-38** | `Color.kt` & `Theme.kt` | Light mode canvas used yellowish tint (`#FFFFE3`, `#F5F5DC`, `#FAF9F0`), deviating from clean minimal off-white design spec. | **P2** | Color palette retained legacy off-white values from older prototype. | Replaced with canonical `#FAFAF7` canvas, `#171717` primary text, `#66686C` secondary text, and standardized 24dp/12dp corner geometry tokens. | **Verified** |
+| **BUG-39** | `HomeScreen.kt` | Compiler warning emitted for `it.dueTime != null && it.dueTime.isNotBlank()`. | **P3** | `dueTime` in `Task` data class is non-nullable `String = ""`, making the null check always true. | Cleaned conditional to `it.dueTime.isNotBlank()`. | **Verified** |
 
 ---
 
 ## 3. Bug Resolution Summary
 
-* **Total Issues Audited:** 32
-* **P0 Issues Resolved:** 1 (100%)
-* **P1 Issues Resolved:** 14 (100%)
-* **P2 Issues Resolved:** 12 (100%)
+* **Total Issues Audited:** 39
+* **P0 Issues Resolved:** 3 (100%)
+* **P1 Issues Resolved:** 18 (100%)
+* **P2 Issues Resolved:** 13 (100%)
 * **P3 Issues Resolved:** 5 (100%)
-* **Total Issues Verified:** 32 / 32 (100%)
+* **Total Issues Verified:** 39 / 39 (100%)
 * **Remaining Unresolved Issues:** 0
 

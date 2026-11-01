@@ -1,3 +1,49 @@
+# TDlxHT Release Notes — Version 2.5.9 (Build 46)
+
+**Release Date:** 2026-11-01  
+**Application ID:** `com.aistudio.habittask.wvnk`  
+**Target Platform:** Android (Compile SDK 36.1, Target SDK 35, Min SDK 24)  
+**Binary Deliverables:** `TDLxHT.2.5.9.apk`, `TDlxHT.apk`, `dist/apk/app-liquid-glass-updated.apk`
+
+---
+
+## 🚀 Release Highlights — Complete Product Redesign, Separated Liquid Glass Plus Button, Dashboard Layout Editor, Deterministic Dot Reports & Zero-Key Security Architecture
+
+TDlxHT 2.5.9 delivers a comprehensive product redesign and functional upgrade across navigation, layout customization, report determinism, acoustic responsiveness, and client security.
+
+### 1. Liquid Glass Bottom Navigation Overhaul & Separated Plus Button
+* **Component A (4-Tab Stadium Dock):** Continuous Liquid Glass capsule containing exactly four icon-only destinations (`Home`, `Productivity`, `Tools`, `Insights`). Hold-to-expand tactile scaling (1.03x) with spring damping (0.75f) and direct horizontal 1:1 finger tracking clamped between tabs 0 and 3.
+* **Component B (Independent Floating Plus Button):** An independent 54dp circular Liquid Glass button positioned 10dp to the right of the main dock. Features isolated spring emergence, continuous specular glass sheen sweep (`Modifier.glassSheen`), and a rotating $45^\circ$ Add-to-Close icon synchronized with Quick Create sheet presentation.
+* **Anchored Morphing Emergence:** Quick Create expands directly from the Plus button coordinates with fluid corner radius interpolation ($54\text{dp} \to 24\text{dp}$).
+
+### 2. Interactive Dashboard Layout Editor
+* **Modular Section Architecture:** Powered by `DashboardLayoutManager.kt`, orchestrating 5 modular cards: Bento Hero, Quick Metrics, Daily Planner, Time Blocks, and Habit Streaks.
+* **Live Layout Customization:** Interactive edit mode featuring drag handles, up/down move chevrons, eye visibility toggles, and Save / Reset actions.
+* **Reinstall Persistence:** Enabled `android:allowBackup="true"`, updated `backup_rules.xml` & `data_extraction_rules.xml`, and integrated Supabase `CloudAppSettings` sync so layout customizations persist across offline app restores and cloud logins.
+
+### 3. Deterministic Monthly Dot Matrix Report Generation
+* **100% Native Canvas Drawing:** Replaced third-party AI APIs with a local, deterministic Canvas rendering pipeline in `MonthlyDotMatrixRenderer.kt`.
+* **Verified SQLite Data:** Aggregates real task completions and habit records from Room SQLite into a 7-column calendar matrix with color intensity gradients.
+* **High-Resolution Export:** Generates crisp 1080x1350px PNG images saved directly to device Downloads (`TDlxHT-Productivity-<Month>-<Year>.png`) and supports instant system sharesheet sharing.
+
+### 4. Zero-Credential Architecture & Hardened Security
+* **Purged Client API Keys (SEC-01):** Completely stripped `NAPKIN_API_KEY` from `build.gradle.kts`. The Android APK bundle contains zero third-party or administrative master secrets.
+* **Serverless Sound Management API (SEC-02):** Mutation endpoint `POST /api/sounds` is strictly guarded behind server-side environment variable `ADMIN_API_KEY` in header `X-Admin-Key`.
+* **Cryptographic Asset Integrity (SEC-03):** Remote sound downloads enforce SHA-256 integrity verification before loading into the audio system.
+* **Rate Limiting & DoS Protection (SEC-05):** In-memory sliding-window rate limiting on all Vercel serverless endpoints.
+
+### 5. Multi-Tier Audio & Haptic Feedback Engine
+* **Acoustic Feedback:** `SoundManager.kt` powers subtle, organic feedback for task completions, habit ticks, button clicks, and timer finishes.
+* **Zero-Resource Native Synthesizer Fallback:** Built-in `AudioTrack` PCM micro-synthesizer generates real-time harmonic bell chimes and clicks algorithmically when offline or without bundled audio assets, guaranteeing 0 crashes and 0 silent interactions.
+* **Tactile Integration:** Coordinated `HapticManager.kt` providing slider snaps, completion pulses, and boundary ticks.
+* **Web Admin Portal:** Monochromatic Liquid Glass web console at `/admin/sounds` for auditing and managing sound assets.
+
+### 6. Design System Standardization
+* **Canonical Light Canvas:** Replaced yellowish off-white tints with clean `#FAFAF7` canvas and `#171717` text.
+* **Standardized Geometry:** Enforced 24dp outer and 12dp inner corner radii across all cards, dialogs, and sheets.
+
+---
+
 # TDlxHT Release Notes — Version 2.5.8 (Build 45)
 
 **Release Date:** 2026-11-01  

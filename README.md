@@ -35,7 +35,7 @@ Unlike cluttered corporate project managers or ephemeral web apps, TDlxHT pairs 
 ┌───────────────────────────────────────────────────────────────────┐
 │                       TODAY'S DASHBOARD                           │
 │  ┌─────────────────────────────────────────────────────────────┐  │
-│  │ 📊 DAILY SUMMARY: 5/7 Completed • 80% • 🔥 5-Day Streak    │  │
+│  │ 📊 DAILY SUMMARY: 5/7 Completed • 80% • 🔥 5-Day Streak   │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 │                                                                   │
 │   [ All ]                 [ Tasks ]                [ Habits ]     │

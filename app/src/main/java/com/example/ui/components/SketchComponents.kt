@@ -11,11 +11,23 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.drawWithContent
+import com.example.ui.theme.OuterCornerRadius
+import com.example.ui.theme.InnerCornerRadius
+import com.example.ui.theme.OuterCornerShape
+import com.example.ui.theme.InnerCornerShape
+import com.example.ui.theme.InkWashIvoryElevated
+import com.example.ui.theme.LightGlassSpecular
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.graphicsLayer
@@ -92,6 +104,7 @@ import com.example.util.VibrationHelper
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
@@ -125,12 +138,6 @@ import com.example.ui.theme.InkWashCharcoalBorder
 import com.example.ui.theme.InkWashIvoryPaper
 import com.example.ui.theme.InkWashIvoryCard
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -971,7 +978,7 @@ fun Modifier.kernSquashCounter(
  */
 @Composable
 fun Modifier.fluidLensedGlass(
-  shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(18.dp),
+  shape: androidx.compose.ui.graphics.Shape = OuterCornerShape,
   elevation: Dp = 2.dp,
   borderWidth: Dp = 0.75.dp,
   isElevated: Boolean = false,
@@ -1013,7 +1020,7 @@ fun Modifier.fluidLensedGlass(
       if (customBackgroundColor != null && customBackgroundColor != Color.Unspecified && customBackgroundColor != defaultCardBg) {
         drawRect(color = customBackgroundColor)
       } else {
-        // 1. Solid Body Fill (Solid grey on dark, solid ivory on light - zero transparency)
+        // 1. Solid Body Fill (Deep charcoal on dark, refined off-white ivory on light)
         drawRect(
           brush = Brush.verticalGradient(
             colors = if (isDark) {
@@ -1029,10 +1036,17 @@ fun Modifier.fluidLensedGlass(
                 )
               }
             } else {
-              listOf(
-                InkWashIvoryCard,
-                InkWashIvoryPaper
-              )
+              if (isElevated) {
+                listOf(
+                  InkWashIvoryElevated,
+                  InkWashIvoryCard
+                )
+              } else {
+                listOf(
+                  InkWashIvoryCard,
+                  InkWashIvoryPaper
+                )
+              }
             }
           )
         )
@@ -1049,8 +1063,8 @@ fun Modifier.fluidLensedGlass(
               )
             } else {
               listOf(
-                Color(0x65FFFFFF),
-                Color(0x20FFFFFF),
+                Color(0x50FFFFFF),
+                Color(0x18FFFFFF),
                 Color.Transparent
               )
             },
@@ -1069,7 +1083,7 @@ fun Modifier.fluidLensedGlass(
               )
             } else {
               listOf(
-                Color(0x18000000),
+                Color(0x10000000),
                 Color.Transparent
               )
             },
@@ -1088,10 +1102,56 @@ fun Modifier.fluidLensedGlass(
   return baseModifier
 }
 
+/**
+ * Optical specular shining sweep modifier.
+ * Creates a soft 20-degree light band traversing smoothly across surfaces,
+ * providing genuine specular glass reflection without heavy blur.
+ */
+@Composable
+fun Modifier.glassSheen(
+  enabled: Boolean = true,
+  sheenColor: Color = LightGlassSpecular,
+  shape: androidx.compose.ui.graphics.Shape = OuterCornerShape
+): Modifier = composed {
+  if (!enabled) return@composed this
+  val transition = rememberInfiniteTransition(label = "glassSheen")
+  val progress by transition.animateFloat(
+    initialValue = -0.6f,
+    targetValue = 1.6f,
+    animationSpec = infiniteRepeatable(
+      animation = tween(durationMillis = 4500, delayMillis = 2000, easing = LinearEasing),
+      repeatMode = RepeatMode.Restart
+    ),
+    label = "glassSheenProgress"
+  )
+
+  this
+    .clip(shape)
+    .drawWithContent {
+      drawContent()
+      val w = size.width
+      val h = size.height
+      val bandWidth = (w * 0.35f).coerceAtLeast(40.dp.toPx())
+      val startX = (w + bandWidth * 2) * progress - bandWidth
+      val brush = Brush.linearGradient(
+        colors = listOf(
+          Color.Transparent,
+          sheenColor.copy(alpha = sheenColor.alpha * 0.35f),
+          sheenColor,
+          sheenColor.copy(alpha = sheenColor.alpha * 0.35f),
+          Color.Transparent
+        ),
+        start = Offset(startX, 0f),
+        end = Offset(startX + bandWidth, h)
+      )
+      drawRect(brush = brush)
+    }
+}
+
 @Composable
 fun SketchCard(
   modifier: Modifier = Modifier,
-  cornerRadius: Dp = 16.dp,
+  cornerRadius: Dp = OuterCornerRadius,
   backgroundColor: Color = CardBackground,
   borderColor: Color = CardBorder,
   borderWidth: Dp = 0.75.dp,
@@ -1126,7 +1186,7 @@ fun SketchCard(
 @Composable
 fun GlassCard(
   modifier: Modifier = Modifier,
-  cornerRadius: Dp = 18.dp,
+  cornerRadius: Dp = OuterCornerRadius,
   backgroundColor: Color = CardBackground,
   borderColor: Color = CardBorder,
   borderWidth: Dp = 0.75.dp,
@@ -1240,7 +1300,7 @@ fun GlassMenu(
         modifier = modifier
           .widthIn(min = 180.dp, max = 280.dp)
           .fluidLensedGlass(
-            shape = RoundedCornerShape(18.dp),
+            shape = OuterCornerShape,
             elevation = 8.dp,
             borderWidth = 0.75.dp,
             isElevated = true
@@ -1587,30 +1647,32 @@ fun GlassSheet(
   if (visible) {
     Dialog(onDismissRequest = onDismissRequest) {
       val isDark = LocalAppColors.current.isDark
-      Box(
-        modifier = modifier
-          .fillMaxWidth()
-          .fluidLensedGlass(
-            shape = RoundedCornerShape(22.dp),
-            elevation = 12.dp,
-            borderWidth = 0.75.dp,
-            isElevated = true
-          )
-          .padding(20.dp)
-      ) {
-        Column(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalAlignment = Alignment.CenterHorizontally
+      AnimatedDialogContent(transformOrigin = TransformOrigin(0.85f, 1.0f)) {
+        Box(
+          modifier = modifier
+            .fillMaxWidth()
+            .fluidLensedGlass(
+              shape = OuterCornerShape,
+              elevation = 12.dp,
+              borderWidth = 0.75.dp,
+              isElevated = true
+            )
+            .padding(20.dp)
         ) {
-          // Drag handle pill
-          Box(
-            modifier = Modifier
-              .size(width = 38.dp, height = 4.dp)
-              .clip(CircleShape)
-              .background(if (isDark) Color(0x35FFFFFF) else Color(0x30000000))
-          )
-          Spacer(modifier = Modifier.height(16.dp))
-          content()
+          Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            // Drag handle pill
+            Box(
+              modifier = Modifier
+                .size(width = 38.dp, height = 4.dp)
+                .clip(CircleShape)
+                .background(if (isDark) Color(0x35FFFFFF) else Color(0x30000000))
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            content()
+          }
         }
       }
     }
@@ -2298,6 +2360,7 @@ fun SketchSearchBar(
 @Composable
 fun AnimatedDialogContent(
   modifier: Modifier = Modifier,
+  transformOrigin: TransformOrigin = TransformOrigin.Center,
   content: @Composable () -> Unit
 ) {
   var isVisible by remember { mutableStateOf(false) }
@@ -2325,6 +2388,7 @@ fun AnimatedDialogContent(
         scaleX = scale
         scaleY = scale
         this.alpha = alpha
+        this.transformOrigin = transformOrigin
       }
   ) {
     content()
@@ -2344,7 +2408,7 @@ fun DeleteConfirmationDialog(
         modifier = Modifier
           .fillMaxWidth()
           .padding(16.dp),
-        cornerRadius = 20.dp,
+        cornerRadius = OuterCornerRadius,
         borderWidth = 2.dp
       ) {
         Column(

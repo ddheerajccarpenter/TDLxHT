@@ -31,7 +31,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
+import com.example.util.MonthlyDotMatrixComposable
+import com.example.ui.components.fluidLensedGlass
+import com.example.ui.theme.InnerCornerShape
+import com.example.ui.theme.OuterCornerRadius
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -102,6 +109,7 @@ fun ReportsScreen(
 ) {
     val viewModel: ReportsViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val aiEngine = remember { AiIntelligenceEngine.instance }
     var isRefreshingAi by remember { mutableStateOf(false) }
@@ -207,18 +215,94 @@ fun ReportsScreen(
                 }
             }
 
-            // Napkin visual section
+            // Deterministic Activity Dot Matrix Section
             item {
                 Spacer(Modifier.height(16.dp))
-                NapkinVisualSection(
-                    isGenerating = state.isGeneratingVisual,
-                    visualBitmap = state.visualBitmap,
-                    visualUrl = state.visualResult?.imageUrl,
-                    error = state.visualError,
-                    isCached = state.visualResult?.isCached == true,
-                    onGenerate = { viewModel.generateNapkinVisual() },
-                    onRegenerate = { viewModel.generateNapkinVisual(forceRegenerate = true) }
+                val currentMonth = remember(state.monthOffset) {
+                    java.time.YearMonth.now().plusMonths(state.monthOffset.toLong())
+                }
+                val isDark = com.example.ui.theme.LocalAppColors.current.isDark
+
+                MonthlyDotMatrixComposable(
+                    yearMonth = currentMonth,
+                    activityMap = state.monthlyActivity
                 )
+
+                Spacer(Modifier.height(12.dp))
+
+                // Actions: Save to Downloads & Share
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Save Report Button
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .fluidLensedGlass(shape = InnerCornerShape, elevation = 2.dp)
+                            .bounceClick {
+                                viewModel.downloadMonthlyReport(context, isDark)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FileDownload,
+                                contentDescription = null,
+                                tint = InkPrimary,
+                                modifier = Modifier.size(17.dp)
+                            )
+                            Text(
+                                text = "Save Report",
+                                style = TextStyle(
+                                    fontFamily = SFProFontFamily,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = InkPrimary
+                                )
+                            )
+                        }
+                    }
+
+                    // Share Report Button
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .background(PillBackgroundDark, InnerCornerShape)
+                            .clip(InnerCornerShape)
+                            .bounceClick {
+                                viewModel.shareMonthlyReport(context, isDark)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                tint = PillTextDark,
+                                modifier = Modifier.size(17.dp)
+                            )
+                            Text(
+                                text = "Share",
+                                style = TextStyle(
+                                    fontFamily = SFProFontFamily,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PillTextDark
+                                )
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
             }
         }
     }
@@ -380,158 +464,6 @@ private fun EmptyStatsCard() {
         title = "No data yet",
         subtitle = "Complete tasks or habits to generate insights"
     )
-}
-
-@Composable
-private fun NapkinVisualSection(
-    isGenerating: Boolean,
-    visualBitmap: android.graphics.Bitmap?,
-    visualUrl: String?,
-    error: String?,
-    isCached: Boolean,
-    onGenerate: () -> Unit,
-    onRegenerate: () -> Unit
-) {
-    Text("AI VISUAL REPORT", style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary))
-    Spacer(Modifier.height(8.dp))
-
-    SketchCard(Modifier.fillMaxWidth().staggeredEntrance(index = 3)) {
-        Column(
-            Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when {
-                isGenerating -> {
-                    Spacer(Modifier.height(16.dp))
-                    CircularProgressIndicator(modifier = Modifier.size(36.dp), strokeWidth = 3.dp, color = InkPrimary)
-                    Spacer(Modifier.height(12.dp))
-                    Text("Generating visual report…",
-                        style = TextStyle(fontSize = 14.sp, color = InkSecondary, textAlign = TextAlign.Center))
-                    Text("Rendering local Room database metrics",
-                        style = TextStyle(fontSize = 11.sp, color = InkMuted))
-                    Spacer(Modifier.height(16.dp))
-                }
-                visualBitmap != null -> {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "Generated visual report",
-                            style = TextStyle(fontSize = 12.sp, color = InkMuted)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .border(1.dp, CardBorder, RoundedCornerShape(8.dp))
-                                .clip(RoundedCornerShape(8.dp))
-                                .bounceClick { onRegenerate() }
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Default.Refresh, "Regenerate", tint = InkSecondary, modifier = Modifier.size(14.dp))
-                                Text("Refresh", style = TextStyle(fontSize = 12.sp, color = InkSecondary))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Image(
-                        bitmap = visualBitmap.asImageBitmap(),
-                        contentDescription = "AI Productivity Visual Report",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, CardBorder, RoundedCornerShape(12.dp))
-                    )
-                }
-                visualUrl != null -> {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            if (isCached) "Cached visual" else "Generated visual",
-                            style = TextStyle(fontSize = 12.sp, color = InkMuted)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .border(1.dp, CardBorder, RoundedCornerShape(8.dp))
-                                .clip(RoundedCornerShape(8.dp))
-                                .bounceClick { onRegenerate() }
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Default.Refresh, "Regenerate", tint = InkSecondary, modifier = Modifier.size(14.dp))
-                                Text("Refresh", style = TextStyle(fontSize = 12.sp, color = InkSecondary))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .background(ProgressBarTrack, RoundedCornerShape(10.dp))
-                            .border(1.dp, CardBorder, RoundedCornerShape(10.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Visual ready", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary))
-                            Text("Open in browser to view", style = TextStyle(fontSize = 11.sp, color = InkSecondary))
-                        }
-                    }
-                }
-                error != null -> {
-                    AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .background(CardBackground, RoundedCornerShape(10.dp))
-                                .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                                .padding(14.dp)
-                        ) {
-                            Column {
-                                Text(error, style = TextStyle(fontSize = 13.sp, color = InkPrimary, lineHeight = 18.sp))
-                                Spacer(Modifier.height(4.dp))
-                                Text("Underlying activity data remains fully preserved above.", style = TextStyle(fontSize = 11.sp, color = InkMuted))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    GenerateButton(label = "Try Again", onClick = onGenerate)
-                }
-                else -> {
-                    Text(
-                        "Generate an AI-powered visual summary of your productivity for this period.",
-                        style = TextStyle(fontSize = 13.sp, color = InkSecondary, textAlign = TextAlign.Center, lineHeight = 19.sp),
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
-                        "Your Napkin API key never leaves the server",
-                        style = TextStyle(fontSize = 11.sp, color = InkMuted, textAlign = TextAlign.Center)
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    GenerateButton(label = "Generate Visual Report", onClick = onGenerate)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun GenerateButton(label: String, onClick: () -> Unit) {
-    GlassButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .semantics { contentDescription = label },
-        icon = {
-            Icon(Icons.Default.AutoAwesome, null, tint = InkPrimary, modifier = Modifier.size(18.dp))
-        }
-    ) {
-        Text(
-            text = label,
-            style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = InkPrimary
-            )
-        )
-    }
 }
 
 @Composable
