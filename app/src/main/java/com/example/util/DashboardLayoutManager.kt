@@ -10,6 +10,7 @@ enum class DashboardSection(
     val title: String,
     val subtitle: String
 ) {
+    SPATIAL_COMPANION("spatial_companion", "3D Spatial Companion", "Interactive 3D model, momentum orbit & focus core"),
     BENTO_HERO("bento_hero", "Progress & Momentum", "Circular progress ring and momentum summary"),
     QUICK_METRICS("quick_metrics", "Quick Stats", "Overview of today's key productivity metrics"),
     DAILY_PLANNER("daily_planner", "Daily Tasks", "Prioritized task list with instant completion"),
@@ -18,6 +19,7 @@ enum class DashboardSection(
 
     companion object {
         val DEFAULT_ORDER = listOf(
+            SPATIAL_COMPANION,
             BENTO_HERO,
             QUICK_METRICS,
             DAILY_PLANNER,

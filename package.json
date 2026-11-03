@@ -1,11 +1,12 @@
 {
   "name": "tdlxht",
-  "version": "2.5.13",
+  "version": "2.5.16",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp -r web/sounds dist/ 2>/dev/null || true) && (cp web/*.png dist/ 2>/dev/null || true) && (cp web/*.svg dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true) && (mkdir -p dist/apk && cp app/build/outputs/apk/release/app-release.apk dist/apk/app-liquid-glass-updated.apk 2>/dev/null || true)",
+    "build:android-3d": "node scripts/build_android_spatial.js",
+    "build": "node scripts/build_android_spatial.js && vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp -r web/sounds dist/ 2>/dev/null || true) && (cp -r web/models dist/ 2>/dev/null || true) && (cp web/*.png dist/ 2>/dev/null || true) && (cp web/*.svg dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true) && (mkdir -p dist/apk && cp app/build/outputs/apk/release/app-release.apk dist/apk/app-liquid-glass-updated.apk 2>/dev/null || true)",
     "release": "./gradlew syncReleaseApk && npm run build && npx vercel --prod --yes",
     "preview": "vite preview"
   },
@@ -13,18 +14,11 @@
     "vite": "^6.2.0"
   },
   "dependencies": {
-    "@neon/config": "^1.10.0",
-    "@neon/env": "^1.6.8",
     "@neondatabase/serverless": "^1.2.0",
-    "@sentdm/sentdm": "^0.48.1",
     "@supabase/supabase-js": "^2.118.0",
     "@zakisheriff/liquid-glass": "^0.3.6",
-    "animejs": "^4.5.0",
     "gsap": "^3.15.0",
-    "loading-dev": "^0.3.6",
     "nodemailer": "^10.0.13",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
     "three": "^0.186.1"
   }
 }

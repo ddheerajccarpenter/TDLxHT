@@ -13,12 +13,16 @@ echo "=================================================="
 echo "Checking connected Android device/emulator..."
 $ADB devices
 
-APK_PATH="./TDLxHT.2.3.8.apk"
-if [ ! -f "$APK_PATH" ]; then
+LATEST_VERSIONED_APK=$(ls -t TDLxHT.*.apk 2>/dev/null | head -n 1 || true)
+if [ -n "$LATEST_VERSIONED_APK" ] && [ -f "$LATEST_VERSIONED_APK" ]; then
+  APK_PATH="./$LATEST_VERSIONED_APK"
+elif [ -f "./TDlxHT.apk" ]; then
   APK_PATH="./TDlxHT.apk"
-fi
-if [ ! -f "$APK_PATH" ]; then
+elif [ -f "./TDlxHT-release.apk" ]; then
   APK_PATH="./TDlxHT-release.apk"
+else
+  echo "Error: No APK found in current directory. Run ./gradlew syncReleaseApk first."
+  exit 1
 fi
 
 echo ""

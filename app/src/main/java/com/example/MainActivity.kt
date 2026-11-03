@@ -480,7 +480,8 @@ fun MainApp(
                       onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
                       onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
                       onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
-                      onNavigateToSearch = { navController.navigate(AppNavDestination.Search) }
+                      onNavigateToSearch = { navController.navigate(AppNavDestination.Search) },
+                      onOpenFocusTimer = { navController.navigate(AppNavDestination.FocusTimer(25)) }
                     )
                   }
                   AppDestination.PRODUCTIVITY -> {
@@ -1318,30 +1319,20 @@ fun SketchBottomNavigationBar(
   onDestinationSelected: (AppDestination) -> Unit,
   onQuickAdd: () -> Unit
 ) {
-  Row(
+  Box(
     modifier = Modifier
       .fillMaxWidth()
       .windowInsetsPadding(WindowInsets.navigationBars)
-      .padding(horizontal = 16.dp, vertical = 8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(10.dp)
+      .padding(horizontal = 20.dp, vertical = 6.dp),
+    contentAlignment = Alignment.Center
   ) {
-    // -------------------------------------------------------------
-    // Component A: LiquidGlassNavigationDock (4 Tabs: Home, Productivity, Tools, Insights)
-    // -------------------------------------------------------------
     LiquidGlassNavigationDock(
       destinations = destinations,
       selectedTab = selectedTab,
+      isQuickAddOpen = isQuickAddOpen,
       onDestinationSelected = onDestinationSelected,
-      modifier = Modifier.weight(1f)
-    )
-
-    // -------------------------------------------------------------
-    // Component B: LiquidGlassFloatingActionButton (Separated 10dp Gap Floating Circle)
-    // -------------------------------------------------------------
-    LiquidGlassFloatingActionButton(
-      onClick = onQuickAdd,
-      isOpen = isQuickAddOpen
+      onQuickAdd = onQuickAdd,
+      modifier = Modifier.fillMaxWidth()
     )
   }
 }

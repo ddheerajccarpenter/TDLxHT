@@ -106,19 +106,19 @@ val PaletteMintLeaf = BrandTextPrimary
 // Zero yellow cast, zero neon blue, zero neon green, zero AI-sloped colors.
 // =========================================================================
 val InkWashCharcoal = Color(0xFF171717)       // Primary deep charcoal / Dark text / Light primary button
-val InkWashMist = Color(0xFFD6D6DC)           // Mid neutral / Soft gray edge definition
-val InkWashIvory = Color(0xFFFAFAF7)          // Clean off-white canvas with subtle warm undertone
-val InkWashSlate = Color(0xFF5E6E82)          // Slate steel wash / Universal active highlight & badge
+val InkWashMist = Color(0xFF9DA2A8)           // Mid neutral / Secondary text
+val InkWashIvory = Color(0xFFFFFFFF)          // Crisp white primary text
+val InkWashSlate = Color(0xFF6366F1)          // Focused Indigo accent / primary indicator
 
 // Tonal derivatives ensuring Dark Mode is darker than Light Mode
-val InkWashCharcoalDeep = Color(0xFF1E2022)   // Dark Canvas base (darker than #4A4A4A)
-val InkWashCharcoalSurface = Color(0xFF2B2D30)// Dark Card Surface
-val InkWashCharcoalElevated = Color(0xFF35383C)// Dark Elevated Dock & Modals
-val InkWashCharcoalBorder = Color(0xFF4A4A4A) // Dark Hairline Border
+val InkWashCharcoalDeep = Color(0xFF0D0F11)   // Dark Canvas base - Deep Charcoal
+val InkWashCharcoalSurface = Color(0xFF16181B)// Dark Card Surface - Refined Slate Graphite
+val InkWashCharcoalElevated = Color(0xFF1F2226)// Dark Elevated Dock & Modals
+val InkWashCharcoalBorder = Color(0x14FFFFFF) // Subtle Hairline Border (8% white)
 val InkWashIvoryPaper = Color(0xFFFAFAF7)     // Light Canvas (#FAFAF7)
 val InkWashIvoryCard = Color(0xB8FFFFFF)      // Primary glass surface: rgba(255, 255, 255, 0.72)
 val InkWashIvoryElevated = Color(0xD6FFFFFF)  // Elevated glass surface: rgba(255, 255, 255, 0.84)
-val InkWashRustMuted = Color(0xFF8C5252)      // Subtle muted rust for delete/destructive actions
+val InkWashRustMuted = Color(0xFFF87171)      // Muted coral for delete/destructive actions
 
 // Semantic Tokens redirected to Ink Wash
 val OklchIndigo = InkWashSlate
@@ -255,26 +255,26 @@ val DarkColors = AppColors(
   paperDotColor = Color.Transparent,
   inkPrimary = InkWashIvory,
   inkSecondary = InkWashMist,
-  inkMuted = Color(0xFF8E9296),
+  inkMuted = Color(0xFF5C6168),
   cardBackground = InkWashCharcoalSurface,
   cardBorder = InkWashCharcoalBorder,
   pillBackgroundDark = InkWashIvory,
   pillTextDark = InkWashCharcoalDeep,
-  progressBarTrack = Color(0x334A4A4A),
+  progressBarTrack = Color(0x1AFFFFFF),
   progressBarFilled = InkWashSlate,
   accentTerracotta = InkWashSlate,
-  accentOrange = InkWashSlate,
-  accentYellowHighlight = Color(0x286D8196),
+  accentOrange = Color(0xFFD4E815),
+  accentYellowHighlight = Color(0x28D4E815),
   accentRed = InkWashRustMuted,
   chipBorder = InkWashCharcoalBorder,
-  chipUnselected = Color(0x334A4A4A),
+  chipUnselected = Color(0x14FFFFFF),
   isDark = true,
   oklchPrimary = InkWashSlate,
-  oklchSuccess = InkWashSlate,
-  oklchWarning = InkWashSlate,
+  oklchSuccess = Color(0xFF34D399),
+  oklchWarning = Color(0xFFFBBF24),
   oklchDanger = InkWashRustMuted,
   oklchFocus = InkWashSlate,
-  oklchPurple = InkWashSlate,
+  oklchPurple = Color(0xFF818CF8),
   surfaceCard = InkWashCharcoalSurface,
   surfaceElevated = InkWashCharcoalElevated
 )

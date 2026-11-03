@@ -5,6 +5,7 @@
  */
 
 import { initBottomNav } from './bottom-nav.js';
+import { init3DScene } from './scene3d.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   // Hash check for Supabase Auth redirect
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCalculatorLibrary();
   initVersionSync();
   initScrollMotionBlur();
+  init3DScene();
 });
 
 // Theme Toggle (Supports both GlassSwitch inputs and legacy buttons)

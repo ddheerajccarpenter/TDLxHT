@@ -490,21 +490,9 @@ fun isReducedMotionEnabled(context: Context): Boolean {
  * Clean no-ops for decorative AI-slop animations, preserving API compatibility
  * while keeping the interface completely calm, physically grounded, and GPU-conscious.
  */
-fun Modifier.borderBeam(
-  borderWidth: Dp = 1.6.dp,
-  cornerRadius: Dp = 14.dp,
-  durationMillis: Int = 3600,
-  colors: List<Color>? = null
-): Modifier = this
-
 fun Modifier.shimmerBadge(
   highlightColor: Color? = null,
   durationMillis: Int = 2400
-): Modifier = this
-
-fun Modifier.breathingPulse(
-  glowColor: Color? = null,
-  durationMillis: Int = 2600
 ): Modifier = this
 
 /**
@@ -842,127 +830,6 @@ fun Modifier.elasticStretchPress(
           onClick?.invoke()
         }
       )
-  }
-}
-
-/**
- * Dheeraj Carpenter Tactile 3D Perspective Depth Modifier (Priority 1).
- * Applies 3D perspective camera distance, subtle rotation on interaction,
- * multi-layer ambient shadow depth, and a crisp specular edge highlight.
- */
-fun Modifier.tactile3DDepth(
-  cornerRadius: Dp = 16.dp,
-  elevation: Dp = 6.dp,
-  tiltDegrees: Float = 3.5f,
-  isDark: Boolean = true
-): Modifier = composed {
-  val interactionSource = remember { MutableInteractionSource() }
-  val isPressed by interactionSource.collectIsPressedAsState()
-
-  val currentElevation by animateDpAsState(
-    targetValue = if (isPressed) 2.dp else elevation,
-    animationSpec = spring(dampingRatio = 0.72f, stiffness = 400f),
-    label = "tactileElevation"
-  )
-  val rotationX by animateFloatAsState(
-    targetValue = if (isPressed) tiltDegrees else 0f,
-    animationSpec = spring(dampingRatio = 0.65f, stiffness = 380f),
-    label = "tactileRotX"
-  )
-  val scale by animateFloatAsState(
-    targetValue = if (isPressed) 0.98f else 1f,
-    animationSpec = spring(dampingRatio = 0.65f, stiffness = 420f),
-    label = "tactileScale"
-  )
-
-  this
-    .graphicsLayer {
-      this.rotationX = rotationX
-      this.scaleX = scale
-      this.scaleY = scale
-      cameraDistance = 16f * density
-    }
-    .shadow(
-      elevation = currentElevation,
-      shape = RoundedCornerShape(cornerRadius),
-      ambientColor = if (isDark) Color(0x65000000) else Color(0x18000000),
-      spotColor = if (isDark) Color(0x45000000) else Color(0x10000000)
-    )
-    .border(
-      width = 1.dp,
-      brush = Brush.verticalGradient(
-        colors = if (isDark) {
-          listOf(Color(0x35FFFFFF), Color(0x0EFFFFFF))
-        } else {
-          listOf(Color(0x40FFFFFF), Color(0x15000000))
-        }
-      ),
-      shape = RoundedCornerShape(cornerRadius)
-    )
-}
-
-/**
- * Dheeraj Carpenter Icon Nudge micro-interaction (Priority 1).
- * Causes trailing icons to dynamically nudge forward with physical snap on press.
- */
-@Composable
-fun Modifier.iconNudgePress(
-  isTriggered: Boolean = false,
-  nudgeDp: Dp = 4.dp
-): Modifier {
-  val context = LocalContext.current
-  val isReduced = remember { isReducedMotionEnabled(context) }
-  if (isReduced) return this
-
-  val density = LocalDensity.current
-  val nudgePx = with(density) { nudgeDp.toPx() }
-
-  val translationX by animateFloatAsState(
-    targetValue = if (isTriggered) nudgePx else 0f,
-    animationSpec = spring(dampingRatio = 0.52f, stiffness = 450f),
-    label = "iconNudge"
-  )
-
-  return this.graphicsLayer {
-    this.translationX = translationX
-  }
-}
-
-/**
- * Kern Society kinetic number squash & stretch counter animation (Priority 2).
- * Triggers an elastic squash and vertical snap whenever the provided counter value changes.
- */
-@Composable
-fun Modifier.kernSquashCounter(
-  key: Any?
-): Modifier {
-  val context = LocalContext.current
-  val isReduced = remember { isReducedMotionEnabled(context) }
-  if (isReduced) return this
-
-  val scaleXAnim = remember { Animatable(1f) }
-  val scaleYAnim = remember { Animatable(1f) }
-
-  LaunchedEffect(key) {
-    if (key != null) {
-      scaleXAnim.snapTo(1.15f)
-      scaleYAnim.snapTo(0.85f)
-      launch {
-        scaleXAnim.animateTo(
-          targetValue = 1f,
-          animationSpec = spring(dampingRatio = 0.50f, stiffness = 420f)
-        )
-      }
-      scaleYAnim.animateTo(
-        targetValue = 1f,
-        animationSpec = spring(dampingRatio = 0.50f, stiffness = 420f)
-      )
-    }
-  }
-
-  return this.graphicsLayer {
-    this.scaleX = scaleXAnim.value
-    this.scaleY = scaleYAnim.value
   }
 }
 
@@ -1472,76 +1339,6 @@ fun GlassSwitch(
 }
 
 /**
- * Apple-Style Liquid Glass Continuous Slider.
- * Provides a translucent glass track, filled progress,
- * and a tactile circular glass thumb.
- */
-@Composable
-fun GlassSlider(
-  value: Float,
-  onValueChange: (Float) -> Unit,
-  modifier: Modifier = Modifier,
-  valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
-  showThumb: Boolean = true,
-  enabled: Boolean = true
-) {
-  val isDark = LocalAppColors.current.isDark
-  val clampedValue = value.coerceIn(valueRange.start, valueRange.endInclusive)
-  val fraction = if (valueRange.endInclusive > valueRange.start) {
-    (clampedValue - valueRange.start) / (valueRange.endInclusive - valueRange.start)
-  } else 0f
-
-  BoxWithConstraints(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(if (showThumb) 36.dp else 24.dp),
-    contentAlignment = Alignment.CenterStart
-  ) {
-    val totalWidth = maxWidth
-    val trackHeight = if (showThumb) 8.dp else 18.dp
-
-    Box(
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(trackHeight)
-        .fluidLensedGlass(
-          shape = CircleShape,
-          elevation = 0.dp,
-          borderWidth = 0.6.dp,
-          isElevated = false
-        )
-    ) {
-      Box(
-        modifier = Modifier
-          .fillMaxWidth(fraction)
-          .fillMaxHeight()
-          .clip(CircleShape)
-          .background(if (isDark) Color(0xCCFFFFFF) else Color(0xEE1C1C1E))
-      )
-    }
-
-    if (showThumb) {
-      val density = LocalDensity.current
-      val thumbSize = 22.dp
-      val maxPx = with(density) { (totalWidth - thumbSize).toPx() }
-      val currentPx = maxPx * fraction
-
-      Box(
-        modifier = Modifier
-          .graphicsLayer { translationX = currentPx }
-          .size(thumbSize)
-          .fluidLensedGlass(
-            shape = CircleShape,
-            elevation = 2.dp,
-            borderWidth = 0.6.dp,
-            isElevated = true
-          )
-      )
-    }
-  }
-}
-
-/**
  * Apple-Style Liquid Glass Input Field.
  * Supports text, search, and form inputs with a translucent glass background,
  * subtle hairline specular bevel, and clear focus state.
@@ -1770,52 +1567,6 @@ fun AppHeader(
 }
 
 /**
- * Reusable Circular Icon Button following the brand reference design (smooth circle, 1.dp hairline border,
- * tactile spring bounce press, and contrast container fill).
- */
-@Composable
-fun SketchCircularIconButton(
-  icon: ImageVector,
-  contentDescription: String?,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-  enabled: Boolean = true,
-  size: androidx.compose.ui.unit.Dp = 38.dp,
-  iconSize: androidx.compose.ui.unit.Dp = 19.dp,
-  tint: Color = InkPrimary,
-  backgroundColor: Color = CardBackground,
-  borderColor: Color = CardBorder,
-  testTag: String? = null
-) {
-  Box(
-    modifier = modifier
-      .size(size)
-      .fluidLensedGlass(
-        shape = CircleShape,
-        elevation = 2.dp,
-        borderWidth = 0.75.dp,
-        isElevated = true,
-        customBackgroundColor = backgroundColor,
-        customBorderColor = borderColor,
-        isInteractive = enabled,
-        onClick = onClick
-      )
-      .then(if (testTag != null) Modifier.testTag(testTag) else Modifier),
-    contentAlignment = Alignment.Center
-  ) {
-    Icon(
-      imageVector = icon,
-      contentDescription = contentDescription,
-      tint = tint,
-      modifier = Modifier.size(iconSize)
-    )
-  }
-}
-
-/**
- * Standardized Filter Chip across Tasks, Habits, Tools, Calendar.
- */
-/**
  * Standardized Liquid Glass Filter Chip across Tasks, Habits, Tools, Calendar.
  * Understated, refined translucent fluid glass stadium pill with hairline rim and crisp text.
  */
@@ -2008,7 +1759,7 @@ fun SketchCheckbox(
 
   Box(
     modifier = modifier
-      .size(size = 46.dp)
+      .size(size = 48.dp)
       .elasticStretchPress(
         horizontalStretch = 1.10f,
         verticalSquash = 0.90f
@@ -2759,131 +2510,3 @@ fun StreakFlameBadge(
   }
 }
 
-/**
- * TouchEdgeGlowButton: Solid-core interactive button with spring-damped edge glow
- * that dynamically illuminates towards touch / drag direction.
- * Styled with the Ink Wash palette (Solid Charcoal / Warm Ivory / Slate Steel).
- */
-@Composable
-fun TouchEdgeGlowButton(
-  text: String,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-  enabled: Boolean = true,
-  icon: (@Composable () -> Unit)? = null
-) {
-  val context = LocalContext.current
-  val isDark = LocalAppColors.current.isDark
-  var touchX by remember { mutableFloatStateOf(0f) }
-  var isTouching by remember { mutableStateOf(false) }
-
-  val animatedTargetX by animateFloatAsState(
-    targetValue = if (isTouching) touchX else 0f,
-    animationSpec = spring(dampingRatio = 0.78f, stiffness = 400f),
-    label = "glowX"
-  )
-
-  val solidBg = if (isDark) InkWashIvory else InkWashCharcoal
-  val solidText = if (isDark) InkWashCharcoalDeep else InkWashIvory
-  val glowColor = InkWashSlate
-  val accentRim = if (isDark) InkWashMist else InkWashCharcoalBorder
-
-  Box(
-    modifier = modifier
-      .height(48.dp)
-      .pointerInput(enabled) {
-        if (!enabled) return@pointerInput
-        awaitEachGesture {
-          val down = awaitFirstDown(requireUnconsumed = false)
-          isTouching = true
-          val halfWidth = size.width / 2f
-          touchX = ((down.position.x - halfWidth) / halfWidth).coerceIn(-1f, 1f)
-
-          do {
-            val event = awaitPointerEvent()
-            val change = event.changes.firstOrNull()
-            if (change != null) {
-              touchX = ((change.position.x - halfWidth) / halfWidth).coerceIn(-1f, 1f)
-            }
-          } while (event.changes.any { it.pressed })
-
-          isTouching = false
-          touchX = 0f
-        }
-      }
-      .elasticStretchPress(
-        horizontalStretch = 1.04f,
-        verticalSquash = 0.95f,
-        onClick = {
-          if (enabled) {
-            VibrationHelper.click(context)
-            onClick()
-          }
-        }
-      ),
-    contentAlignment = Alignment.Center
-  ) {
-    // Dynamic specular edge glow border (illuminates towards touch direction)
-    val rightGlowAlpha = (animatedTargetX.coerceAtLeast(0f) * 0.85f)
-    val leftGlowAlpha = ((-animatedTargetX).coerceAtLeast(0f) * 0.85f)
-
-    Canvas(modifier = Modifier.matchParentSize()) {
-      val strokeW = 2.dp.toPx()
-      // Base Solid Border
-      drawRoundRect(
-        color = accentRim.copy(alpha = 0.5f),
-        cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
-        style = Stroke(width = strokeW)
-      )
-
-      // Active Edge Glow Highlight
-      if (rightGlowAlpha > 0.01f) {
-        drawRoundRect(
-          brush = Brush.horizontalGradient(
-            0.5f to Color.Transparent,
-            1.0f to glowColor.copy(alpha = rightGlowAlpha)
-          ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
-          style = Stroke(width = strokeW * 1.5f)
-        )
-      }
-      if (leftGlowAlpha > 0.01f) {
-        drawRoundRect(
-          brush = Brush.horizontalGradient(
-            0.0f to glowColor.copy(alpha = leftGlowAlpha),
-            0.5f to Color.Transparent
-          ),
-          cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
-          style = Stroke(width = strokeW * 1.5f)
-        )
-      }
-    }
-
-    // Solid core pill body
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 2.dp, vertical = 2.dp)
-        .clip(CircleShape)
-        .background(solidBg)
-        .padding(horizontal = 22.dp, vertical = 10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Center
-    ) {
-      if (icon != null) {
-        icon()
-        Spacer(modifier = Modifier.width(8.dp))
-      }
-      Text(
-        text = text,
-        style = TextStyle(
-          fontFamily = SFProFontFamily,
-          fontSize = 14.sp,
-          fontWeight = FontWeight.Bold,
-          color = solidText,
-          letterSpacing = 0.5.sp
-        )
-      )
-    }
-  }
-}

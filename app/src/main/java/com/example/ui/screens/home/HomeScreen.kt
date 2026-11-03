@@ -92,6 +92,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.data.model.TaskPriority
+import com.example.ui.components.ThreeJsSpatialCompanion
+import com.example.ui.components.rememberSpatialCompanionController
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
@@ -155,9 +157,11 @@ fun HomeScreen(
   onHabitClick: (Habit) -> Unit,
   onNavigateToSettings: (() -> Unit)? = null,
   onNavigateToSearch: (() -> Unit)? = null,
+  onOpenFocusTimer: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
+  val spatialController = rememberSpatialCompanionController()
   val settings by viewModel.settings.collectAsStateWithLifecycle()
   val todayTasksViewMode by AppPreferences.todayTasksViewMode.collectAsStateWithLifecycle()
   val todayHabitsViewMode by AppPreferences.todayHabitsViewMode.collectAsStateWithLifecycle()
@@ -223,6 +227,7 @@ fun HomeScreen(
     if (willBeCompleted) {
       lastCompletedTaskId = task.id
       showUndoPill = true
+      spatialController.triggerCelebration(task.priority, summary.maxStreak + 1)
       com.example.util.SoundManager.playTaskComplete(context)
       com.example.util.HapticManager.taskCompleted(context)
       undoDismissJob?.cancel()
@@ -656,20 +661,32 @@ fun HomeScreen(
           Spacer(modifier = Modifier.height(24.dp))
         }
       } else {
+        if (sectionVisibility[DashboardSection.SPATIAL_COMPANION] != false) {
+          // 3D SPATIAL COMPANION (Three.js WebGL Engine, 360 Orbit, Pet & Focus Core)
+          item {
+            ThreeJsSpatialCompanion(
+              controller = spatialController,
+              onOpenFocusTimer = onOpenFocusTimer
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+          }
+        }
+
         if (sectionVisibility[DashboardSection.BENTO_HERO] != false) {
-          // BENTO HERO DASHBOARD (Translucent Smoked Glass + Zero-Blur Optical Gauge)
+          // UNIFIED DAILY MOMENTUM & METRICS HERO (Zero-Blur Optical Gauge + Compact Metrics Strip)
           item {
             LiquidGlassCard(
               modifier = Modifier
                 .fillMaxWidth()
                 .heroEntrance(delayMs = 100),
-              shape = RoundedCornerShape(24.dp)
+              shape = RoundedCornerShape(18.dp)
             ) {
               Column(
                 modifier = Modifier
                   .fillMaxWidth()
-                  .padding(18.dp)
+                  .padding(14.dp)
               ) {
+                // Row 1: Circular Progress Ring + Momentum Summary
                 Row(
                   modifier = Modifier.fillMaxWidth(),
                   verticalAlignment = Alignment.CenterVertically
@@ -677,12 +694,12 @@ fun HomeScreen(
                   // Authentic Zero-Blur Circular Progress Gauge
                   LiquidGlassProgressIndicator(
                     progress = summary.overallProgress,
-                    modifier = Modifier.size(72.dp),
-                    strokeWidth = 7.dp,
+                    modifier = Modifier.size(56.dp),
+                    strokeWidth = 6.dp,
                     progressColor = OklchIndigo
                   )
 
-                  Spacer(modifier = Modifier.width(16.dp))
+                  Spacer(modifier = Modifier.width(14.dp))
 
                   Column(modifier = Modifier.weight(1f)) {
                     Row(
@@ -691,12 +708,12 @@ fun HomeScreen(
                       verticalAlignment = Alignment.CenterVertically
                     ) {
                       Text(
-                        text = "TODAY'S MOMENTUM",
+                        text = "TODAY'S PROGRESS",
                         style = TextStyle(
                           fontFamily = SFProFontFamily,
                           fontSize = 11.sp,
                           fontWeight = FontWeight.Bold,
-                          letterSpacing = 1.sp,
+                          letterSpacing = 0.8.sp,
                           color = OklchIndigo
                         )
                       )
@@ -706,10 +723,15 @@ fun HomeScreen(
                       }
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
 
+                    val momentumText = if (summary.tasksTotal == 0 && summary.habitsTotal == 0) {
+                      "No tasks scheduled today"
+                    } else {
+                      "${summary.tasksCompleted}/${summary.tasksTotal} Tasks • ${summary.habitsCompleted}/${summary.habitsTotal} Habits"
+                    }
                     Text(
-                      text = "${summary.tasksCompleted}/${summary.tasksTotal} Tasks • ${summary.habitsCompleted}/${summary.habitsTotal} Habits",
+                      text = momentumText,
                       style = TextStyle(
                         fontFamily = SFProFontFamily,
                         fontSize = 14.sp,
@@ -723,89 +745,117 @@ fun HomeScreen(
                     Text(
                       text = todayFormattedDate,
                       style = TextStyle(
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         color = InkSecondary
                       )
                     )
                   }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
+                // Row 2: Divider-Free 3-Pill Unified Metrics (Tasks / Habits / Streak)
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.spacedBy(8.dp),
+                  verticalAlignment = Alignment.CenterVertically
+                ) {
+                  // Metric 1: Tasks
+                  Box(
+                    modifier = Modifier
+                      .weight(1f)
+                      .clip(RoundedCornerShape(8.dp))
+                      .background(if (isDark) Color(0x10FFFFFF) else Color(0x08000000))
+                      .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                      Text("TASKS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = InkSecondary))
+                      Spacer(modifier = Modifier.height(2.dp))
+                      Text("${todayTasks.count { it.isCompleted }}/${todayTasks.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                    }
+                  }
+
+                  // Metric 2: Habits
+                  Box(
+                    modifier = Modifier
+                      .weight(1f)
+                      .clip(RoundedCornerShape(8.dp))
+                      .background(if (isDark) Color(0x10FFFFFF) else Color(0x08000000))
+                      .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                      Text("HABITS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = InkSecondary))
+                      Spacer(modifier = Modifier.height(2.dp))
+                      Text("${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                    }
+                  }
+
+                  // Metric 3: Streak
+                  Box(
+                    modifier = Modifier
+                      .weight(1f)
+                      .clip(RoundedCornerShape(8.dp))
+                      .background(if (isDark) Color(0x10FFFFFF) else Color(0x08000000))
+                      .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                      Text("STREAK", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = InkSecondary))
+                      Spacer(modifier = Modifier.height(2.dp))
+                      Text("${summary.maxStreak}d", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                    }
+                  }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Row 3: Linear Progress Rail
                 SketchProgressBar(
                   progress = summary.overallProgress,
                   modifier = Modifier.fillMaxWidth(),
-                  height = 6.dp
+                  height = 4.dp
                 )
               }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
           }
-        }
-
-        if (sectionVisibility[DashboardSection.QUICK_METRICS] != false) {
-          // QUICK METRICS 4-STAT UNIFIED GLASS CAPSULE
+        } else if (sectionVisibility[DashboardSection.QUICK_METRICS] != false) {
+          // Standalone Quick Metrics (only displayed if Bento Hero is toggled off)
           item {
-            LiquidGlassCapsule(
+            LiquidGlassCard(
               modifier = Modifier.fillMaxWidth(),
-              shape = RoundedCornerShape(20.dp)
+              shape = RoundedCornerShape(16.dp)
             ) {
               Row(
                 modifier = Modifier
                   .fillMaxWidth()
-                  .padding(horizontal = 14.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                  .padding(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
               ) {
                 // Metric 1: Tasks
-                Column(
-                  modifier = Modifier.weight(1f),
-                  horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                  Text("TASKS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(3.dp))
-                  Text("${todayTasks.count { it.isCompleted }}/${todayTasks.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                  Text("TASKS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = InkSecondary))
+                  Text("${todayTasks.count { it.isCompleted }}/${todayTasks.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                 }
-
-                Box(modifier = Modifier.width(0.75.dp).height(26.dp).background(Color(0x18FFFFFF)))
 
                 // Metric 2: Habits
-                Column(
-                  modifier = Modifier.weight(1f),
-                  horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                  Text("HABITS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(3.dp))
-                  Text("${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                  Text("HABITS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = InkSecondary))
+                  Text("${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                 }
-
-                Box(modifier = Modifier.width(0.75.dp).height(26.dp).background(Color(0x18FFFFFF)))
 
                 // Metric 3: Streak
-                Column(
-                  modifier = Modifier.weight(1f),
-                  horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                  Text("STREAK", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(3.dp))
-                  Text("${summary.maxStreak}d", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
-                }
-
-                Box(modifier = Modifier.width(0.75.dp).height(26.dp).background(Color(0x18FFFFFF)))
-
-                // Metric 4: Rate
-                Column(
-                  modifier = Modifier.weight(1f),
-                  horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                  Text("RATE", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary))
-                  Spacer(modifier = Modifier.height(3.dp))
-                  Text("${(summary.overallProgress * 100).toInt()}%", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = OklchIndigo))
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                  Text("STREAK", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = InkSecondary))
+                  Text("${summary.maxStreak}d", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                 }
               }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
           }
         }
 
