@@ -74,6 +74,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.shadow
@@ -1400,18 +1401,24 @@ fun FocusTimerDialog(
 
         Box(
           modifier = Modifier
-            .size(32.dp)
-            .border(1.dp, CardBorder, CircleShape)
-            .clip(CircleShape)
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
             .bounceClick { onClose() },
           contentAlignment = Alignment.Center
         ) {
-          Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = "Close",
-            tint = InkSecondary,
-            modifier = Modifier.size(16.dp)
-          )
+          Box(
+            modifier = Modifier
+              .size(32.dp)
+              .border(1.dp, CardBorder, CircleShape)
+              .clip(CircleShape),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = Icons.Default.Close,
+              contentDescription = "Close",
+              tint = InkSecondary,
+              modifier = Modifier.size(16.dp)
+            )
+          }
         }
       }
 
@@ -1435,7 +1442,8 @@ fun FocusTimerDialog(
               fontFamily = SFProFontFamily,
               fontSize = 36.sp,
               fontWeight = FontWeight.Bold,
-              color = InkPrimary
+              color = InkPrimary,
+              fontFeatureSettings = "tnum"
             )
           )
           Spacer(modifier = Modifier.height(2.dp))

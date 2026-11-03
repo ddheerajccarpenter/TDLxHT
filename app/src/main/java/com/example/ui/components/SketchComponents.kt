@@ -1262,6 +1262,7 @@ fun GlassButton(
   modifier: Modifier = Modifier,
   buttonSize: Dp = 40.dp,
   size: Dp = buttonSize,
+  enabled: Boolean = true,
   icon: @Composable () -> Unit
 ) {
   val resolvedSize = if (size != 40.dp) size else buttonSize
@@ -1273,8 +1274,8 @@ fun GlassButton(
         elevation = 2.dp,
         borderWidth = 0.75.dp,
         isElevated = true,
-        isInteractive = true,
-        onClick = onClick
+        isInteractive = enabled,
+        onClick = if (enabled) onClick else null
       ),
     contentAlignment = Alignment.Center
   ) {
@@ -2403,12 +2404,11 @@ fun DeleteConfirmationDialog(
 ) {
   Dialog(onDismissRequest = onDismiss) {
     AnimatedDialogContent {
-      SketchCard(
+      Box(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(16.dp),
-        cornerRadius = OuterCornerRadius,
-        borderWidth = 2.dp
+          .padding(16.dp)
+          .fluidLensedGlass(shape = RoundedCornerShape(22.dp), elevation = 8.dp, isElevated = true)
       ) {
         Column(
           modifier = Modifier
@@ -2416,18 +2416,18 @@ fun DeleteConfirmationDialog(
             .padding(22.dp),
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          // Red trash icon in circle
+          // Red trash icon in glass circular container
           Box(
             modifier = Modifier
               .size(54.dp)
-              .border(1.8.dp, AccentRed, CircleShape),
+              .fluidLensedGlass(shape = CircleShape, elevation = 2.dp, isElevated = true),
             contentAlignment = Alignment.Center
           ) {
             Icon(
               imageVector = Icons.Outlined.DeleteOutline,
               contentDescription = "Delete",
               tint = AccentRed,
-              modifier = Modifier.size(28.dp)
+              modifier = Modifier.size(26.dp)
             )
           }
 
@@ -2437,7 +2437,7 @@ fun DeleteConfirmationDialog(
             text = title,
             style = TextStyle(
               fontFamily = SFProFontFamily,
-              fontSize = 24.sp,
+              fontSize = 22.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary
             )
@@ -2461,13 +2461,12 @@ fun DeleteConfirmationDialog(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
           ) {
-            // Cancel button (black outline)
+            // Cancel button (glass)
             Box(
               modifier = Modifier
                 .weight(1f)
                 .height(48.dp)
-                .border(1.5.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
+                .fluidLensedGlass(shape = RoundedCornerShape(12.dp), elevation = 2.dp)
                 .bounceClick { onDismiss() }
                 .testTag("dialog_cancel"),
               contentAlignment = Alignment.Center
@@ -2476,20 +2475,19 @@ fun DeleteConfirmationDialog(
                 text = "Cancel",
                 style = TextStyle(
                   fontFamily = SFProFontFamily,
-                  fontSize = 18.sp,
+                  fontSize = 16.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkPrimary
                 )
               )
             }
 
-            // Delete button (red text)
+            // Delete button (destructive glass)
             Box(
               modifier = Modifier
                 .weight(1f)
                 .height(48.dp)
-                .border(1.5.dp, AccentRed, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
+                .fluidLensedGlass(shape = RoundedCornerShape(12.dp), elevation = 3.dp, isElevated = true)
                 .bounceClick { onConfirm() }
                 .testTag("dialog_delete"),
               contentAlignment = Alignment.Center
@@ -2498,7 +2496,7 @@ fun DeleteConfirmationDialog(
                 text = "Delete",
                 style = TextStyle(
                   fontFamily = SFProFontFamily,
-                  fontSize = 18.sp,
+                  fontSize = 16.sp,
                   fontWeight = FontWeight.Bold,
                   color = AccentRed
                 )

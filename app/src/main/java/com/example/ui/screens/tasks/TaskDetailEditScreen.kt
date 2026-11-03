@@ -78,6 +78,7 @@ import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
 import com.example.ui.theme.InkPrimary
 import com.example.ui.theme.InkSecondary
+import com.example.ui.theme.LocalAppColors
 import com.example.ui.theme.PrimaryAccentLime
 import com.example.ui.theme.PillBackgroundDark
 import com.example.ui.theme.PillTextDark
@@ -846,32 +847,29 @@ fun TaskDetailEditScreen(
             modifier = Modifier.weight(1f)
           )
 
-          Box(
-            modifier = Modifier
-              .size(44.dp)
-              .border(1.5.dp, CardBorder, RoundedCornerShape(10.dp))
-              .clip(RoundedCornerShape(10.dp))
-              .background(PillBackgroundDark)
-              .bounceClick {
-                if (newSubtaskText.isNotBlank()) {
-                  subtaskList.add(
-                    Subtask(
-                      id = UUID.randomUUID().toString(),
-                      parentTaskId = existingTask?.id ?: "",
-                      title = newSubtaskText.trim(),
-                      isCompleted = false
-                    )
+          val isDark = LocalAppColors.current.isDark
+          GlassButton(
+            onClick = {
+              if (newSubtaskText.isNotBlank()) {
+                subtaskList.add(
+                  Subtask(
+                    id = UUID.randomUUID().toString(),
+                    parentTaskId = existingTask?.id ?: "",
+                    title = newSubtaskText.trim(),
+                    isCompleted = false
                   )
-                  newSubtaskText = ""
-                }
+                )
+                newSubtaskText = ""
               }
-              .testTag("add_subtask_btn"),
-            contentAlignment = Alignment.Center
+            },
+            contentDescription = "Add Subtask",
+            size = 48.dp,
+            modifier = Modifier.testTag("add_subtask_btn")
           ) {
             Icon(
               imageVector = Icons.Default.Add,
-              contentDescription = "Add Subtask",
-              tint = PillTextDark,
+              contentDescription = null,
+              tint = if (isDark) PrimaryAccentLime else InkPrimary,
               modifier = Modifier.size(20.dp)
             )
           }
@@ -921,7 +919,7 @@ fun TaskDetailEditScreen(
 
             Box(
               modifier = Modifier
-                .size(32.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .bounceClick(scaleDown = 0.88f) { subtaskList.removeAt(index) },
               contentAlignment = Alignment.Center
@@ -930,7 +928,7 @@ fun TaskDetailEditScreen(
                 imageVector = Icons.Default.Clear,
                 contentDescription = "Remove",
                 tint = InkMuted,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
               )
             }
           }
