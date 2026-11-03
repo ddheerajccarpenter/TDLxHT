@@ -12,27 +12,27 @@
 /* ─── Light Mode: Warm Ivory Parchment with Charcoal Ink ───────────── */
 :root,
 [data-theme="light"] {
-  --color-canvas: #FFFFE3;
-  --color-canvas-soft: #F4F3D6;
-  --color-field: #F4F4DA;
-  --color-surface-card: #FAF9F0;
-  --color-ink: #4A4A4A;
-  --color-ink-soft: #6D8196;
+  --color-canvas: #FAF9F5;
+  --color-canvas-soft: #F2EFE9;
+  --color-field: #EBE7DF;
+  --color-surface-card: rgba(255, 255, 255, 0.78);
+  --color-ink: #1C1D21;
+  --color-ink-soft: #5C5E66;
   --color-text-muted: #7A7D82;
   --color-text-faint: #CBCBCB;
-  --color-hairline: #CBCBCB;
-  --color-hairline-soft: rgba(74, 74, 74, 0.12);
-  --color-primary: #4A4A4A;
-  --color-on-primary: #FFFFE3;
-  --color-accent: #6D8196;
+  --color-hairline: rgba(0, 0, 0, 0.09);
+  --color-hairline-soft: rgba(0, 0, 0, 0.05);
+  --color-primary: #1C1D21;
+  --color-on-primary: #FAF9F5;
+  --color-accent: #3E5168;
 
   /* Ink Wash Semantic Palette */
-  --oklch-indigo: #6D8196;
-  --oklch-emerald: #6D8196;
-  --oklch-amber: #6D8196;
-  --oklch-coral: #8C5252;
-  --oklch-cyan: #6D8196;
-  --oklch-purple: #6D8196;
+  --oklch-indigo: #4A6382;
+  --oklch-emerald: #34704B;
+  --oklch-amber: #8A6828;
+  --oklch-coral: #8C4242;
+  --oklch-cyan: #3E667A;
+  --oklch-purple: #5A4A7A;
 
   /* Compatibility variables */
   --canvas: var(--color-canvas);
@@ -54,14 +54,14 @@
   --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", monospace;
-  --tracking-display: 0;
+  --tracking-display: -0.025em;
 
   /* Geometry */
   --radius-none: 0px;
-  --radius-xs: 4px;
-  --radius-sm: 16px;
+  --radius-xs: 6px;
+  --radius-sm: 14px;
   --radius-md: 20px;
-  --radius-lg: 24px;
+  --radius-lg: 26px;
   --radius-xl: 32px;
   --radius-pill: 9999px;
   --radius-full: 9999px;
@@ -71,38 +71,31 @@
   --btn-primary-color: var(--color-on-primary);
   --btn-primary-border: transparent;
   --btn-primary-radius: var(--radius-full);
-
-  /* Mesh background (Neutral Ink Wash) */
-  --mesh-base: #FFFFE3;
-  --mesh-1: rgba(109, 129, 150, 0.08);
-  --mesh-2: rgba(74, 74, 74, 0.05);
-  --mesh-3: rgba(203, 203, 203, 0.10);
-  --mesh-4: rgba(109, 129, 150, 0.05);
 }
 
-/* ─── Dark Mode: Deep Charcoal Canvas with Warm Ivory Text ──────────── */
+/* ─── Dark Mode: Deep Obsidian Glass with Titanium Highlights ──────── */
 [data-theme="dark"] {
-  --color-canvas: #1E2022;
-  --color-canvas-soft: #242629;
-  --color-field: #282A2E;
-  --color-surface-card: #2B2D30;
-  --color-ink: #FFFFE3;
-  --color-ink-soft: #CBCBCB;
-  --color-text-muted: #8E9296;
-  --color-text-faint: #5C6066;
-  --color-hairline: #4A4A4A;
-  --color-hairline-soft: rgba(203, 203, 203, 0.12);
-  --color-primary: #FFFFE3;
-  --color-on-primary: #1E2022;
-  --color-accent: #6D8196;
+  --color-canvas: #090A0D;
+  --color-canvas-soft: #12141A;
+  --color-field: #171922;
+  --color-surface-card: rgba(22, 24, 30, 0.72);
+  --color-ink: #F5F5F7;
+  --color-ink-soft: #B0B0B8;
+  --color-text-muted: #7C7C85;
+  --color-text-faint: #4E5158;
+  --color-hairline: rgba(255, 255, 255, 0.12);
+  --color-hairline-soft: rgba(255, 255, 255, 0.06);
+  --color-primary: #FFFFFF;
+  --color-on-primary: #090A0D;
+  --color-accent: #7D9BB8;
 
   /* Ink Wash Semantic Palette */
-  --oklch-indigo: #6D8196;
-  --oklch-emerald: #6D8196;
-  --oklch-amber: #6D8196;
-  --oklch-coral: #8C5252;
-  --oklch-cyan: #6D8196;
-  --oklch-purple: #6D8196;
+  --oklch-indigo: #7D9BB8;
+  --oklch-emerald: #5E9E72;
+  --oklch-amber: #B8934A;
+  --oklch-coral: #B86262;
+  --oklch-cyan: #6AA5BF;
+  --oklch-purple: #8C7DB8;
 
   /* Compatibility variables */
   --canvas: var(--color-canvas);
@@ -123,6 +116,8 @@
   /* Typography */
   --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --tracking-display: -0.025em;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
   --tracking-display: 0;
 
@@ -1274,29 +1269,49 @@ input, select {
    convex radial caustics, dual-boundary Fresnel specular rims, and fluid elasticity.
    ========================================================================== */
 
-/* Header frame: solid grey / ivory pill */
+/* ==========================================================================
+   Authentic Liquid Glass Surfaces & Optically Refracting Cards
+   ========================================================================== */
 .header-frame.lg-glass {
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-hairline);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  background: rgba(18, 20, 26, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 [data-theme="light"] .header-frame.lg-glass {
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-hairline);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-full);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.06), inset 0 1px 0 #FFFFFF;
 }
 
-/* Feature cards & Content panels: solid grey / solid ivory */
+/* Feature cards & Content panels: authentic liquid glass */
 .feature-card.lg-glass,
 .feature-card.lg-card.lg-glass,
 .product-preview-card.lg-glass,
 .principles-card.lg-glass,
 .download-card.lg-glass,
 .calc-runner-panel.lg-glass {
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-hairline);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  background: rgba(18, 20, 26, 0.72);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.24);
+  border-bottom-color: rgba(0, 0, 0, 0.45);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 24px 64px -12px rgba(0, 0, 0, 0.65),
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 20px rgba(255, 255, 255, 0.02);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.2s ease;
 }
 
 [data-theme="light"] .feature-card.lg-glass,
@@ -1305,31 +1320,56 @@ input, select {
 [data-theme="light"] .principles-card.lg-glass,
 [data-theme="light"] .download-card.lg-glass,
 [data-theme="light"] .calc-runner-panel.lg-glass {
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-hairline);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 20px 48px -12px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 #FFFFFF;
 }
 
-/* Search box: solid trough */
+.feature-card.lg-glass:hover {
+  transform: translateY(-4px);
+  border-top-color: rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 32px 72px -12px rgba(0, 0, 0, 0.75),
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Search box: glass input trough */
 .calc-search-box.lg-glass {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-hairline);
+  background: rgba(14, 16, 21, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
 }
 
 [data-theme="light"] .calc-search-box.lg-glass {
-  background: var(--color-canvas-soft);
-  border: 1px solid var(--color-hairline);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-full);
 }
 
-/* Stat boxes: solid surface */
+/* Stat boxes: refined glass bento tiles */
 .preview-stat-box.lg-glass {
-  background: var(--color-canvas-soft);
-  border: 1px solid var(--color-hairline);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-sm);
 }
 
 [data-theme="light"] .preview-stat-box.lg-glass {
-  background: var(--color-canvas-soft);
-  border: 1px solid var(--color-hairline);
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-sm);
 }
 
 /* Calculator category cards: solid grey base */
@@ -1508,56 +1548,59 @@ input, select {
   z-index: 1;
 }
 
-/* html background: subtle neutral ink wash lighting */
+/* Ambient Optical Canvas: rich atmospheric depth for backdrop refraction */
 html {
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(109, 129, 150, 0.12) 0%, transparent 50%),
-    var(--canvas);
+  background-color: var(--color-canvas);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(120, 140, 175, 0.16) 0%, transparent 60%),
+    radial-gradient(circle 650px at 88% 22%, rgba(90, 115, 160, 0.10) 0%, transparent 70%),
+    radial-gradient(circle 500px at 12% 60%, rgba(70, 95, 130, 0.08) 0%, transparent 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 [data-theme="light"] html {
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(109, 129, 150, 0.08) 0%, transparent 50%),
-    var(--canvas);
+  background-color: #FAF9F5;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(220, 215, 200, 0.50) 0%, transparent 60%),
+    radial-gradient(circle 650px at 88% 22%, rgba(225, 220, 205, 0.38) 0%, transparent 70%),
+    radial-gradient(circle 500px at 12% 60%, rgba(215, 210, 195, 0.30) 0%, transparent 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
-/* ─── Cards — rectangular in dark, rounded in light ─────────────────────────── */
+/* ─── Global Card Geometries (Liquid Glass Standard) ────────────────────────── */
 .feature-card,
 .product-preview-card,
 .calc-runner-panel,
 .principles-card,
 .download-card {
-  background-color: var(--color-surface-card);
-  border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
 }
 
-[data-theme="dark"] .feature-card,
-[data-theme="dark"] .product-preview-card,
-[data-theme="dark"] .calc-runner-panel,
-[data-theme="dark"] .principles-card,
-[data-theme="dark"] .download-card {
-  border-radius: var(--radius-none); /* Bugatti: rectangular */
-}
-
-/* ─── Section eyebrow — monospace in dark mode ──────────────────────────────── */
-[data-theme="dark"] .section-eyebrow-tag {
-  font-family: var(--font-mono);
-  letter-spacing: 2px;
-  font-weight: 400;
-  font-size: 0.75rem;
-}
-
-/* ─── Header frame theme variants ───────────────────────────────────────────── */
-[data-theme="dark"] .header-frame {
-  background-color: rgba(0,0,0,0.3);
-  border-color: var(--color-hairline);
-}
-
-[data-theme="light"] .header-frame {
-  background-color: var(--color-canvas-soft);
-  border-color: var(--color-hairline-soft);
+/* ─── Modern Glass Badge Pill ───────────────────────────────────────────────── */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
   border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hairline);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  margin-bottom: 20px;
+}
+
+[data-theme="light"] .badge-pill {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 /* ─── Calculator category card glass active state ───────────────────────────── */
