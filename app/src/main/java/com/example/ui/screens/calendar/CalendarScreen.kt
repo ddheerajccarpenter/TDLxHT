@@ -114,6 +114,7 @@ fun CalendarScreen(
   val completionRecords by viewModel.completionRecords.collectAsStateWithLifecycle()
   val selectedDate by viewModel.selectedCalendarDate.collectAsStateWithLifecycle()
   val settings by viewModel.settings.collectAsStateWithLifecycle()
+  val context = androidx.compose.ui.platform.LocalContext.current
 
   // 0: Month, 1: Week, 2: Day
   val initialViewMode = when (settings.calendarDefaultView.uppercase()) {
@@ -346,7 +347,14 @@ fun CalendarScreen(
                 task = task,
                 subtasksCount = subtasks.size,
                 subtasksDone = subtasks.count { it.isCompleted },
-                onToggle = { viewModel.toggleTaskCompletion(task.id) },
+                onToggle = {
+                  val willBeCompleted = !task.isCompleted
+                  viewModel.toggleTaskCompletion(task.id)
+                  if (willBeCompleted) {
+                    com.example.util.SoundManager.playTaskComplete(context)
+                    com.example.util.HapticManager.taskCompleted(context)
+                  }
+                },
                 onClick = { onTaskClick(task) },
                 modifier = Modifier.padding(vertical = 4.dp)
               )
@@ -397,7 +405,14 @@ fun CalendarScreen(
                   task = task,
                   subtasksCount = subtasks.size,
                   subtasksDone = subtasks.count { it.isCompleted },
-                  onToggle = { viewModel.toggleTaskCompletion(task.id) },
+                  onToggle = {
+                    val willBeCompleted = !task.isCompleted
+                    viewModel.toggleTaskCompletion(task.id)
+                    if (willBeCompleted) {
+                      com.example.util.SoundManager.playTaskComplete(context)
+                      com.example.util.HapticManager.taskCompleted(context)
+                    }
+                  },
                   onClick = { onTaskClick(task) }
                 )
               }
@@ -430,7 +445,14 @@ fun CalendarScreen(
                 task = task,
                 subtasksCount = subtasks.size,
                 subtasksDone = subtasks.count { it.isCompleted },
-                onToggle = { viewModel.toggleTaskCompletion(task.id) },
+                onToggle = {
+                  val willBeCompleted = !task.isCompleted
+                  viewModel.toggleTaskCompletion(task.id)
+                  if (willBeCompleted) {
+                    com.example.util.SoundManager.playTaskComplete(context)
+                    com.example.util.HapticManager.taskCompleted(context)
+                  }
+                },
                 onClick = { onTaskClick(task) },
                 modifier = Modifier.padding(vertical = 4.dp)
               )
@@ -471,6 +493,10 @@ fun CalendarScreen(
                   viewModel.toggleHabitToday(habit.id)
                 } else {
                   viewModel.recordHabitProgress(habit.id, selectedDateStr, if (isDone) 0f else habit.targetValue)
+                }
+                if (!isDone) {
+                  com.example.util.SoundManager.playHabitTick(context)
+                  com.example.util.VibrationHelper.tick(context)
                 }
               },
               onClick = { onHabitClick(habit) },

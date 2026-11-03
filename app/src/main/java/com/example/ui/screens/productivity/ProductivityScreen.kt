@@ -63,7 +63,7 @@ fun ProductivityScreen(
     selectedTab = 0
   }
 
-  val isDark = isSystemInDarkTheme()
+  val isDark = com.example.ui.theme.LocalAppColors.current.isDark
   val separatorBrush = remember(isDark) {
     if (isDark) {
       Brush.horizontalGradient(

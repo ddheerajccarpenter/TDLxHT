@@ -51,9 +51,9 @@
   --btn-outline-text: var(--color-ink);
 
   /* Typography */
-  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+  --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", monospace;
   --tracking-display: 0;
 
   /* Geometry */
@@ -121,9 +121,9 @@
   --btn-outline-text: var(--color-ink);
 
   /* Typography */
-  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
   --tracking-display: 0;
 
   /* Geometry */
@@ -1070,7 +1070,7 @@ input, select {
    ========================================================================== */
 .bottom-dock-outer {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   display: flex;
@@ -2049,4 +2049,134 @@ html {
   100% {
     transform: rotate(270deg);
   }
+}
+
+/* ==========================================================================
+   Accessible High-Contrast Focus Rings (WCAG 2.2 AA)
+   ========================================================================== */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+.btn:focus-visible,
+.dock-tab:focus-visible,
+.calc-category-card:focus-visible,
+.preview-task-item:focus-visible,
+.glass-switch-input:focus-visible + .glass-switch-track {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+
+/* ==========================================================================
+   Cryptographic SHA-256 Verification Badge & Action
+   ========================================================================== */
+.sha-verify-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-field);
+  border: 1px solid var(--color-hairline);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  max-width: 100%;
+}
+
+.sha-hash-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+  color: var(--color-ink);
+}
+
+.sha-copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  background: var(--color-hairline-soft);
+  transition: all 0.15s ease;
+}
+
+.sha-copy-btn:hover {
+  background: var(--color-hairline);
+}
+
+/* ==========================================================================
+   All Calculators 14-Tool Interactive Catalog Grid
+   ========================================================================== */
+.calc-catalog-modal {
+  display: none;
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-surface-card);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.calc-catalog-modal.open {
+  display: block;
+}
+
+.calc-catalog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-hairline-soft);
+}
+
+.calc-catalog-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.calc-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.calc-tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-ink);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.calc-tool-chip:hover {
+  border-color: var(--color-ink);
+  transform: translateY(-1px);
+}
+
+.calc-tool-chip.active {
+  background: var(--color-ink);
+  color: var(--color-canvas);
+  border-color: var(--color-ink);
 }

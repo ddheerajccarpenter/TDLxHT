@@ -25,8 +25,32 @@
       --error: #EF4444;
     }
 
+    :root[data-theme="dark"], html[data-theme="dark"] {
+      --bg-canvas: #0E0F12;
+      --card-bg: rgba(26, 27, 32, 0.72);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-primary: #F4F4F6;
+      --text-secondary: #9FA1A8;
+      --text-muted: #5F6168;
+      --accent-black: #FFFFFF;
+      --accent-hover: #E2E2E6;
+      --code-bg: rgba(255, 255, 255, 0.06);
+    }
+
+    :root[data-theme="light"], html[data-theme="light"] {
+      --bg-canvas: #FAFAF7;
+      --card-bg: rgba(255, 255, 255, 0.76);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --text-primary: #171717;
+      --text-secondary: #66686C;
+      --text-muted: #9E9EA4;
+      --accent-black: #121316;
+      --accent-hover: #26272C;
+      --code-bg: rgba(0, 0, 0, 0.04);
+    }
+
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme="light"]) {
         --bg-canvas: #0E0F12;
         --card-bg: rgba(26, 27, 32, 0.72);
         --card-border: rgba(255, 255, 255, 0.08);
@@ -607,6 +631,12 @@
     function escapeHtml(str) {
       if (!str) return '';
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Sync with global theme
+    const savedTheme = localStorage.getItem('tdlxht-theme') || localStorage.getItem('tdlxht_theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
     }
 
     // Initial load

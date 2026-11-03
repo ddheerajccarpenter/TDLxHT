@@ -633,10 +633,11 @@ fun ToolRunnerModal(
   }
 
   // Semi-transparent backdrop with click-to-dismiss and touch absorption
+  val isDark = com.example.ui.theme.LocalAppColors.current.isDark
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .background(Color.Black.copy(alpha = 0.78f))
+      .background(Color.Black.copy(alpha = if (isDark) 0.58f else 0.28f))
       .clickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null

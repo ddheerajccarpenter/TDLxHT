@@ -108,6 +108,7 @@ fun TaskListScreen(
   val searchQuery by viewModel.taskSearchQuery.collectAsStateWithLifecycle()
   val allTasks by viewModel.tasks.collectAsStateWithLifecycle()
   val settings by viewModel.settings.collectAsStateWithLifecycle()
+  val context = androidx.compose.ui.platform.LocalContext.current
 
   var taskToDelete by remember { mutableStateOf<Task?>(null) }
   var sortMenuExpanded by remember { mutableStateOf(false) }
@@ -129,6 +130,8 @@ fun TaskListScreen(
     if (willBeCompleted) {
       lastCompletedTaskId = task.id
       showUndoPill = true
+      com.example.util.SoundManager.playTaskComplete(context)
+      com.example.util.HapticManager.taskCompleted(context)
       undoDismissJob?.cancel()
       undoDismissJob = coroutineScope.launch {
         delay(3500)

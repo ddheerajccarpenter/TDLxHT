@@ -61,15 +61,54 @@ function initPreviewTasks() {
   const taskItems = document.querySelectorAll('.preview-task-item');
   if (!taskItems.length) return;
 
-  taskItems.forEach(item => {
-    item.addEventListener('click', () => {
-      item.classList.toggle('checked');
-      const checkEl = item.querySelector('.preview-task-check');
-      if (checkEl) {
-        checkEl.textContent = item.classList.contains('checked') ? '✓' : '';
+  function toggleTask(item) {
+    const isNowChecked = !item.classList.contains('checked');
+    item.classList.toggle('checked', isNowChecked);
+    item.setAttribute('aria-checked', isNowChecked ? 'true' : 'false');
+
+    const ringWrapper = item.querySelector('.progress-ring-check-wrapper');
+    if (ringWrapper) {
+      if (isNowChecked) {
+        ringWrapper.setAttribute('data-status', 'running');
+        setTimeout(() => {
+          ringWrapper.setAttribute('data-status', 'done');
+        }, 180);
+      } else {
+        ringWrapper.setAttribute('data-status', 'pending');
       }
-      updatePreviewStats();
+    } else {
+      const checkEl = item.querySelector('.preview-task-check');
+      if (checkEl) checkEl.textContent = isNowChecked ? '✓' : '';
+    }
+
+    updatePreviewStats();
+  }
+
+  taskItems.forEach(item => {
+    item.addEventListener('click', () => toggleTask(item));
+    item.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        toggleTask(item);
+      }
     });
+  });
+
+  // Filter preview tasks when GlassMenu changes
+  document.addEventListener('sortChanged', (e) => {
+    if (e.detail && e.detail.menuId === 'hero-sort-menu') {
+      const filter = e.detail.sort;
+      taskItems.forEach(item => {
+        const isChecked = item.classList.contains('checked');
+        if (filter === 'Active') {
+          item.style.display = isChecked ? 'none' : 'flex';
+        } else if (filter === 'Completed') {
+          item.style.display = isChecked ? 'flex' : 'none';
+        } else {
+          item.style.display = 'flex';
+        }
+      });
+    }
   });
 
   function updatePreviewStats() {
@@ -85,6 +124,9 @@ function initPreviewTasks() {
       statMetaEl.textContent = `${Math.round((checkedCount / totalCount) * 100)}% completed`;
     }
   }
+
+  // Initial sync immediately on load
+  updatePreviewStats();
 }
 
 // Calculator Library: Search Filter + Live Calculator Engine
@@ -112,7 +154,7 @@ function initCalculatorLibrary() {
     });
   }
 
-  // Calculator definitions
+  // Calculator definitions (All 14 native tools matching Android ToolRegistry)
   const calculators = {
     'Loan EMI': {
       category: 'FINANCE',
@@ -165,7 +207,7 @@ function initCalculatorLibrary() {
         const pct = cgpa * mult;
         return {
           main: `${pct.toFixed(1)}%`,
-          sub: `Based on standard university conversion (${cgpa} × ${mult})`
+          sub: `Standard university conversion (${cgpa} × ${mult})`
         };
       }
     },
@@ -218,10 +260,180 @@ function initCalculatorLibrary() {
           sub: `Approx. ${(age * 365.25).toLocaleString()} days lived`
         };
       }
+    },
+    'Attendance Planner': {
+      category: 'ACADEMIC',
+      label: 'Current Attendance',
+      fields: [
+        { id: 'f1', label: 'Classes Attended', val: 32, min: 0, step: 1 },
+        { id: 'f2', label: 'Total Classes Held', val: 40, min: 1, step: 1 },
+        { id: 'f3', label: 'Target Percentage (%)', val: 75, min: 1, max: 100, step: 1 }
+      ],
+      calc: (v) => {
+        const attended = parseInt(v.f1) || 0;
+        const total = parseInt(v.f2) || 1;
+        const target = parseFloat(v.f3) || 75;
+        const curPct = (attended / total) * 100;
+        if (curPct >= target) {
+          const safeBunks = Math.floor((attended - (target / 100) * total) / (target / 100));
+          return {
+            main: `${curPct.toFixed(1)}%`,
+            sub: safeBunks > 0 ? `Target met! You can safely miss ${safeBunks} class${safeBunks > 1 ? 'es' : ''}.` : `Target met! Attend next class to maintain target.`
+          };
+        } else {
+          const needed = Math.ceil(((target / 100) * total - attended) / (1 - (target / 100)));
+          return {
+            main: `${curPct.toFixed(1)}%`,
+            sub: `Shortage! Attend next ${Math.max(1, needed)} consecutive class${needed > 1 ? 'es' : ''} to reach ${target}%.`
+          };
+        }
+      }
+    },
+    'Margin & Markup': {
+      category: 'FINANCE',
+      label: 'Profit Margin',
+      fields: [
+        { id: 'f1', label: 'Cost Price ($)', val: 80, min: 0.01, step: 5 },
+        { id: 'f2', label: 'Selling Price ($)', val: 120, min: 0.01, step: 5 }
+      ],
+      calc: (v) => {
+        const cost = parseFloat(v.f1) || 0;
+        const sell = parseFloat(v.f2) || 0;
+        const profit = sell - cost;
+        const margin = sell > 0 ? (profit / sell) * 100 : 0;
+        const markup = cost > 0 ? (profit / cost) * 100 : 0;
+        return {
+          main: `${margin.toFixed(1)}% Margin`,
+          sub: `Markup: ${markup.toFixed(1)}% · Net Profit: $${profit.toFixed(2)}`
+        };
+      }
+    },
+    'Discount & Sale': {
+      category: 'BUDGETING',
+      label: 'Final Checkout Price',
+      fields: [
+        { id: 'f1', label: 'Original Price ($)', val: 150, min: 0, step: 5 },
+        { id: 'f2', label: 'Discount (%)', val: 25, min: 0, max: 100, step: 1 }
+      ],
+      calc: (v) => {
+        const orig = parseFloat(v.f1) || 0;
+        const disc = parseFloat(v.f2) || 0;
+        const savings = (orig * disc) / 100;
+        const finalPrice = Math.max(0, orig - savings);
+        return {
+          main: `$${finalPrice.toFixed(2)}`,
+          sub: `You save $${savings.toFixed(2)} (${disc}% off)`
+        };
+      }
+    },
+    'Profit & Loss': {
+      category: 'FINANCE',
+      label: 'Net Result',
+      fields: [
+        { id: 'f1', label: 'Cost Price ($)', val: 200, min: 0, step: 10 },
+        { id: 'f2', label: 'Total Revenue ($)', val: 280, min: 0, step: 10 }
+      ],
+      calc: (v) => {
+        const cost = parseFloat(v.f1) || 0;
+        const rev = parseFloat(v.f2) || 0;
+        const net = rev - cost;
+        const roi = cost > 0 ? (net / cost) * 100 : 0;
+        return {
+          main: `${net >= 0 ? '+' : '-'}$${Math.abs(net).toFixed(2)}`,
+          sub: `${net >= 0 ? 'Profit' : 'Loss'} · ROI: ${roi.toFixed(1)}%`
+        };
+      }
+    },
+    'Break-Even Estimator': {
+      category: 'BUSINESS',
+      label: 'Break-Even Units',
+      fields: [
+        { id: 'f1', label: 'Fixed Costs ($)', val: 5000, min: 0, step: 100 },
+        { id: 'f2', label: 'Price per Unit ($)', val: 50, min: 1, step: 1 },
+        { id: 'f3', label: 'Variable Cost per Unit ($)', val: 25, min: 0, step: 1 }
+      ],
+      calc: (v) => {
+        const fixed = parseFloat(v.f1) || 0;
+        const price = parseFloat(v.f2) || 1;
+        const variable = parseFloat(v.f3) || 0;
+        const contribution = price - variable;
+        if (contribution <= 0) return { main: 'N/A', sub: 'Price must exceed variable cost per unit' };
+        const units = Math.ceil(fixed / contribution);
+        return {
+          main: `${units.toLocaleString()} Units`,
+          sub: `Revenue to break even: $${(units * price).toLocaleString()}`
+        };
+      }
+    },
+    'Percentage Calculator': {
+      category: 'UTILITIES',
+      label: 'Percentage Change',
+      fields: [
+        { id: 'f1', label: 'Initial Value', val: 50, min: 0, step: 1 },
+        { id: 'f2', label: 'New Value', val: 75, min: 0, step: 1 }
+      ],
+      calc: (v) => {
+        const v1 = parseFloat(v.f1) || 0;
+        const v2 = parseFloat(v.f2) || 0;
+        const diff = v2 - v1;
+        const pctChange = v1 !== 0 ? (diff / v1) * 100 : 0;
+        return {
+          main: `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(1)}%`,
+          sub: `Difference: ${diff >= 0 ? '+' : ''}${diff.toFixed(2)} (${v2} vs ${v1})`
+        };
+      }
+    },
+    'Pomodoro Planner': {
+      category: 'PRODUCTIVITY',
+      label: 'Work Focus Blocks',
+      fields: [
+        { id: 'f1', label: 'Total Study Time (Hours)', val: 4, min: 0.5, max: 16, step: 0.5 },
+        { id: 'f2', label: 'Focus Block (Minutes)', val: 25, min: 15, max: 90, step: 5 },
+        { id: 'f3', label: 'Break Length (Minutes)', val: 5, min: 3, max: 30, step: 1 }
+      ],
+      calc: (v) => {
+        const totalMins = (parseFloat(v.f1) || 0) * 60;
+        const focus = parseInt(v.f2) || 25;
+        const rest = parseInt(v.f3) || 5;
+        const cycle = focus + rest;
+        const blocks = cycle > 0 ? Math.floor(totalMins / cycle) : 0;
+        const totalFocusMins = blocks * focus;
+        return {
+          main: `${blocks} Sessions`,
+          sub: `${totalFocusMins} mins pure focus · ${blocks * rest} mins rest`
+        };
+      }
+    },
+    'Compound Interest': {
+      category: 'FINANCE',
+      label: 'Future Value',
+      fields: [
+        { id: 'f1', label: 'Principal ($)', val: 10000, min: 100, step: 500 },
+        { id: 'f2', label: 'Annual Rate (%)', val: 7, min: 0.1, step: 0.1 },
+        { id: 'f3', label: 'Time Period (Years)', val: 10, min: 1, max: 50, step: 1 },
+        { id: 'f4', label: 'Compounding (Times/Yr)', val: 12, min: 1, max: 365, step: 1 }
+      ],
+      calc: (v) => {
+        const P = parseFloat(v.f1) || 0;
+        const r = (parseFloat(v.f2) || 0) / 100;
+        const t = parseFloat(v.f3) || 1;
+        const n = parseInt(v.f4) || 12;
+        const A = P * Math.pow(1 + (r / n), n * t);
+        const interest = A - P;
+        return {
+          main: `$${A.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          sub: `Total Interest: $${interest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        };
+      }
     }
   };
 
   let activeTool = 'Loan EMI';
+
+  const resetBtn = document.getElementById('calc-reset-btn');
+  const viewAllBtn = document.getElementById('view-all-calc-btn');
+  const catalogModal = document.getElementById('calc-catalog-modal');
+  const catalogGrid = document.getElementById('calc-catalog-grid');
 
   function renderCalculator(toolName) {
     activeTool = toolName;
@@ -246,6 +458,12 @@ function initCalculatorLibrary() {
       }
     });
 
+    if (catalogGrid) {
+      catalogGrid.querySelectorAll('.calc-tool-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.getAttribute('data-tool') === toolName);
+      });
+    }
+
     compute();
   }
 
@@ -260,6 +478,50 @@ function initCalculatorLibrary() {
     const res = def.calc(values);
     resultVal.textContent = res.main;
     resultSub.textContent = res.sub;
+  }
+
+  // Populate 14-tool catalog grid
+  if (catalogGrid) {
+    catalogGrid.innerHTML = Object.keys(calculators).map(name => `
+      <button class="calc-tool-chip ${name === activeTool ? 'active' : ''}" data-tool="${name}" type="button">
+        <span>${name}</span>
+      </button>
+    `).join('');
+
+    catalogGrid.querySelectorAll('.calc-tool-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const tool = chip.getAttribute('data-tool');
+        renderCalculator(tool);
+        catCards.forEach(c => {
+          c.classList.toggle('active', c.getAttribute('data-tool') === tool);
+        });
+        const runnerEl = document.getElementById('calc-runner');
+        if (runnerEl) {
+          runnerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    });
+  }
+
+  // View All / Catalog modal toggle
+  if (viewAllBtn && catalogModal) {
+    viewAllBtn.addEventListener('click', () => {
+      const isOpen = catalogModal.classList.toggle('open');
+      viewAllBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      viewAllBtn.textContent = isOpen ? 'Hide all 14 calculators ↑' : 'View all 14 calculators ↓';
+    });
+  }
+
+  // Reset inputs button
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      const def = calculators[activeTool] || calculators['Loan EMI'];
+      def.fields.forEach(f => {
+        const input = document.getElementById(f.id);
+        if (input) input.value = f.val;
+      });
+      compute();
+    });
   }
 
   // Click handler on category cards
@@ -298,6 +560,31 @@ async function initVersionSync() {
     if (data.apkUrl) {
       document.querySelectorAll('[data-apk-download="true"]').forEach(el => {
         el.setAttribute('href', data.apkUrl);
+      });
+    }
+
+    // SHA-256 Checksum badge sync and copy
+    const shaText = document.getElementById('sha-hash-text');
+    if (shaText && data.sha256) {
+      shaText.textContent = data.sha256;
+      shaText.title = data.sha256;
+    }
+
+    const copyBtn = document.getElementById('copy-sha-btn');
+    if (copyBtn && data.sha256) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(data.sha256);
+          const origText = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+          copyBtn.style.color = 'var(--color-primary, #10b981)';
+          setTimeout(() => {
+            copyBtn.textContent = origText;
+            copyBtn.style.color = '';
+          }, 2000);
+        } catch (err) {
+          console.debug('Clipboard write failed:', err);
+        }
       });
     }
   } catch (err) {

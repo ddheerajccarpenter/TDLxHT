@@ -29,10 +29,17 @@
         <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="header-link" target="_blank" rel="noopener">GitHub</a>
         <a href="/" class="header-link">Home</a>
         <div class="header-separator"></div>
-        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
-          <span>Theme</span>
-        </button>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.0/TDLxHT.2.5.0.apk" data-apk-download="true" class="btn btn-primary btn-sm">
+        <div class="glass-switch-wrapper" aria-label="Theme mode toggle">
+          <span class="glass-switch-icon" aria-hidden="true">☀️</span>
+          <label class="glass-switch" for="theme-switch-header">
+            <input type="checkbox" id="theme-switch-header" class="theme-switch-input" aria-label="Toggle dark/light theme">
+            <span class="glass-switch-track lg-glass">
+              <span class="glass-switch-thumb lg-glass"></span>
+            </span>
+          </label>
+          <span class="glass-switch-icon" aria-hidden="true">🌙</span>
+        </div>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.12/TDLxHT.2.5.12.apk" data-apk-download="true" class="btn btn-primary btn-sm">
           Download APK
         </a>
       </div>
@@ -93,8 +100,8 @@
             <span>Account Portal</span>
           </a>
 
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.0/TDLxHT.2.5.0.apk" class="btn btn-soft btn-sm" target="_blank" rel="noopener">
-            <span>Download Android APK (v2.5.0)</span>
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.12/TDLxHT.2.5.12.apk" data-apk-download="true" class="btn btn-soft btn-sm" target="_blank" rel="noopener">
+            <span>Download Android APK (v2.5.12)</span>
           </a>
         </div>
 
@@ -166,24 +173,30 @@
   <script>
     function updateThemeUI(theme) {
       document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("tdlxht-theme", theme);
       localStorage.setItem("tdlxht_theme", theme);
-      const btn = document.getElementById("theme-toggle-btn");
-      if (btn) {
-        btn.innerHTML = theme === "dark"
-          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>'
-          : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-        btn.title = theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
+      const headerSwitch = document.getElementById("theme-switch-header");
+      if (headerSwitch) {
+        headerSwitch.checked = (theme === "dark");
       }
     }
-    const initialTheme = localStorage.getItem("tdlxht_theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const initialTheme = localStorage.getItem("tdlxht-theme") || localStorage.getItem("tdlxht_theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     updateThemeUI(initialTheme);
-    const toggleBtn = document.getElementById("theme-toggle-btn");
-    if (toggleBtn) {
-      toggleBtn.addEventListener("click", () => {
-        const cur = document.documentElement.getAttribute("data-theme") || "dark";
-        updateThemeUI(cur === "dark" ? "light" : "dark");
+    const headerSwitch = document.getElementById("theme-switch-header");
+    if (headerSwitch) {
+      headerSwitch.addEventListener("change", (e) => {
+        updateThemeUI(e.target.checked ? "dark" : "light");
       });
     }
+
+    // Sync latest version
+    fetch('/version.json').then(r => r.json()).then(data => {
+      if (data && data.apkUrl) {
+        document.querySelectorAll('[data-apk-download="true"]').forEach(el => {
+          el.setAttribute('href', data.apkUrl);
+        });
+      }
+    }).catch(() => {});
 
     // Deep link fallback
     document.querySelectorAll('a[data-deeplink], button[data-deeplink]').forEach(el => {
@@ -197,28 +210,62 @@
     });
   </script>
 
-  <!-- Fixed Bottom Navigation (Wireframe Authority) -->
+  <!-- Fixed Bottom Navigation — Liquid Glass Tab Bar (Icons Only) -->
   <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
-    <nav class="bottom-dock">
-      <a href="/#dashboard" class="dock-tab" data-tab="dashboard">
-        <div class="dock-tab-icon">▤</div>
-        <span>Dashboard</span>
+    <nav class="bottom-dock lg-track lg-track--tabbar lg-track--icons-only" style="--lg-count:4;--lg-index:0;">
+      <div class="lg-track__glass lg-glass"></div>
+
+      <a href="/#dashboard" class="dock-tab lg-track__item" data-tab="dashboard" aria-label="Dashboard">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </div>
       </a>
-      <a href="/#features" class="dock-tab" data-tab="features">
-        <div class="dock-tab-icon">✓</div>
-        <span>Features</span>
+
+      <a href="/#features" class="dock-tab lg-track__item" data-tab="features" aria-label="Features">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
       </a>
-      <a href="/#calculators" class="dock-tab" data-tab="calculators">
-        <div class="dock-tab-icon">⊞</div>
-        <span>Calculators</span>
+
+      <a href="/#calculators" class="dock-tab lg-track__item" data-tab="calculators" aria-label="Calculators">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2"/>
+            <line x1="8" y1="6" x2="16" y2="6"/>
+            <line x1="8" y1="10" x2="10" y2="10"/>
+            <line x1="14" y1="10" x2="16" y2="10"/>
+            <line x1="8" y1="14" x2="10" y2="14"/>
+            <line x1="14" y1="14" x2="16" y2="14"/>
+            <line x1="8" y1="18" x2="10" y2="18"/>
+            <line x1="14" y1="18" x2="16" y2="18"/>
+          </svg>
+        </div>
       </a>
-      <a href="/#download" class="dock-tab" data-tab="download">
-        <div class="dock-tab-icon">↓</div>
-        <span>Download</span>
+
+      <a href="/#download" class="dock-tab lg-track__item" data-tab="download" aria-label="Download">
+        <div class="dock-tab-icon lg-nav__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
       </a>
+
+      <div class="lg-track__lens lg-glass" data-lg-refract></div>
+      <div class="lg-track__select"></div>
     </nav>
   </aside>
 
+  <!-- Liquid Glass Enhancement -->
+  <script type="module" src="/js/liquid-glass.js"></script>
   <script type="module" src="/js/callback.js"></script>
 </body>
 </html>

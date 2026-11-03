@@ -139,21 +139,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // 6. Automatic App Launch with 3-second countdown
-    let secondsLeft = 3;
-    const interval = setInterval(() => {
-      secondsLeft -= 1;
-      if (countdownEl) {
-        countdownEl.textContent = `Launching TDlxHT App in ${secondsLeft}s...`;
-      }
-      if (secondsLeft <= 0) {
-        clearInterval(interval);
+    // 6. Automatic App Launch on Mobile / Android
+    const isAndroidOrMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isAndroidOrMobile) {
+      let secondsLeft = 3;
+      const interval = setInterval(() => {
+        secondsLeft -= 1;
         if (countdownEl) {
-          countdownEl.textContent = "Opening TDlxHT App...";
+          countdownEl.textContent = `Launching TDlxHT App in ${secondsLeft}s...`;
         }
-        window.location.href = deepLinkUrl;
+        if (secondsLeft <= 0) {
+          clearInterval(interval);
+          if (countdownEl) {
+            countdownEl.textContent = "Opening TDlxHT App...";
+          }
+          window.location.href = deepLinkUrl;
+        }
+      }, 1000);
+    } else {
+      if (countdownEl) {
+        countdownEl.textContent = "On Android? Tap 'Open in TDlxHT App' to complete synchronization.";
       }
-    }, 1000);
+    }
 
   } catch (err) {
     console.error("Auth callback verification error:", err);

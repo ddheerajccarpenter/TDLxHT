@@ -170,14 +170,10 @@ fun ReportsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier.size(36.dp)
-                            .border(1.dp, CardBorder, CircleShape)
-                            .clip(CircleShape)
-                            .background(CardBackground)
-                            .bounceClick { viewModel.navigatePrevious() }
-                            .semantics { contentDescription = "Previous period" },
-                        contentAlignment = Alignment.Center
+                    GlassButton(
+                        onClick = { viewModel.navigatePrevious() },
+                        contentDescription = "Previous period",
+                        size = 38.dp
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = InkPrimary, modifier = Modifier.size(18.dp))
                     }
@@ -190,14 +186,11 @@ fun ReportsScreen(
 
                     val canGoNext = (state.period == ReportPeriod.WEEKLY && state.weekOffset < 0) ||
                             (state.period == ReportPeriod.MONTHLY && state.monthOffset < 0)
-                    Box(
-                        modifier = Modifier.size(36.dp)
-                            .border(1.dp, if (canGoNext) CardBorder else CardBorder.copy(alpha = 0.3f), CircleShape)
-                            .clip(CircleShape)
-                            .background(CardBackground)
-                            .bounceClick(enabled = canGoNext) { viewModel.navigateNext() }
-                            .semantics { contentDescription = "Next period" },
-                        contentAlignment = Alignment.Center
+                    GlassButton(
+                        onClick = { if (canGoNext) viewModel.navigateNext() },
+                        contentDescription = "Next period",
+                        size = 38.dp,
+                        enabled = canGoNext
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, null,
                             tint = if (canGoNext) InkPrimary else InkMuted,
@@ -268,16 +261,21 @@ fun ReportsScreen(
                         }
                     }
 
-                    // Share Report Button
+                    // Share Report Button (Liquid Glass)
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp)
-                            .background(PillBackgroundDark, InnerCornerShape)
-                            .clip(InnerCornerShape)
-                            .bounceClick {
-                                viewModel.shareMonthlyReport(context, isDark)
-                            },
+                            .fluidLensedGlass(
+                                shape = InnerCornerShape,
+                                elevation = 3.dp,
+                                borderWidth = 0.85.dp,
+                                isElevated = true,
+                                isInteractive = true,
+                                onClick = {
+                                    viewModel.shareMonthlyReport(context, isDark)
+                                }
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -287,7 +285,7 @@ fun ReportsScreen(
                             Icon(
                                 imageVector = Icons.Default.Share,
                                 contentDescription = null,
-                                tint = PillTextDark,
+                                tint = PrimaryAccentLime,
                                 modifier = Modifier.size(17.dp)
                             )
                             Text(
@@ -296,7 +294,7 @@ fun ReportsScreen(
                                     fontFamily = SFProFontFamily,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = PillTextDark
+                                    color = PrimaryAccentLime
                                 )
                             )
                         }

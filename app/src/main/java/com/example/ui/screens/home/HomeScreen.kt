@@ -620,18 +620,23 @@ fun HomeScreen(
               Text("Cancel", style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = InkSecondary))
             }
 
-            // Save & Apply Button
+            // Save & Apply Button (Authentic Liquid Glass)
             Box(
               modifier = Modifier
                 .weight(1.2f)
                 .height(44.dp)
-                .background(com.example.ui.theme.PillBackgroundDark, InnerCornerShape)
-                .clip(InnerCornerShape)
-                .clickable {
-                  DashboardLayoutManager.saveLayout(context, editOrder, editVisibility)
-                  isDashboardEditMode = false
-                  com.example.util.VibrationHelper.click(context)
-                },
+                .fluidLensedGlass(
+                  shape = InnerCornerShape,
+                  elevation = 3.dp,
+                  borderWidth = 0.85.dp,
+                  isElevated = true,
+                  isInteractive = true,
+                  onClick = {
+                    DashboardLayoutManager.saveLayout(context, editOrder, editVisibility)
+                    isDashboardEditMode = false
+                    com.example.util.VibrationHelper.click(context)
+                  }
+                ),
               contentAlignment = Alignment.Center
             ) {
               Row(
@@ -641,10 +646,10 @@ fun HomeScreen(
                 Icon(
                   imageVector = Icons.Default.Check,
                   contentDescription = null,
-                  tint = com.example.ui.theme.PillTextDark,
+                  tint = PrimaryAccentLime,
                   modifier = Modifier.size(16.dp)
                 )
-                Text("Save", style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, color = com.example.ui.theme.PillTextDark))
+                Text("Save", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PrimaryAccentLime))
               }
             }
           }

@@ -113,6 +113,7 @@ fun HabitListScreen(
   val currentFilter by viewModel.habitListFilter.collectAsStateWithLifecycle()
   val completionRecords by viewModel.completionRecords.collectAsStateWithLifecycle()
   val searchQuery by viewModel.habitSearchQuery.collectAsStateWithLifecycle()
+  val context = androidx.compose.ui.platform.LocalContext.current
 
   var habitToDelete by remember { mutableStateOf<Habit?>(null) }
 
@@ -485,7 +486,11 @@ fun HabitListScreen(
                     isCompleted = isCompleted,
                     currentSessions = currentSessions,
                     streakDays = streakInfo.currentStreak,
-                    onToggle = { viewModel.toggleHabitToday(habit.id) },
+                    onToggle = {
+                      viewModel.toggleHabitToday(habit.id)
+                      com.example.util.SoundManager.playHabitTick(context)
+                      com.example.util.VibrationHelper.tick(context)
+                    },
                     onClick = { onHabitClick(habit) },
                     onPause = { viewModel.togglePauseHabit(habit.id) },
                     onArchive = { viewModel.toggleArchiveHabit(habit.id) },

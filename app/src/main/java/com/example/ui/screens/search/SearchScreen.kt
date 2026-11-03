@@ -98,6 +98,7 @@ fun SearchScreen(
   val tasks by viewModel.tasks.collectAsStateWithLifecycle()
   val habits by viewModel.habits.collectAsStateWithLifecycle()
   val completionRecords by viewModel.completionRecords.collectAsStateWithLifecycle()
+  val context = androidx.compose.ui.platform.LocalContext.current
 
   var query by remember { mutableStateOf("") }
   var selectedFilterTab by remember { mutableIntStateOf(0) } // 0: All, 1: Tasks, 2: Habits, 3: Notes
@@ -371,7 +372,14 @@ fun SearchScreen(
                     selectedTaskIds + task.id
                   }
                 },
-                onToggle = { viewModel.toggleTaskCompletion(task.id) },
+                onToggle = {
+                  val willBeCompleted = !task.isCompleted
+                  viewModel.toggleTaskCompletion(task.id)
+                  if (willBeCompleted) {
+                    com.example.util.SoundManager.playTaskComplete(context)
+                    com.example.util.HapticManager.taskCompleted(context)
+                  }
+                },
                 onClick = { onTaskClick(task) },
                 onLongClick = {
                   isMultiSelectMode = true
@@ -442,7 +450,13 @@ fun SearchScreen(
                     selectedHabitIds + habit.id
                   }
                 },
-                onToggle = { viewModel.toggleHabitToday(habit.id) },
+                onToggle = {
+                  viewModel.toggleHabitToday(habit.id)
+                  if (!isCompleted) {
+                    com.example.util.SoundManager.playHabitTick(context)
+                    com.example.util.VibrationHelper.tick(context)
+                  }
+                },
                 onClick = { onHabitClick(habit) },
                 onLongClick = {
                   isMultiSelectMode = true

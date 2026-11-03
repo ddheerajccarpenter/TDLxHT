@@ -73,6 +73,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
 import com.example.ui.components.staggeredEntrance
+import com.example.ui.components.fluidLensedGlass
+import com.example.ui.theme.PrimaryAccentLime
+import com.example.ui.theme.LocalAppColors
 import com.example.ui.theme.AccentTerracotta
 import com.example.ui.theme.CardBackground
 import com.example.ui.theme.CardBorder
@@ -559,13 +562,14 @@ private fun AuthPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = LocalAppColors.current.isDark
+    val buttonTextColor = if (isDark) PrimaryAccentLime else InkPrimary
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp)
-            .background(PillBackgroundDark, RoundedCornerShape(14.dp))
-            .border(1.5.dp, CardBorder, RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
+            .fluidLensedGlass(shape = RoundedCornerShape(14.dp), elevation = 3.dp, isElevated = true)
             .bounceClick(enabled = !isLoading) { onClick() }
             .semantics { contentDescription = text },
         contentAlignment = Alignment.Center
@@ -574,7 +578,7 @@ private fun AuthPrimaryButton(
             CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),
                 strokeWidth = 2.dp,
-                color = PillTextDark
+                color = buttonTextColor
             )
         } else {
             Text(
@@ -583,7 +587,7 @@ private fun AuthPrimaryButton(
                     fontFamily = SFProFontFamily,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PillTextDark
+                    color = buttonTextColor
                 )
             )
         }
@@ -629,10 +633,20 @@ private fun MessageBanner(
         exit = fadeOut(tween(150)) + slideOutVertically(tween(150)) { -it }
     ) {
         val isError = error != null
-        val bgColor = Color(0xFF252525)
-        val borderColor = Color(0xFFFFFFFF)
-        val titleColor = Color(0xFFFFFFFF)
-        val descColor = Color(0xFFFFFFFF)
+        val isDark = LocalAppColors.current.isDark
+
+        val bgColor = if (isError) {
+            if (isDark) Color(0x2E8C5252) else Color(0x1F8C5252)
+        } else {
+            CardBackground
+        }
+        val borderColor = if (isError) {
+            AccentTerracotta.copy(alpha = 0.5f)
+        } else {
+            CardBorder
+        }
+        val titleColor = if (isError) AccentTerracotta else InkPrimary
+        val descColor = InkSecondary
 
         Box(
             modifier = Modifier
@@ -670,9 +684,7 @@ private fun MessageBanner(
                         Spacer(modifier = Modifier.height(10.dp))
                         Box(
                             modifier = Modifier
-                                .border(1.dp, titleColor.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White.copy(alpha = 0.7f))
+                                .fluidLensedGlass(shape = RoundedCornerShape(8.dp), elevation = 1.dp)
                                 .bounceClick(enabled = !isActionLoading) {
                                     onActionClick(error.actionType)
                                 }

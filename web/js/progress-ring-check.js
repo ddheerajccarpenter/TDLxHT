@@ -10,6 +10,9 @@ export function initProgressRingCheck() {
   const taskItems = document.querySelectorAll('.preview-task-item');
 
   taskItems.forEach((item) => {
+    // Avoid double creation
+    if (item.querySelector('.progress-ring-check-wrapper')) return;
+
     const isChecked = item.classList.contains('checked');
     const existingCheck = item.querySelector('.preview-task-check');
 
@@ -57,22 +60,6 @@ export function initProgressRingCheck() {
       item.prepend(ringWrapper);
       ringWrapper.appendChild(svg);
     }
-
-    // Interactive click toggle with spring morph
-    item.addEventListener('click', () => {
-      const currentStatus = ringWrapper.getAttribute('data-status');
-      if (currentStatus === 'done') {
-        ringWrapper.setAttribute('data-status', 'pending');
-        item.classList.remove('checked');
-      } else {
-        // Transition: running -> done
-        ringWrapper.setAttribute('data-status', 'running');
-        setTimeout(() => {
-          ringWrapper.setAttribute('data-status', 'done');
-          item.classList.add('checked');
-        }, 280);
-      }
-    });
   });
 }
 
@@ -84,4 +71,3 @@ if (typeof document !== 'undefined') {
     initProgressRingCheck();
   }
 }
-

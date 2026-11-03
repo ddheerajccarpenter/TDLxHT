@@ -285,42 +285,50 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
           ) {
-            // Sync to Cloud Button
+            // Sync to Cloud Button (Liquid Glass)
             Box(
               modifier = Modifier
                 .weight(1f)
                 .height(40.dp)
-                .background(
-                  PillBackgroundDark.copy(alpha = if (syncState is SyncStatus.Syncing) 0.5f else 1f),
-                  RoundedCornerShape(10.dp)
+                .fluidLensedGlass(
+                  shape = RoundedCornerShape(10.dp),
+                  elevation = 2.dp,
+                  borderWidth = 0.85.dp,
+                  isElevated = true,
+                  isInteractive = syncState !is SyncStatus.Syncing,
+                  onClick = if (syncState !is SyncStatus.Syncing) {
+                    { authViewModel.syncNow() }
+                  } else null
                 )
-                .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick(enabled = syncState !is SyncStatus.Syncing) { authViewModel.syncNow() }
                 .semantics { contentDescription = "Sync data to cloud" },
               contentAlignment = Alignment.Center
             ) {
               if (syncState is SyncStatus.Syncing) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                  CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = PillTextDark)
-                  Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PillTextDark, fontWeight = FontWeight.SemiBold))
+                  CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = PrimaryAccentLime)
+                  Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PrimaryAccentLime, fontWeight = FontWeight.SemiBold))
                 }
               } else {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                  Icon(Icons.Default.CloudSync, contentDescription = null, tint = PillTextDark, modifier = Modifier.size(16.dp))
-                  Text("Sync Now", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PillTextDark, fontWeight = FontWeight.SemiBold))
+                  Icon(Icons.Default.CloudSync, contentDescription = null, tint = PrimaryAccentLime, modifier = Modifier.size(16.dp))
+                  Text("Sync Now", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PrimaryAccentLime, fontWeight = FontWeight.SemiBold))
                 }
               }
             }
 
-            // Sign Out Button
+            // Sign Out Button (Liquid Glass)
             Box(
               modifier = Modifier
                 .weight(1f)
                 .height(40.dp)
-                .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick { showLogoutDialog = true }
+                .fluidLensedGlass(
+                  shape = RoundedCornerShape(10.dp),
+                  elevation = 1.dp,
+                  borderWidth = 0.75.dp,
+                  isElevated = false,
+                  isInteractive = true,
+                  onClick = { showLogoutDialog = true }
+                )
                 .semantics { contentDescription = "Sign out of account" },
               contentAlignment = Alignment.Center
             ) {
@@ -358,34 +366,36 @@ fun SettingsScreen(
             ) {
               listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (mode, label) ->
                 val isSelected = effectiveTheme.equals(mode, ignoreCase = true)
-                val bg by animateColorAsState(
-                  targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing),
-                  label = "themeBg_$mode"
-                )
-                val textCol by animateColorAsState(
-                  targetValue = if (isSelected) PillTextDark else InkSecondary,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing),
-                  label = "themeText_$mode"
-                )
-                val borderCol by animateColorAsState(
-                  targetValue = if (isSelected) PillBackgroundDark else CardBorder,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing),
-                  label = "themeBorder_$mode"
-                )
 
                 Box(
                   modifier = Modifier
                     .weight(1f)
                     .height(38.dp)
-                    .border(1.2.dp, borderCol, RoundedCornerShape(10.dp))
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(bg)
-                    .bounceClick(level = InteractionLevel.MICRO) {
-                      com.example.util.AppPreferences.setThemeMode(context, mode)
-                      viewModel.updateSettings(settings.copy(themeMode = mode))
-                      VibrationHelper.tick(context)
-                    }
+                    .then(
+                      if (isSelected) {
+                        Modifier.fluidLensedGlass(
+                          shape = RoundedCornerShape(10.dp),
+                          elevation = 2.dp,
+                          borderWidth = 0.85.dp,
+                          isElevated = true,
+                          isInteractive = true,
+                          onClick = {
+                            com.example.util.AppPreferences.setThemeMode(context, mode)
+                            viewModel.updateSettings(settings.copy(themeMode = mode))
+                            VibrationHelper.tick(context)
+                          }
+                        )
+                      } else {
+                        Modifier
+                          .border(0.75.dp, CardBorder.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                          .clip(RoundedCornerShape(10.dp))
+                          .bounceClick(level = InteractionLevel.MICRO) {
+                            com.example.util.AppPreferences.setThemeMode(context, mode)
+                            viewModel.updateSettings(settings.copy(themeMode = mode))
+                            VibrationHelper.tick(context)
+                          }
+                      }
+                    )
                     .testTag("theme_btn_$mode"),
                   contentAlignment = Alignment.Center
                 ) {
@@ -395,7 +405,7 @@ fun SettingsScreen(
                       fontFamily = SFProFontFamily,
                       fontSize = 12.sp,
                       fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color = textCol
+                      color = if (isSelected) InkPrimary else InkSecondary
                     )
                   )
                 }
@@ -421,27 +431,25 @@ fun SettingsScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
               listOf(false to "12h", true to "24h").forEach { (is24, label) ->
                 val isSelected = settings.timeFormat24Hour == is24
-                val bg by animateColorAsState(
-                  targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing),
-                  label = "timeFormatBg_$is24"
-                )
-                val textCol by animateColorAsState(
-                  targetValue = if (isSelected) PillTextDark else InkSecondary,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing),
-                  label = "timeFormatText_$is24"
-                )
-                val borderCol by animateColorAsState(
-                  targetValue = if (isSelected) PillBackgroundDark else CardBorder,
-                  animationSpec = tween(180, easing = FastOutSlowInEasing),
-                  label = "timeFormatBorder_$is24"
-                )
                 Box(
                   modifier = Modifier
-                    .border(1.2.dp, borderCol, RoundedCornerShape(8.dp))
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(bg)
-                    .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
+                    .then(
+                      if (isSelected) {
+                        Modifier.fluidLensedGlass(
+                          shape = RoundedCornerShape(8.dp),
+                          elevation = 2.dp,
+                          borderWidth = 0.85.dp,
+                          isElevated = true,
+                          isInteractive = true,
+                          onClick = { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
+                        )
+                      } else {
+                        Modifier
+                          .border(0.75.dp, CardBorder.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                          .clip(RoundedCornerShape(8.dp))
+                          .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
+                      }
+                    )
                     .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                   Text(
@@ -449,7 +457,7 @@ fun SettingsScreen(
                     style = TextStyle(
                       fontSize = 12.sp,
                       fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color = textCol
+                      color = if (isSelected) InkPrimary else InkSecondary
                     )
                   )
                 }

@@ -73,7 +73,7 @@
     <section id="dashboard" class="hero-layout">
       <!-- Left Column: Copy & Actions -->
       <div class="hero-left">
-        <span class="hero-sub-label">NATIVE ANDROID · V2.5.12</span>
+        <span class="hero-sub-label">NATIVE ANDROID · <span class="apk-version-label">v2.5.12</span></span>
         <h1 class="hero-heading">
           Tasks, habits and<br>
           calculators.<br>
@@ -127,27 +127,27 @@
               <span class="glass-switch-icon" aria-hidden="true">🌙</span>
             </div>
 
-            <!-- Choices with a checkmark: GlassMenu (Sort by Date, Name, Size) -->
+            <!-- Choices with a checkmark: GlassMenu (Filter Preview Tasks) -->
             <div class="glass-menu-wrapper" id="hero-sort-menu">
-              <button class="glass-menu-trigger lg-button lg-glass" aria-label="Sort by" aria-haspopup="true" aria-expanded="false" id="hero-sort-trigger">
+              <button class="glass-menu-trigger lg-button lg-glass" aria-label="Filter tasks" aria-haspopup="true" aria-expanded="false" id="hero-sort-trigger">
                 <svg class="glass-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <line x1="3" y1="6" x2="21" y2="6"/>
                   <line x1="3" y1="12" x2="15" y2="12"/>
                   <line x1="3" y1="18" x2="9" y2="18"/>
                 </svg>
               </button>
-              <div class="glass-menu-popover lg-glass" id="hero-sort-popover" role="menu" aria-label="Sort by" hidden>
-                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Date">
+              <div class="glass-menu-popover lg-glass" id="hero-sort-popover" role="menu" aria-label="Filter tasks" hidden>
+                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="true" data-sort="All">
                   <span class="glass-menu-check" aria-hidden="true">✓</span>
-                  <span class="glass-menu-label">Date</span>
+                  <span class="glass-menu-label">All Tasks</span>
                 </button>
-                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="true" data-sort="Name">
+                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Active">
                   <span class="glass-menu-check" aria-hidden="true">✓</span>
-                  <span class="glass-menu-label">Name</span>
+                  <span class="glass-menu-label">Active</span>
                 </button>
-                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Size">
+                <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Completed">
                   <span class="glass-menu-check" aria-hidden="true">✓</span>
-                  <span class="glass-menu-label">Size</span>
+                  <span class="glass-menu-label">Completed</span>
                 </button>
               </div>
             </div>
@@ -157,19 +157,19 @@
             <!-- Phone Silhouette -->
             <div class="preview-phone-frame lg-glass">
               <div class="preview-phone-title">TDLxHT · Daily Tasks</div>
-              <div class="preview-task-item checked" data-task-id="1">
+              <div class="preview-task-item checked" data-task-id="1" role="checkbox" aria-checked="true" tabindex="0">
                 <span class="preview-task-check">✓</span>
                 <span>Task Management</span>
               </div>
-              <div class="preview-task-item checked" data-task-id="2">
+              <div class="preview-task-item checked" data-task-id="2" role="checkbox" aria-checked="true" tabindex="0">
                 <span class="preview-task-check">✓</span>
                 <span>Habit Tracking</span>
               </div>
-              <div class="preview-task-item" data-task-id="3">
+              <div class="preview-task-item" data-task-id="3" role="checkbox" aria-checked="false" tabindex="0">
                 <span class="preview-task-check"></span>
                 <span>Focus Sessions</span>
               </div>
-              <div class="preview-task-item" data-task-id="4">
+              <div class="preview-task-item" data-task-id="4" role="checkbox" aria-checked="false" tabindex="0">
                 <span class="preview-task-check"></span>
                 <span>14 Calculators</span>
               </div>
@@ -179,8 +179,8 @@
             <div class="preview-stats-col">
               <div class="preview-stat-box lg-glass">
                 <span class="preview-stat-title">Tasks Done</span>
-                <span class="preview-stat-val">8 / 10</span>
-                <span class="preview-stat-meta">80% completed</span>
+                <span class="preview-stat-val">2 / 4</span>
+                <span class="preview-stat-meta">50% completed</span>
               </div>
               <div class="preview-stat-box lg-glass">
                 <span class="preview-stat-title">Habit Streak</span>
@@ -265,7 +265,7 @@
           </div>
           <p class="feature-text">Keep focused work visible without extra distractions or unnecessary telemetry.</p>
           <div class="feature-divider"></div>
-          <a href="#dashboard" class="feature-action-link">
+          <a href="#principles" class="feature-action-link">
             <span>Explore feature</span>
             <span>→</span>
           </a>
@@ -369,30 +369,10 @@
         <div class="calc-runner-header">
           <span class="calc-runner-title" id="calc-runner-title">Loan EMI Calculator</span>
           <span id="calc-category-tag" class="section-eyebrow-tag" style="margin: 0;">FINANCE</span>
-          <!-- GlassMenu: Sort Calculator Results -->
-          <div class="glass-menu-wrapper" id="calc-sort-menu">
-            <button class="glass-menu-trigger lg-button lg-glass" aria-label="Sort by" aria-haspopup="true" aria-expanded="false" id="calc-sort-trigger">
-              <svg class="glass-menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="15" y2="12"/>
-                <line x1="3" y1="18" x2="9" y2="18"/>
-              </svg>
-            </button>
-            <div class="glass-menu-popover lg-glass" id="calc-sort-popover" role="menu" aria-label="Sort by" hidden>
-              <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Date">
-                <span class="glass-menu-check" aria-hidden="true">✓</span>
-                <span class="glass-menu-label">Date</span>
-              </button>
-              <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="true" data-sort="Name">
-                <span class="glass-menu-check" aria-hidden="true">✓</span>
-                <span class="glass-menu-label">Name</span>
-              </button>
-              <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Size">
-                <span class="glass-menu-check" aria-hidden="true">✓</span>
-                <span class="glass-menu-label">Size</span>
-              </button>
-            </div>
-          </div>
+          <!-- Reset Inputs Button -->
+          <button class="btn btn-outline btn-sm lg-button lg-glass" id="calc-reset-btn" aria-label="Reset calculator inputs" style="padding: 4px 12px; font-size: 0.8rem;">
+            <span>Reset</span>
+          </button>
         </div>
 
         <div class="calc-runner-grid">
@@ -421,7 +401,16 @@
         </div>
       </div>
 
-      <a href="#calculators" id="view-all-calc-btn" class="calc-view-all-link">View all calculators →</a>
+      <button id="view-all-calc-btn" class="calc-view-all-link" aria-expanded="false" style="background: none; border: none; cursor: pointer; text-decoration: underline; font: inherit;">View all 14 calculators ↓</button>
+
+      <!-- Expandable 14-Tool Catalog Grid -->
+      <div id="calc-catalog-modal" class="calc-catalog-modal">
+        <div class="calc-catalog-header">
+          <span class="calc-catalog-title">All 14 Native Tools</span>
+          <span class="section-eyebrow-tag" style="margin: 0;">OFFLINE READY</span>
+        </div>
+        <div class="calc-catalog-grid" id="calc-catalog-grid"></div>
+      </div>
     </section>
 
     <!-- 04 / PRODUCT PRINCIPLES -->
@@ -455,7 +444,12 @@
         <div class="download-info-left">
           <h2 class="download-title">Get TDLxHT for Android</h2>
           <p class="download-subtitle">Check version, file size and compatibility before downloading.</p>
-          <span class="download-meta-specs">Version 2.5.12 · 17.3 MB · Android 7–15</span>
+          <span class="download-meta-specs">Version <span class="apk-version-label">2.5.12</span> · 17.3 MB · Android 7–15</span>
+          <div class="sha-verify-badge" id="sha-verify-badge">
+            <span class="sha-label" style="font-weight: 700; color: var(--color-ink);">SHA-256</span>
+            <code class="sha-hash-text" id="sha-hash-text" title="22a7a7f5fa9c73e3938793693d055bcce0e32fb85c3bdc93615276d7ff98ba35">22a7a7f5fa9c73e3938793693d055bcce0e32fb85c3bdc93615276d7ff98ba35</code>
+            <button class="sha-copy-btn" id="copy-sha-btn" type="button" aria-label="Copy SHA-256 checksum">Copy</button>
+          </div>
         </div>
 
         <div class="download-actions-right">
