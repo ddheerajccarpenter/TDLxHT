@@ -56,30 +56,74 @@ function initThemeToggle() {
   }
 }
 
-// Product Preview Interactive Tasks & Stats
+// Product Preview Interactive Tasks, Progress Ring & 3D Tilt
 function initPreviewTasks() {
+  const previewCard = document.getElementById('product-preview-card');
   const taskItems = document.querySelectorAll('.preview-task-item');
-  if (!taskItems.length) return;
+  const progressRing = document.getElementById('preview-progress-ring');
+  const progressPercent = document.getElementById('preview-progress-percent');
+  const progressTitle = document.getElementById('preview-progress-title');
+  const clockEl = document.getElementById('preview-clock');
+  const dateLabelEl = document.getElementById('preview-date-label');
+  const timerBtn = document.getElementById('preview-timer-btn');
+  const timerDisplay = document.getElementById('preview-timer-display');
+  const timerState = document.getElementById('preview-timer-state');
+
+  // Real-time local date & time in phone status bar
+  if (clockEl) {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+  if (dateLabelEl) {
+    const now = new Date();
+    dateLabelEl.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  }
+
+  // 3D Perspective Cursor Tilt
+  if (previewCard && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    previewCard.addEventListener('mousemove', (e) => {
+      const rect = previewCard.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = ((y - centerY) / centerY) * -6; // Max 6 deg tilt
+      const rotateY = ((x - centerX) / centerX) * 6;
+
+      previewCard.style.transform = `perspective(1200px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.012, 1.012, 1.012)`;
+    });
+
+    previewCard.addEventListener('mouseleave', () => {
+      previewCard.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    });
+  }
+
+  // Interactive Task Toggles
+  function updatePreviewStats() {
+    const checkedCount = document.querySelectorAll('.preview-task-item.checked').length;
+    const totalCount = taskItems.length || 4;
+    const percent = Math.round((checkedCount / totalCount) * 100);
+    const circumference = 163.36; // 2 * PI * 26
+
+    if (progressRing) {
+      const offset = circumference - (circumference * percent) / 100;
+      progressRing.style.strokeDashoffset = offset.toFixed(2);
+    }
+    if (progressPercent) {
+      progressPercent.textContent = `${percent}%`;
+    }
+    if (progressTitle) {
+      progressTitle.textContent = `${checkedCount} of ${totalCount} tasks completed`;
+    }
+  }
 
   function toggleTask(item) {
     const isNowChecked = !item.classList.contains('checked');
     item.classList.toggle('checked', isNowChecked);
     item.setAttribute('aria-checked', isNowChecked ? 'true' : 'false');
 
-    const ringWrapper = item.querySelector('.progress-ring-check-wrapper');
-    if (ringWrapper) {
-      if (isNowChecked) {
-        ringWrapper.setAttribute('data-status', 'running');
-        setTimeout(() => {
-          ringWrapper.setAttribute('data-status', 'done');
-        }, 180);
-      } else {
-        ringWrapper.setAttribute('data-status', 'pending');
-      }
-    } else {
-      const checkEl = item.querySelector('.preview-task-check');
-      if (checkEl) checkEl.textContent = isNowChecked ? '✓' : '';
-    }
+    const checkEl = item.querySelector('.preview-task-check');
+    if (checkEl) checkEl.textContent = isNowChecked ? '✓' : '';
 
     updatePreviewStats();
   }
@@ -111,18 +155,38 @@ function initPreviewTasks() {
     }
   });
 
-  function updatePreviewStats() {
-    const checkedCount = document.querySelectorAll('.preview-task-item.checked').length;
-    const totalCount = taskItems.length;
-    const statValEl = document.querySelector('.preview-stat-box .preview-stat-val');
-    const statMetaEl = document.querySelector('.preview-stat-box .preview-stat-meta');
+  // Focus Timer Runner in Preview Tile
+  let timerInterval = null;
+  let timerSeconds = 25 * 60;
+  let isTimerRunning = false;
 
-    if (statValEl) {
-      statValEl.textContent = `${checkedCount} / ${totalCount}`;
-    }
-    if (statMetaEl) {
-      statMetaEl.textContent = `${Math.round((checkedCount / totalCount) * 100)}% completed`;
-    }
+  if (timerBtn && timerDisplay && timerState) {
+    timerBtn.addEventListener('click', () => {
+      isTimerRunning = !isTimerRunning;
+      if (isTimerRunning) {
+        timerState.textContent = '⏸ Pause';
+        timerBtn.style.background = 'rgba(255, 69, 58, 0.2)';
+        timerBtn.style.borderColor = 'rgba(255, 69, 58, 0.4)';
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+          } else {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerState.textContent = '↺ Reset';
+            timerSeconds = 25 * 60;
+          }
+        }, 1000);
+      } else {
+        clearInterval(timerInterval);
+        timerState.textContent = '▶ Resume';
+        timerBtn.style.background = '';
+        timerBtn.style.borderColor = '';
+      }
+    });
   }
 
   // Initial sync immediately on load
