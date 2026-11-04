@@ -33,6 +33,13 @@ class BootReceiver : BroadcastReceiver() {
       }
     }
 
+    if (action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+      Log.d(TAG, "Package replaced/updated. Triggering storage cleanup for downloaded APK installer...")
+      CoroutineScope(Dispatchers.IO).launch {
+        com.example.util.ApkDownloadManager.cleanupDownloadedApks(context)
+      }
+    }
+
     CoroutineScope(Dispatchers.IO).launch {
       try {
         val settings = app.database.settingsDao().getSettingsSync()?.toDomainModel()

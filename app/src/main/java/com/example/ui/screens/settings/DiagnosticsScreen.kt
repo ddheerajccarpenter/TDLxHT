@@ -200,6 +200,15 @@ fun DiagnosticsScreen(
             )
           )
         }
+
+        val canInstall = com.example.util.ApkDownloadManager.canRequestPackageInstalls(context)
+        list.add(
+          DiagnosticItem(
+            title = "In-App Package Installer Permission",
+            status = if (canInstall) DiagnosticStatus.HEALTHY else DiagnosticStatus.PERMISSION_REQUIRED,
+            details = if (canInstall) "Direct in-app package installation permitted" else "Install unknown apps permission is disabled in Settings"
+          )
+        )
         list
       }
       results.add(DiagnosticCategory("Update & Release", releaseItems))

@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.lerp
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import com.example.ui.navigation.horizontalSwipeNavigation
+import androidx.compose.runtime.DisposableEffect
 import com.example.util.AppPreferences
 import com.example.util.ShakeDetector
 import com.example.util.VibrationHelper
@@ -223,6 +224,7 @@ class MainActivity : ComponentActivity() {
   private val authViewModel: AuthViewModel by viewModels()
 
   private val shakeTriggerFlow = MutableStateFlow<Long>(0L)
+  private val updateTriggerFlow = MutableStateFlow<Long>(0L)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -234,6 +236,9 @@ class MainActivity : ComponentActivity() {
 
     if (intent?.getBooleanExtra(EXTRA_SHAKE_TRIGGERED, false) == true) {
       shakeTriggerFlow.value = System.currentTimeMillis()
+    }
+    if (intent?.getBooleanExtra(com.example.util.AppUpdateManager.EXTRA_START_UPDATE_DOWNLOAD, false) == true) {
+      updateTriggerFlow.value = System.currentTimeMillis()
     }
 
     setContent {
@@ -253,6 +258,7 @@ class MainActivity : ComponentActivity() {
 
       val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
       val shakeTrigger by shakeTriggerFlow.collectAsStateWithLifecycle()
+      val updateTrigger by updateTriggerFlow.collectAsStateWithLifecycle()
 
       MyApplicationTheme(darkTheme = isDark) {
         if (currentUser != null) {
@@ -260,7 +266,8 @@ class MainActivity : ComponentActivity() {
             viewModel = viewModel,
             authViewModel = authViewModel,
             settings = settings,
-            shakeTrigger = shakeTrigger
+            shakeTrigger = shakeTrigger,
+            updateTrigger = updateTrigger
           )
         } else {
           AuthenticationScreen(viewModel = authViewModel)
@@ -277,6 +284,9 @@ class MainActivity : ComponentActivity() {
     } catch (_: Exception) {}
     if (intent.getBooleanExtra(EXTRA_SHAKE_TRIGGERED, false)) {
       shakeTriggerFlow.value = System.currentTimeMillis()
+    }
+    if (intent.getBooleanExtra(com.example.util.AppUpdateManager.EXTRA_START_UPDATE_DOWNLOAD, false)) {
+      updateTriggerFlow.value = System.currentTimeMillis()
     }
   }
 
@@ -301,7 +311,8 @@ fun MainApp(
   viewModel: MainViewModel,
   authViewModel: AuthViewModel,
   settings: AppSettings,
-  shakeTrigger: Long = 0L
+  shakeTrigger: Long = 0L,
+  updateTrigger: Long = 0L
 ) {
     val context = LocalContext.current
   val coroutineScope = rememberCoroutineScope()
@@ -330,6 +341,21 @@ fun MainApp(
     ) { info, isNew ->
       if (isNew && info != null) {
         availableUpdate = info
+      }
+    }
+  }
+
+  LaunchedEffect(updateTrigger) {
+    if (updateTrigger > 0L) {
+      com.example.util.AppUpdateManager.checkForUpdates(
+        context = context,
+        notifySystem = false,
+        forceShowDismissed = true
+      ) { info, _ ->
+        if (info != null) {
+          availableUpdate = info
+          com.example.util.ApkDownloadManager.startDownload(context, info)
+        }
       }
     }
   }
@@ -965,16 +991,32 @@ fun MainApp(
   }
 
   // In-App New Version Release Update Notification Dialog with Real-Time Download Progress
-  if (availableUpdate != null) {
-    val update = availableUpdate!!
-    val downloadState by com.example.util.ApkDownloadManager.downloadState.collectAsStateWithLifecycle()
+  val activeCurrentUpdate by com.example.util.ApkDownloadManager.currentUpdate.collectAsStateWithLifecycle()
+  val downloadState by com.example.util.ApkDownloadManager.downloadState.collectAsStateWithLifecycle()
+  val effectiveUpdate = availableUpdate ?: activeCurrentUpdate
+
+  val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+  var resumeCounter by remember { mutableStateOf(0) }
+  DisposableEffect(lifecycleOwner) {
+    val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+      if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        resumeCounter++
+      }
+    }
+    lifecycleOwner.lifecycle.addObserver(observer)
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  }
+
+  if (effectiveUpdate != null) {
+    val update = effectiveUpdate
+    val canInstall = remember(resumeCounter) { com.example.util.ApkDownloadManager.canRequestPackageInstalls(context) }
 
     androidx.compose.ui.window.Dialog(onDismissRequest = {
       if (downloadState is com.example.util.ApkDownloadState.Downloading) {
-        com.example.util.ApkDownloadManager.cancelDownload()
+        com.example.util.ApkDownloadManager.cancelDownload(context)
       }
       com.example.util.AppPreferences.setDismissedUpdateVersionCode(context, update.versionCode)
-      com.example.util.ApkDownloadManager.reset()
+      com.example.util.ApkDownloadManager.reset(context)
       availableUpdate = null
     }) {
       AnimatedDialogContent {
@@ -1130,7 +1172,7 @@ fun MainApp(
                     .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
                     .clip(RoundedCornerShape(10.dp))
                     .bounceClick {
-                      com.example.util.ApkDownloadManager.cancelDownload()
+                      com.example.util.ApkDownloadManager.cancelDownload(context)
                     },
                   contentAlignment = Alignment.Center
                 ) {
@@ -1161,12 +1203,16 @@ fun MainApp(
 
               is com.example.util.ApkDownloadState.ReadyToInstall -> {
                 Text(
-                  text = "Ready to Install!",
+                  text = if (canInstall) "Ready to Install!" else "Permission Needed",
                   style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                  text = "TDlxHT v${update.version} has been downloaded and verified.",
+                  text = if (canInstall) {
+                    "TDlxHT v${update.version} has been downloaded and verified."
+                  } else {
+                    "Android requires permission to install APK updates directly from TDlxHT. Please enable 'Install unknown apps' in Settings."
+                  },
                   style = TextStyle(fontSize = 13.sp, color = InkSecondary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -1177,12 +1223,16 @@ fun MainApp(
                     .background(PillBackgroundDark, RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp))
                     .bounceClick {
-                      com.example.util.ApkDownloadManager.installApk(context, state.apkFile)
+                      if (!canInstall) {
+                        com.example.util.ApkDownloadManager.openUnknownAppSourcesSettings(context)
+                      } else {
+                        com.example.util.ApkDownloadManager.installApk(context, state.apkFile)
+                      }
                     },
                   contentAlignment = Alignment.Center
                 ) {
                   Text(
-                    text = "Install Now",
+                    text = if (canInstall) "Install Now" else "Enable in Settings",
                     style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = PillTextDark)
                   )
                 }
@@ -1219,7 +1269,7 @@ fun MainApp(
                     .height(38.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .bounceClick {
-                      com.example.util.ApkDownloadManager.reset()
+                      com.example.util.ApkDownloadManager.reset(context)
                       availableUpdate = null
                     },
                   contentAlignment = Alignment.Center

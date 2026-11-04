@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import kotlinx.coroutines.launch
 import com.example.data.local.AppDatabase
 import com.example.data.repository.HabitRepository
 import com.example.data.repository.SettingsRepository
@@ -36,6 +37,11 @@ class HabitTaskApplication : Application() {
     com.example.util.DashboardLayoutManager.init(this)
     com.example.util.SoundManager.init(this)
     // ShakeDetectionService is started safely in MainActivity.onResume() when app is in foreground
+
+    // Clean up temporary downloaded APK installers to save local device storage
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+      com.example.util.ApkDownloadManager.cleanupDownloadedApks(this@HabitTaskApplication)
+    }
   }
 
   private fun createNotificationChannels() {
@@ -78,10 +84,21 @@ class HabitTaskApplication : Application() {
         enableVibration(true)
       }
 
+      val downloadChannel = NotificationChannel(
+        CHANNEL_DOWNLOADS_ID,
+        "App Downloads & Updates",
+        NotificationManager.IMPORTANCE_LOW
+      ).apply {
+        description = "Progress notifications during update downloads"
+        enableVibration(false)
+        setShowBadge(false)
+      }
+
       notificationManager.createNotificationChannel(taskChannel)
       notificationManager.createNotificationChannel(habitChannel)
       notificationManager.createNotificationChannel(summaryChannel)
       notificationManager.createNotificationChannel(updateChannel)
+      notificationManager.createNotificationChannel(downloadChannel)
     }
   }
 
@@ -90,6 +107,7 @@ class HabitTaskApplication : Application() {
     const val CHANNEL_HABITS_ID = "channel_habits"
     const val CHANNEL_SUMMARY_ID = "channel_daily_summary"
     const val CHANNEL_UPDATES_ID = "channel_app_updates"
+    const val CHANNEL_DOWNLOADS_ID = "channel_downloads"
 
     lateinit var instance: HabitTaskApplication
       private set

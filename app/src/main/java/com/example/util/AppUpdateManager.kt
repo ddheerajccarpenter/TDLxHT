@@ -43,6 +43,8 @@ object AppUpdateManager {
   private const val TAG = "AppUpdateManager"
   private const val UPDATE_ENDPOINT = "https://tdlxht.vercel.app/version.json"
   const val NOTIFICATION_ID_UPDATE = 77777
+  const val EXTRA_START_UPDATE_DOWNLOAD = "extra_start_update_download"
+  const val EXTRA_UPDATE_VERSION = "extra_update_version"
 
   private val httpClient by lazy {
     OkHttpClient.Builder()
@@ -100,21 +102,23 @@ object AppUpdateManager {
     try {
       val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
-      val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(update.fullDownloadUrl)).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+      val launchIntent = Intent(context, com.example.MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        putExtra(EXTRA_START_UPDATE_DOWNLOAD, true)
+        putExtra(EXTRA_UPDATE_VERSION, update.version)
       }
 
       val pendingIntent = PendingIntent.getActivity(
         context,
         NOTIFICATION_ID_UPDATE,
-        downloadIntent,
+        launchIntent,
         PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
       )
 
       val notification = NotificationCompat.Builder(context, HabitTaskApplication.CHANNEL_UPDATES_ID)
         .setSmallIcon(android.R.drawable.stat_sys_download_done)
         .setContentTitle("TDlxHT v${update.version} Available")
-        .setContentText("A new release is ready with latest features. Tap to download.")
+        .setContentText("A new release is ready with latest features. Tap to download & install.")
         .setStyle(
           NotificationCompat.BigTextStyle().bigText(
             "TDlxHT version ${update.version} is now available!\nTap to download and install the latest APK update directly."
@@ -123,7 +127,7 @@ object AppUpdateManager {
         .setAutoCancel(true)
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setContentIntent(pendingIntent)
-        .addAction(android.R.drawable.stat_sys_download, "Download Now", pendingIntent)
+        .addAction(android.R.drawable.stat_sys_download, "Update Now", pendingIntent)
         .build()
 
       notificationManager.notify(NOTIFICATION_ID_UPDATE, notification)
