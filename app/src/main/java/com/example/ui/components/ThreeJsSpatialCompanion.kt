@@ -224,7 +224,7 @@ fun ThreeJsSpatialCompanion(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(10.dp)
         ) {
             // Header Bar: Title + Status + 360 Indicator
             Row(
@@ -304,13 +304,13 @@ fun ThreeJsSpatialCompanion(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // 3D Canvas Stage (Streamlined 135dp height with loading skeleton & error state)
+            // Keep the interactive companion visible without pushing today's tasks down.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(135.dp)
+                    .height(100.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(if (isDark) Color(0x0C000000) else Color(0x06FFFFFF))
                     .border(0.75.dp, CardBorder.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
@@ -484,7 +484,7 @@ fun ThreeJsSpatialCompanion(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Action Pills Row: [Pet] [Focus Core] [Celebrate] (Typographically protected, zero wrapping)
             Row(

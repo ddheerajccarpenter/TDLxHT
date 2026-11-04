@@ -203,6 +203,9 @@ fun CalendarScreen(
               Spacer(modifier = Modifier.width(4.dp))
               Text(
                 text = "Today",
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
                 style = TextStyle(
                   fontFamily = SFProFontFamily,
                   fontSize = 15.sp,

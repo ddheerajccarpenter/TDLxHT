@@ -16,36 +16,36 @@ import androidx.compose.ui.graphics.Color
 // =========================================================================
 
 // Canonical Dark Tokens (Solid Charcoal Grey System)
-val CanonicalCanvasDark = Color(0xFF1E2022) // Solid Charcoal Grey Canvas
-val CanonicalCanvasSecondaryDark = Color(0xFF242629)
-val CanonicalGlassFillBaseDark = Color(0xFF2B2D30) // Solid Opaque Card Surface Grey
-val CanonicalGlassFillElevatedDark = Color(0xFF35383C) // Solid Opaque Elevated Dock & Modal Grey
-val CanonicalGlassFillSubtleDark = Color(0xFF242629) // Solid Subtle Track
+val CanonicalCanvasDark = Color.Black
+val CanonicalCanvasSecondaryDark = Color(0xFF101010)
+val CanonicalGlassFillBaseDark = Color(0xE6121212)
+val CanonicalGlassFillElevatedDark = Color(0xF01B1B1B)
+val CanonicalGlassFillSubtleDark = Color(0x66101010)
 val CanonicalGlassBorderTopDark = Color(0xFF4A4A4A) // Solid Specular Hairline
 val CanonicalGlassBorderBottomDark = Color(0xFF35383C)
 val CanonicalGlassSheenTopDark = Color(0xFF4A4A4A)
-val CanonicalTextPrimaryDark = Color(0xFFFFFFE3)
-val CanonicalTextSecondaryDark = Color(0xFFCBCBCB)
-val CanonicalTextMutedDark = Color(0xFF8E9296)
+val CanonicalTextPrimaryDark = Color.White
+val CanonicalTextSecondaryDark = Color(0xFFBDBDBD)
+val CanonicalTextMutedDark = Color(0xFF858585)
 val CanonicalDividerDark = Color(0xFF4A4A4A) // Solid interior separator
-val CanonicalAccentActionDark = Color(0xFFFFFFE3)
-val CanonicalDestructiveDark = Color(0xFF8C5252)
+val CanonicalAccentActionDark = Color.White
+val CanonicalDestructiveDark = Color(0xFFBDBDBD)
 
 // =========================================================================
 // Authentic Liquid Glass Design System Tokens (Zero Blur)
 // Smoky transparent graphite, neutral grey translucency, crisp silver highlights
 // =========================================================================
-val LiquidGlassCanvasDark = Color(0xFF0E0F12) // Deep charcoal near-black background
-val LiquidGlassCanvasSecondaryDark = Color(0xFF15161A)
+val LiquidGlassCanvasDark = Color.Black
+val LiquidGlassCanvasSecondaryDark = Color(0xFF101010)
 
 // Translucent Layered Materials
-val LiquidGlassCardTopDark = Color(0x3822242B)      // 22% alpha smoky graphite
-val LiquidGlassCardBottomDark = Color(0x1F16171C)   // 12% alpha deep tone
-val LiquidGlassCapsuleTopDark = Color(0x452A2D36)   // 27% alpha layered capsule
-val LiquidGlassCapsuleBottomDark = Color(0x281C1E24)// 16% alpha
-val LiquidGlassLensTopDark = Color(0x5A444858)      // 35% alpha convex lens highlight
-val LiquidGlassLensMidDark = Color(0x3A303442)      // 23% alpha lens core
-val LiquidGlassLensBottomDark = Color(0x221A1C24)   // 13% alpha lower shading
+val LiquidGlassCardTopDark = Color(0x261A1A1A)
+val LiquidGlassCardBottomDark = Color(0x1A080808)
+val LiquidGlassCapsuleTopDark = Color(0x33202020)
+val LiquidGlassCapsuleBottomDark = Color(0x260A0A0A)
+val LiquidGlassLensTopDark = Color(0x40FFFFFF)
+val LiquidGlassLensMidDark = Color(0x25FFFFFF)
+val LiquidGlassLensBottomDark = Color(0x14141414)
 
 // Specular Rims & Hairline Highlights (Zero Blur)
 val LiquidGlassBorderSpecularTop = Color(0x66FFFFFF)// 40% crisp overhead specular highlight
@@ -57,21 +57,21 @@ val LiquidGlassButtonResting = Color(0x33282B34)    // 20% alpha
 val LiquidGlassButtonPressed = Color(0x523C404E)    // 32% alpha
 
 // Canonical Light Tokens (Warm Ivory & Solid Surface System)
-val CanonicalCanvasLight = Color(0xFFFFFFE3) // Warm Ivory
-val CanonicalCanvasSecondaryLight = Color(0xFFF4F3D6)
-val CanonicalGlassFillBaseLight = Color(0xFFFAF9F0) // Solid Translucent-free Card
-val CanonicalGlassFillElevatedLight = Color(0xFFFAF9F0) // Solid Elevated Dock
-val CanonicalGlassFillSubtleLight = Color(0xFFF4F3D6)
+val CanonicalCanvasLight = Color.White
+val CanonicalCanvasSecondaryLight = Color(0xFFF7F7F7)
+val CanonicalGlassFillBaseLight = Color(0xD9FFFFFF)
+val CanonicalGlassFillElevatedLight = Color(0xF2FFFFFF)
+val CanonicalGlassFillSubtleLight = Color(0xBFFFFFFF)
 val CanonicalGlassBorderTopLight = Color(0xFFCBCBCB)
 val CanonicalGlassBorderBottomLight = Color(0xFFCBCBCB)
 val CanonicalGlassSheenTopLight = Color(0xFFCBCBCB)
 val CanonicalTextPrimaryLight = Color(0xFF4A4A4A)
-val CanonicalTextSecondaryLight = Color(0xFF6D8196)
+val CanonicalTextSecondaryLight = Color(0xFF666666)
 val CanonicalTextMutedDarkLight = Color(0xFF7A7D82)
 val CanonicalTextMutedLight = Color(0xFF7A7D82)
 val CanonicalDividerLight = Color(0xFFCBCBCB)
 val CanonicalAccentActionLight = Color(0xFF4A4A4A)
-val CanonicalDestructiveLight = Color(0xFF8C5252)
+val CanonicalDestructiveLight = Color(0xFF555555)
 
 val BrandCharcoalDark = CanonicalCanvasDark
 val BrandCharcoalElevated = CanonicalCanvasSecondaryDark
@@ -105,34 +105,26 @@ val PaletteMintLeaf = BrandTextPrimary
 // 4. Slate Steel Wash:    #5E6E82 / #6D8196
 // Zero yellow cast, zero neon blue, zero neon green, zero AI-sloped colors.
 // =========================================================================
-val InkWashCharcoal = Color(0xFF171717)       // Primary deep charcoal / Dark text / Light primary button
-val InkWashMist = Color(0xFF9DA2A8)           // Mid neutral / Secondary text
+val InkWashCharcoal = Color.Black
+val InkWashMist = Color(0xFFB0B0B0)
 val InkWashIvory = Color(0xFFFFFFFF)          // Crisp white primary text
-val InkWashSlate = Color(0xFF6366F1)          // Focused Indigo accent / primary indicator
+val InkWashSlate = Color(0xFF555555)
 
 // Tonal derivatives ensuring Dark Mode is darker than Light Mode
-val InkWashCharcoalDeep = Color(0xFF0D0F11)   // Dark Canvas base - Deep Charcoal
-val InkWashCharcoalSurface = Color(0xFF16181B)// Dark Card Surface - Refined Slate Graphite
-val InkWashCharcoalElevated = Color(0xFF1F2226)// Dark Elevated Dock & Modals
+val InkWashCharcoalDeep = Color.Black
+val InkWashCharcoalSurface = Color(0xFF101010)
+val InkWashCharcoalElevated = Color(0xFF1A1A1A)
 val InkWashCharcoalBorder = Color(0x14FFFFFF) // Subtle Hairline Border (8% white)
-val InkWashIvoryPaper = Color(0xFFFAFAF7)     // Light Canvas (#FAFAF7)
+val InkWashIvoryPaper = Color.White
 val InkWashIvoryCard = Color(0xB8FFFFFF)      // Primary glass surface: rgba(255, 255, 255, 0.72)
 val InkWashIvoryElevated = Color(0xD6FFFFFF)  // Elevated glass surface: rgba(255, 255, 255, 0.84)
-val InkWashRustMuted = Color(0xFFF87171)      // Muted coral for delete/destructive actions
+val InkWashRustMuted = Color(0xFF555555)
 
-// Semantic Tokens redirected to Ink Wash
-val OklchIndigo = InkWashSlate
+// Semantic tokens are resolved from the active theme. Light mode uses slate ink;
+// dark mode uses a lighter steel tint so small labels retain clear contrast.
 val OklchIndigoSoft = Color(0x335E6E82)
-val OklchEmerald = InkWashSlate
-val OklchEmeraldSoft = Color(0x265E6E82)
-val OklchAmber = InkWashSlate
-val OklchAmberSoft = Color(0x265E6E82)
-val OklchCoral = InkWashRustMuted
-val OklchCoralSoft = Color(0x268C5252)
-val OklchCyan = InkWashSlate
-val OklchCyanSoft = Color(0x265E6E82)
-val OklchPurple = InkWashSlate
-val OklchPurpleSoft = Color(0x265E6E82)
+// These accessors are declared below LocalAppColors so every screen follows the
+// same light/dark semantic palette rather than carrying its own accent colors.
 
 // --- Dark Mode Tokens (Deep Charcoal & Translucent Glass) ---
 val GrapeCanvasDark = InkWashCharcoalDeep
@@ -231,19 +223,19 @@ val LightColors = AppColors(
   cardBorder = LightHairline,
   pillBackgroundDark = LightInkPrimary,
   pillTextDark = Color(0xFFFAFAF7),
-  progressBarTrack = Color(0xFFE8E8EE),
-  progressBarFilled = InkWashSlate,
-  accentTerracotta = InkWashSlate,
-  accentOrange = InkWashSlate,
-  accentYellowHighlight = Color(0x205E6E82),
+  progressBarTrack = Color(0xFFE6E6E6),
+  progressBarFilled = Color(0xFF333333),
+  accentTerracotta = Color(0xFF333333),
+  accentOrange = Color(0xFF333333),
+  accentYellowHighlight = Color(0x18000000),
   accentRed = InkWashRustMuted,
   chipBorder = LightHairline,
   chipUnselected = Color(0xFFF2F2F5),
   isDark = false,
   oklchPrimary = InkWashSlate,
-  oklchSuccess = InkWashSlate,
-  oklchWarning = InkWashSlate,
-  oklchDanger = InkWashRustMuted,
+  oklchSuccess = Color(0xFF333333),
+  oklchWarning = Color(0xFF666666),
+  oklchDanger = Color(0xFF333333),
   oklchFocus = InkWashSlate,
   oklchPurple = InkWashSlate,
   surfaceCard = InkWashIvoryCard,
@@ -261,25 +253,48 @@ val DarkColors = AppColors(
   pillBackgroundDark = InkWashIvory,
   pillTextDark = InkWashCharcoalDeep,
   progressBarTrack = Color(0x1AFFFFFF),
-  progressBarFilled = InkWashSlate,
-  accentTerracotta = InkWashSlate,
-  accentOrange = Color(0xFFD4E815),
-  accentYellowHighlight = Color(0x28D4E815),
+  progressBarFilled = Color(0xFFD8D8D8),
+  accentTerracotta = Color(0xFFD8D8D8),
+  accentOrange = Color(0xFFD8D8D8),
+  accentYellowHighlight = Color(0x20FFFFFF),
   accentRed = InkWashRustMuted,
   chipBorder = InkWashCharcoalBorder,
   chipUnselected = Color(0x14FFFFFF),
   isDark = true,
-  oklchPrimary = InkWashSlate,
-  oklchSuccess = Color(0xFF34D399),
-  oklchWarning = Color(0xFFFBBF24),
+  oklchPrimary = Color(0xFFE2E2E2),
+  oklchSuccess = Color(0xFFE2E2E2),
+  oklchWarning = Color(0xFFAAAAAA),
   oklchDanger = InkWashRustMuted,
-  oklchFocus = InkWashSlate,
-  oklchPurple = Color(0xFF818CF8),
+  oklchFocus = Color(0xFFE2E2E2),
+  oklchPurple = Color(0xFFE2E2E2),
   surfaceCard = InkWashCharcoalSurface,
   surfaceElevated = InkWashCharcoalElevated
 )
 
 val LocalAppColors = staticCompositionLocalOf { DarkColors }
+
+val OklchIndigo: Color
+  @Composable get() = LocalAppColors.current.oklchPrimary
+val OklchEmerald: Color
+  @Composable get() = LocalAppColors.current.oklchSuccess
+val OklchEmeraldSoft: Color
+  @Composable get() = LocalAppColors.current.oklchSuccess.copy(alpha = 0.16f)
+val OklchAmber: Color
+  @Composable get() = LocalAppColors.current.oklchWarning
+val OklchAmberSoft: Color
+  @Composable get() = LocalAppColors.current.oklchWarning.copy(alpha = 0.16f)
+val OklchCoral: Color
+  @Composable get() = LocalAppColors.current.oklchDanger
+val OklchCoralSoft: Color
+  @Composable get() = LocalAppColors.current.oklchDanger.copy(alpha = 0.16f)
+val OklchCyan: Color
+  @Composable get() = LocalAppColors.current.oklchFocus
+val OklchCyanSoft: Color
+  @Composable get() = LocalAppColors.current.oklchFocus.copy(alpha = 0.16f)
+val OklchPurple: Color
+  @Composable get() = LocalAppColors.current.oklchPurple
+val OklchPurpleSoft: Color
+  @Composable get() = LocalAppColors.current.oklchPurple.copy(alpha = 0.16f)
 
 // Composable accessors allowing 100% backward compatibility across all screens
 val PaperBackground: Color

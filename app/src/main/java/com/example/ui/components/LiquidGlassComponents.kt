@@ -10,6 +10,8 @@ import com.example.ui.glass.LiquidGlassBackdrop
 import com.example.ui.glass.LiquidGlassHighlight
 import com.example.ui.glass.LiquidGlassContainer
 import com.example.ui.glass.LiquidGlassPillSwitcher
+import com.example.ui.glass.LocalHazeState
+import com.example.ui.glass.liquidGlassRim
 import dev.chrisbanes.haze.HazeState
 
 import androidx.compose.animation.animateColorAsState
@@ -18,6 +20,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -90,6 +93,9 @@ import com.example.ui.theme.LiquidGlassCapsuleBottomDark
 import com.example.ui.theme.LiquidGlassCapsuleTopDark
 import com.example.ui.theme.LiquidGlassCardBottomDark
 import com.example.ui.theme.LiquidGlassCardTopDark
+import com.example.ui.theme.LightHairline
+import com.example.ui.theme.LightSurfaceCard
+import com.example.ui.theme.LightSurfaceElevated
 import com.example.ui.theme.LiquidGlassLensBottomDark
 import com.example.ui.theme.LiquidGlassLensMidDark
 import com.example.ui.theme.LiquidGlassLensTopDark
@@ -120,6 +126,7 @@ fun Modifier.liquidGlassSurface(
   shape: Shape = RoundedCornerShape(20.dp),
   borderWidth: Dp = 0.75.dp,
   isElevated: Boolean = false,
+  isDark: Boolean = true,
   topFill: Color = LiquidGlassCardTopDark,
   bottomFill: Color = LiquidGlassCardBottomDark,
   specularBorderTop: Color = LiquidGlassBorderSpecularTop,
@@ -128,50 +135,9 @@ fun Modifier.liquidGlassSurface(
 ): Modifier = this
   .clip(shape)
   .drawBehind {
-    // 1. Translucent Body Fill (Transparent glass revealing underlying canvas)
-    drawRect(
-      brush = Brush.verticalGradient(
-        colors = listOf(topFill, bottomFill)
-      )
-    )
-
-    // 2. Overhead Convex Caustic Dome (Active optical light-gathering, crisp zero-blur)
-    val causticRadius = (size.maxDimension * 0.85f).coerceAtLeast(1f)
-    drawRect(
-      brush = Brush.radialGradient(
-        colors = listOf(
-          Color(0x28FFFFFF), // Peak caustic focus
-          Color(0x08FFFFFF), // Soft optical dispersion
-          Color.Transparent  // Clean decay
-        ),
-        center = Offset(size.width * 0.5f, -size.height * 0.14f),
-        radius = causticRadius
-      )
-    )
-
-    // 3. Lower Meniscus Dark Shading (Crisp separation from underlying surface)
-    drawRect(
-      brush = Brush.radialGradient(
-        colors = listOf(
-          Color(0x2C000000), // Dark refraction rim
-          Color.Transparent
-        ),
-        center = Offset(size.width * 0.5f, size.height * 1.15f),
-        radius = (size.width * 0.65f).coerceAtLeast(1f)
-      )
-    )
+    drawRect(color = lerp(topFill, bottomFill, 0.5f))
   }
-  .border(
-    width = borderWidth,
-    brush = Brush.verticalGradient(
-      colors = listOf(
-        specularBorderTop,
-        specularBorderMid,
-        specularBorderBottom
-      )
-    ),
-    shape = shape
-  )
+  .liquidGlassRim(shape, isDark, borderWidth)
 
 /**
  * Curved Optical Glass Lens Modifier (Zero Blur).
@@ -180,70 +146,31 @@ fun Modifier.liquidGlassSurface(
  */
 fun Modifier.liquidGlassLens(
   shape: Shape = RoundedCornerShape(12.dp),
-  borderWidth: Dp = 0.75.dp
+  borderWidth: Dp = 0.75.dp,
+  isDark: Boolean = true
 ): Modifier = this
   .clip(shape)
   .drawBehind {
-    // 1. Multi-tone Convex Glass Lens Body
-    drawRect(
-      brush = Brush.verticalGradient(
-        colors = listOf(
-          LiquidGlassLensTopDark,
-          LiquidGlassLensMidDark,
-          LiquidGlassLensBottomDark
-        )
-      )
-    )
-
-    // 2. Overhead Specular Light Concentration
-    val lensHighlightRadius = (size.width * 0.70f).coerceAtLeast(1f)
-    drawRect(
-      brush = Brush.radialGradient(
-        colors = listOf(
-          Color(0x38FFFFFF),
-          Color(0x10FFFFFF),
-          Color.Transparent
-        ),
-        center = Offset(size.width * 0.5f, 0f),
-        radius = lensHighlightRadius
-      )
-    )
-
-    // 3. Bottom Refraction Shading
-    drawRect(
-      brush = Brush.radialGradient(
-        colors = listOf(
-          Color(0x35000000),
-          Color.Transparent
-        ),
-        center = Offset(size.width * 0.5f, size.height * 1.10f),
-        radius = (size.width * 0.55f).coerceAtLeast(1f)
-      )
-    )
+    drawRect(color = if (isDark) Color(0x261D1D1D) else Color(0xA8FFFFFF))
   }
-  .border(
-    width = borderWidth,
-    brush = Brush.verticalGradient(
-      colors = listOf(
-        Color(0x80FFFFFF), // Ultra-crisp specular top rim
-        Color(0x35FFFFFF), // Lateral edge reflection
-        Color(0x10FFFFFF)  // Bottom decay
-      )
-    ),
-    shape = shape
-  )
+  .liquidGlassRim(shape, isDark, borderWidth)
 
 /**
  * Capsule Glass Modifier (Zero Blur).
  */
 fun Modifier.liquidGlassCapsule(
   shape: Shape = RoundedCornerShape(20.dp),
-  borderWidth: Dp = 0.75.dp
+  borderWidth: Dp = 0.75.dp,
+  isDark: Boolean = true
 ): Modifier = this.liquidGlassSurface(
   shape = shape,
   borderWidth = borderWidth,
-  topFill = LiquidGlassCapsuleTopDark,
-  bottomFill = LiquidGlassCapsuleBottomDark
+  isDark = isDark,
+  topFill = if (isDark) LiquidGlassCapsuleTopDark else LightSurfaceElevated,
+  bottomFill = if (isDark) LiquidGlassCapsuleBottomDark else LightSurfaceCard,
+  specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
+  specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
+  specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
 )
 
 /**
@@ -261,17 +188,18 @@ fun LiquidGlassCard(
   content: @Composable BoxScope.() -> Unit
 ) {
   val isDark = LocalAppColors.current.isDark
+  val ambientHazeState = hazeState ?: LocalHazeState.current
   val clickModifier = if (onClick != null) {
     Modifier.bounceClick(onClick = onClick)
   } else Modifier
 
-  if (hazeState != null && shape is RoundedCornerShape) {
+  if (ambientHazeState != null && shape is RoundedCornerShape) {
     Box(
       modifier = modifier
         .then(clickModifier)
     ) {
       LiquidGlassBackdrop(
-        hazeState = hazeState,
+        hazeState = ambientHazeState,
         shape = shape,
         isDark = isDark,
         modifier = Modifier.matchParentSize()
@@ -289,8 +217,12 @@ fun LiquidGlassCard(
         .liquidGlassSurface(
           shape = shape,
           borderWidth = borderWidth,
-          topFill = LiquidGlassCardTopDark,
-          bottomFill = LiquidGlassCardBottomDark
+          isDark = isDark,
+          topFill = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated,
+          bottomFill = if (isDark) LiquidGlassCardBottomDark else LightSurfaceCard,
+          specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
+          specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
+          specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
         )
         .then(clickModifier),
       content = content
@@ -333,8 +265,12 @@ fun LiquidGlassCapsule(
         .liquidGlassSurface(
           shape = shape,
           borderWidth = borderWidth,
-          topFill = LiquidGlassCapsuleTopDark,
-          bottomFill = LiquidGlassCapsuleBottomDark
+          isDark = isDark,
+          topFill = if (isDark) LiquidGlassCapsuleTopDark else LightSurfaceElevated,
+          bottomFill = if (isDark) LiquidGlassCapsuleBottomDark else LightSurfaceCard,
+          specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
+          specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
+          specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
         ),
       content = content
     )
@@ -354,11 +290,12 @@ fun LiquidGlassSegmentedControl(
   onItemSelected: (Int) -> Unit,
   modifier: Modifier = Modifier
 ) {
+  val isDark = LocalAppColors.current.isDark
   Box(
     modifier = modifier
       .fillMaxWidth()
       .height(44.dp)
-      .liquidGlassCapsule(shape = RoundedCornerShape(14.dp), borderWidth = 0.75.dp)
+      .liquidGlassCapsule(shape = RoundedCornerShape(14.dp), borderWidth = 0.75.dp, isDark = isDark)
       .padding(3.dp)
   ) {
     LiquidGlassPillSwitcher(
@@ -383,14 +320,19 @@ fun LiquidGlassButton(
   content: @Composable () -> Unit
 ) {
   val context = LocalContext.current
+  val isDark = LocalAppColors.current.isDark
   Box(
     modifier = modifier
       .defaultMinSize(minHeight = 44.dp)
       .liquidGlassSurface(
         shape = shape,
         borderWidth = 0.75.dp,
-        topFill = LiquidGlassButtonResting,
-        bottomFill = LiquidGlassCardBottomDark
+        isDark = isDark,
+        topFill = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated,
+        bottomFill = if (isDark) LiquidGlassCardBottomDark else LightSurfaceCard,
+        specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
+        specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
+        specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
       )
       .bounceClick {
         VibrationHelper.click(context)
@@ -425,14 +367,19 @@ fun LiquidGlassIconButton(
   icon: @Composable () -> Unit
 ) {
   val context = LocalContext.current
+  val isDark = LocalAppColors.current.isDark
   Box(
     modifier = modifier
       .size(size)
       .liquidGlassSurface(
         shape = shape,
         borderWidth = 0.75.dp,
-        topFill = LiquidGlassButtonResting,
-        bottomFill = LiquidGlassCardBottomDark
+        isDark = isDark,
+        topFill = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated,
+        bottomFill = if (isDark) LiquidGlassCardBottomDark else LightSurfaceCard,
+        specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
+        specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
+        specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
       )
       .bounceClick {
         VibrationHelper.click(context)
@@ -462,6 +409,7 @@ fun LiquidGlassNavigationDock(
   val context = LocalContext.current
   val density = LocalDensity.current
   val isDark = LocalAppColors.current.isDark
+  val reduceMotion = remember { isReducedMotionEnabled(context) }
   val coroutineScope = rememberCoroutineScope()
 
   val hasCenterFab = onQuickAdd != null
@@ -489,7 +437,7 @@ fun LiquidGlassNavigationDock(
     if (!isDragging && slotWidth > 0f) {
       val targetSlot = slotIndexForTab(selectedTab)
       val targetX = slotWidth * (targetSlot + 0.5f)
-      indicatorX.animateTo(
+      if (reduceMotion) indicatorX.snapTo(targetX) else indicatorX.animateTo(
         targetValue = targetX,
         animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f)
       )
@@ -504,26 +452,26 @@ fun LiquidGlassNavigationDock(
   }
 
   val dockScale by animateFloatAsState(
-    targetValue = if (isHoldingDock) 1.02f else 1.0f,
-    animationSpec = spring(dampingRatio = 0.75f, stiffness = 380f),
+    targetValue = if (!reduceMotion && isHoldingDock) 1.02f else 1.0f,
+    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.75f, stiffness = 380f),
     label = "dockScale"
   )
 
   val fabRotation by animateFloatAsState(
-    targetValue = if (isQuickAddOpen) 45f else 0f,
-    animationSpec = spring(dampingRatio = 0.60f, stiffness = 450f),
+    targetValue = if (isQuickAddOpen && !reduceMotion) 45f else 0f,
+    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.60f, stiffness = 450f),
     label = "fabRotation"
   )
 
   val dockBackdropModifier = if (hazeState != null) {
     Modifier
   } else {
-    Modifier.liquidGlassCapsule(shape = CircleShape, borderWidth = 0.75.dp)
+    Modifier.liquidGlassCapsule(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
   }
 
   Box(
     modifier = modifier
-      .height(50.dp)
+      .height(60.dp)
       .graphicsLayer {
         scaleX = dockScale
         scaleY = dockScale
@@ -548,7 +496,7 @@ fun LiquidGlassNavigationDock(
     Box(
       modifier = Modifier
         .fillMaxWidth()
-        .height(38.dp)
+        .height(48.dp)
         .onSizeChanged { tabsWidthPx = it.width.toFloat() }
         .pointerInput(slotWidth, destinations, hasCenterFab) {
           if (slotWidth <= 0f) return@pointerInput
@@ -609,8 +557,9 @@ fun LiquidGlassNavigationDock(
                 com.example.util.SoundManager.playSwipeNav(context)
                 val targetSlot = slotIndexForTab(finalTab)
                 coroutineScope.launch {
-                  indicatorX.animateTo(
-                    slotWidth * (targetSlot + 0.5f),
+                  val selectedX = slotWidth * (targetSlot + 0.5f)
+                  if (reduceMotion) indicatorX.snapTo(selectedX) else indicatorX.animateTo(
+                    selectedX,
                     spring(dampingRatio = 0.75f, stiffness = 400f)
                   )
                 }
@@ -629,8 +578,9 @@ fun LiquidGlassNavigationDock(
                   onDestinationSelected(destinations[tappedTab])
                   val targetSlot = slotIndexForTab(tappedTab)
                   coroutineScope.launch {
-                    indicatorX.animateTo(
-                      slotWidth * (targetSlot + 0.5f),
+                    val selectedX = slotWidth * (targetSlot + 0.5f)
+                    if (reduceMotion) indicatorX.snapTo(selectedX) else indicatorX.animateTo(
+                      selectedX,
                       spring(dampingRatio = 0.75f, stiffness = 400f)
                     )
                   }
@@ -643,17 +593,17 @@ fun LiquidGlassNavigationDock(
     ) {
       // 1. Sliding Curved Optical Glass Lens
       if (slotWidth > 0f) {
-        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 34.dp.toPx() })
+        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 44.dp.toPx() })
         val capsuleWidthDp = with(density) { capsuleWidthPx.toDp() }
 
         Box(
           modifier = Modifier
             .width(capsuleWidthDp)
-            .height(34.dp)
+            .height(44.dp)
             .graphicsLayer {
               translationX = indicatorX.value - (capsuleWidthPx / 2f)
             }
-            .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp)
+            .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
         )
       }
 
@@ -663,7 +613,7 @@ fun LiquidGlassNavigationDock(
       } else null
 
       val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && slotWidth > 0f) {
-        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 34.dp.toPx() })
+        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 44.dp.toPx() })
         Modifier.graphicsLayer {
           lensShader.setFloatUniform("uCenter", indicatorX.value, size.height / 2f)
           lensShader.setFloatUniform(
@@ -672,7 +622,7 @@ fun LiquidGlassNavigationDock(
             size.height / 2f
           )
           lensShader.setFloatUniform("uZoom", if (isDragging) 0.18f else 0.08f)
-          lensShader.setFloatUniform("uChroma", if (isDragging) 0.50f else 0.15f)
+          lensShader.setFloatUniform("uChroma", if (isDragging) 0.10f else 0.03f)
           renderEffect = RenderEffect
             .createRuntimeShaderEffect(lensShader, "content")
             .asComposeRenderEffect()
@@ -726,8 +676,8 @@ fun LiquidGlassNavigationDock(
           ) {
             Box(
               modifier = Modifier
-                .size(32.dp)
-                .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp),
+                .size(44.dp)
+                .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark),
               contentAlignment = Alignment.Center
             ) {
               Icon(
@@ -735,7 +685,7 @@ fun LiquidGlassNavigationDock(
                 contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create",
                 tint = if (isDark) Color(0xFFF5F5F7) else Color(0xFF1E2022),
                 modifier = Modifier
-                  .size(19.dp)
+                  .size(22.dp)
                   .graphicsLayer(rotationZ = fabRotation)
               )
             }
@@ -792,14 +742,18 @@ fun LiquidGlassNavItem(
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
+  val selectedIconColor = com.example.ui.theme.InkPrimary
+  val unselectedIconColor = com.example.ui.theme.InkSecondary
+  val context = LocalContext.current
+  val reduceMotion = remember { isReducedMotionEnabled(context) }
   val iconColor by animateColorAsState(
-    targetValue = if (isSelected) Color(0xFFF5F5F7) else Color(0xFF8E9298),
-    animationSpec = tween(durationMillis = 180),
+    targetValue = if (isSelected) selectedIconColor else unselectedIconColor,
+    animationSpec = if (reduceMotion) snap() else tween(durationMillis = 180),
     label = "navIconColor"
   )
   val iconScale by animateFloatAsState(
-    targetValue = if (isSelected) 1.08f else 1.0f,
-    animationSpec = spring(dampingRatio = 0.7f, stiffness = 420f),
+    targetValue = if (isSelected && !reduceMotion) 1.08f else 1.0f,
+    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 420f),
     label = "navIconScale"
   )
 
@@ -819,7 +773,7 @@ fun LiquidGlassNavItem(
       contentDescription = destination.label,
       tint = iconColor,
       modifier = Modifier
-        .size(23.dp)
+        .size(25.dp)
         .graphicsLayer {
           scaleX = iconScale
           scaleY = iconScale
@@ -839,6 +793,7 @@ fun LiquidGlassFloatingActionButton(
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
+  val isDark = LocalAppColors.current.isDark
   val fabRotation by animateFloatAsState(
     targetValue = if (isOpen) 45f else 0f,
     animationSpec = spring(dampingRatio = 0.60f, stiffness = 450f),
@@ -848,7 +803,7 @@ fun LiquidGlassFloatingActionButton(
   Box(
     modifier = modifier
       .size(54.dp)
-      .liquidGlassLens(shape = CircleShape, borderWidth = 0.85.dp)
+      .liquidGlassLens(shape = CircleShape, borderWidth = 0.85.dp, isDark = isDark)
       .bounceClick {
         VibrationHelper.click(context)
         com.example.util.SoundManager.playButtonClick(context)
@@ -860,7 +815,7 @@ fun LiquidGlassFloatingActionButton(
     Icon(
       imageVector = Icons.Default.Add,
       contentDescription = if (isOpen) "Close create sheet" else "Quick Create",
-      tint = Color(0xFFF5F5F7),
+      tint = com.example.ui.theme.InkPrimary,
       modifier = Modifier
         .size(26.dp)
         .graphicsLayer(rotationZ = fabRotation)
@@ -877,9 +832,12 @@ fun LiquidGlassProgressIndicator(
   progress: Float,
   modifier: Modifier = Modifier,
   strokeWidth: Dp = 7.dp,
-  trackColor: Color = Color(0x18FFFFFF),
-  progressColor: Color = Color(0xFFE2E8F0)
+  trackColor: Color? = null,
+  progressColor: Color? = null
 ) {
+  val isDark = LocalAppColors.current.isDark
+  val resolvedTrackColor = trackColor ?: if (isDark) Color(0x18FFFFFF) else Color(0x1A171717)
+  val resolvedProgressColor = progressColor ?: LocalAppColors.current.oklchPrimary
   val animatedProgress by animateFloatAsState(
     targetValue = progress.coerceIn(0f, 1f),
     animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
@@ -897,7 +855,7 @@ fun LiquidGlassProgressIndicator(
 
       // 1. Layered Background Track Ring
       drawArc(
-        color = trackColor,
+        color = resolvedTrackColor,
         startAngle = -90f,
         sweepAngle = 360f,
         useCenter = false,
@@ -909,13 +867,7 @@ fun LiquidGlassProgressIndicator(
       // 2. Active Progress Arc
       if (animatedProgress > 0f) {
         drawArc(
-          brush = Brush.sweepGradient(
-            colors = listOf(
-              progressColor.copy(alpha = 0.80f),
-              progressColor,
-              progressColor
-            )
-          ),
+          color = resolvedProgressColor,
           startAngle = -90f,
           sweepAngle = animatedProgress * 360f,
           useCenter = false,
@@ -932,7 +884,7 @@ fun LiquidGlassProgressIndicator(
         fontFamily = SFProFontFamily,
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFFF5F5F7)
+        color = com.example.ui.theme.InkPrimary
       )
     )
   }

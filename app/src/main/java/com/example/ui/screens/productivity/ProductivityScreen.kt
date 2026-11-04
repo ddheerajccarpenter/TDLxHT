@@ -65,25 +65,7 @@ fun ProductivityScreen(
   }
 
   val isDark = com.example.ui.theme.LocalAppColors.current.isDark
-  val separatorBrush = remember(isDark) {
-    if (isDark) {
-      Brush.horizontalGradient(
-        0.0f to Color.Transparent,
-        0.18f to Color(0x18999999),
-        0.50f to Color(0x55999999),
-        0.82f to Color(0x18999999),
-        1.0f to Color.Transparent
-      )
-    } else {
-      Brush.horizontalGradient(
-        0.0f to Color.Transparent,
-        0.18f to Color(0x14333333),
-        0.50f to Color(0x45333333),
-        0.82f to Color(0x14333333),
-        1.0f to Color.Transparent
-      )
-    }
-  }
+  val separatorColor = if (isDark) Color.White.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.12f)
 
   Box(
     modifier = modifier
@@ -175,7 +157,7 @@ fun ProductivityScreen(
           .fillMaxWidth()
           .padding(horizontal = 16.dp)
           .height(1.dp)
-          .background(separatorBrush)
+          .background(separatorColor)
       )
 
       // 3. Clearance space matching the floating main navigation bar

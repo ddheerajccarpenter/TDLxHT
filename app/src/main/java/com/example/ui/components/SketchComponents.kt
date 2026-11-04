@@ -129,7 +129,6 @@ import com.example.ui.theme.ProgressBarFilled
 import com.example.ui.theme.InkWashCharcoal
 import com.example.ui.theme.InkWashMist
 import com.example.ui.theme.InkWashIvory
-import com.example.ui.theme.InkWashSlate
 import com.example.ui.theme.InkWashCharcoalDeep
 import com.example.ui.theme.InkWashCharcoalSurface
 import com.example.ui.theme.InkWashCharcoalElevated
@@ -156,6 +155,10 @@ import com.example.ui.theme.OklchPurple
 import com.example.ui.theme.OklchPurpleSoft
 
 import com.example.ui.theme.LocalAppColors
+import com.example.ui.glass.LocalHazeState
+import com.example.ui.glass.liquidGlassRim
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 
 /**
  * Textured base canvas adhering to the #080813 Black Iris & #E4FD97 material design.
@@ -165,43 +168,21 @@ import com.example.ui.theme.LocalAppColors
  */
 @Composable
 fun Modifier.paperDotBackground(): Modifier {
-  val isDark = LocalAppColors.current.isDark
+  val colors = LocalAppColors.current
   return this.drawBehind {
-    if (isDark) {
-      // Ink Wash Dark Mode: deep charcoal ink canvas (#1E2022 to #161718 - darker than #4A4A4A)
-      drawRect(
-        brush = Brush.verticalGradient(
-          colors = listOf(
-            Color(0xFF1E2022),
-            Color(0xFF191A1C),
-            Color(0xFF141517)
-          )
-        )
-      )
-    } else {
-      // Ink Wash Light Mode: warm ivory paper parchment (#FFFFE3 to #F6F6DC)
-      drawRect(
-        brush = Brush.verticalGradient(
-          colors = listOf(
-            Color(0xFFFFFFE3),
-            Color(0xFFFAF9DC),
-            Color(0xFFF4F3D6)
-          )
-        )
-      )
-    }
+    drawRect(color = colors.paperBackground)
   }
 }
 
 /**
  * Inset-aware dynamic content bottom clearance for all scrolling screens above the floating navigation dock.
- * Calculates clearance from dock height (64dp), vertical dock padding (16dp), system navigation/gesture inset,
+ * Calculates clearance from dock height (60dp), vertical dock padding (12dp), system navigation/gesture inset,
  * and an intentional content clearance gap (48dp) ensuring the bottom-most CTA / card is 100% visible and interactable.
  */
 val FloatingNavContentBottomPadding: Dp
   @Composable get() {
     val navInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    return 64.dp + 16.dp + navInsets + 32.dp
+    return 60.dp + 12.dp + navInsets + 32.dp
   }
 
 /**
@@ -854,130 +835,45 @@ fun Modifier.fluidLensedGlass(
   onClick: (() -> Unit)? = null
 ): Modifier {
   val isDark = LocalAppColors.current.isDark
+  val hazeState = LocalHazeState.current
   val defaultCardBg = CardBackground
   val defaultCardBrd = CardBorder
-
-  val outerBorderBrush = if (customBorderColor != null && customBorderColor != Color.Unspecified && customBorderColor != defaultCardBrd) {
-    SolidColor(customBorderColor)
-  } else if (isDark) {
-    Brush.verticalGradient(
-      colors = listOf(
-        com.example.ui.theme.LiquidGlassBorderSpecularTop,
-        com.example.ui.theme.LiquidGlassBorderSpecularMid,
-        com.example.ui.theme.LiquidGlassBorderSpecularBottom
-      )
-    )
-  } else {
-    Brush.verticalGradient(
-      colors = listOf(
-        Color(0x60FFFFFF),
-        Color(0x30CBCBCB),
-        Color(0x10CBCBCB)
-      )
-    )
+  val glassFill = when {
+    customBackgroundColor != null && customBackgroundColor != Color.Unspecified && customBackgroundColor != defaultCardBg ->
+      customBackgroundColor.copy(alpha = if (isDark) 0.14f else 0.10f)
+    isDark -> Color.White.copy(alpha = if (isElevated) 0.10f else 0.07f)
+    else -> Color.White.copy(alpha = if (isElevated) 0.78f else 0.66f)
   }
+  val hazeModifier = hazeState?.let { state ->
+    Modifier.hazeEffect(state = state) {
+      blurRadius = if (isElevated) 14.dp else 9.dp
+      noiseFactor = 0f
+      tints = listOf(HazeTint(if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.28f)))
+      fallbackTint = HazeTint(if (isDark) Color(0xFF101010) else Color.White)
+    }
+  } ?: Modifier
 
-  val baseModifier = this
-    .shadow(
-      elevation = elevation,
-      shape = shape,
-      ambientColor = if (isDark) Color(0x30000000) else Color(0x0E000000),
-      spotColor = if (isDark) Color(0x20000000) else Color(0x08000000)
-    )
+  return this
+    .then(hazeModifier)
     .then(
       if (isInteractive && onClick != null) {
         Modifier.elasticStretchPress(
-          horizontalStretch = 1.04f,
-          verticalSquash = 0.96f,
+          horizontalStretch = 1.015f,
+          verticalSquash = 0.99f,
           onClick = onClick
         )
       } else Modifier
     )
     .clip(shape)
     .drawBehind {
-      if (customBackgroundColor != null && customBackgroundColor != Color.Unspecified && customBackgroundColor != defaultCardBg) {
-        drawRect(color = customBackgroundColor)
-      } else {
-        // 1. Translucent Liquid Glass Body (Zero Blur - revealing underlying canvas)
-        drawRect(
-          brush = Brush.verticalGradient(
-            colors = if (isDark) {
-              if (isElevated) {
-                listOf(
-                  com.example.ui.theme.LiquidGlassCapsuleTopDark,
-                  com.example.ui.theme.LiquidGlassCapsuleBottomDark
-                )
-              } else {
-                listOf(
-                  com.example.ui.theme.LiquidGlassCardTopDark,
-                  com.example.ui.theme.LiquidGlassCardBottomDark
-                )
-              }
-            } else {
-              if (isElevated) {
-                listOf(
-                  Color(0xD8FFFFFF),
-                  Color(0xB8FFFFFF)
-                )
-              } else {
-                listOf(
-                  Color(0xB8FFFFFF),
-                  Color(0x88FFFFFF)
-                )
-              }
-            }
-          )
-        )
-
-        // 2. Overhead Radial Caustic Lens Dome (Active Optical Lensing)
-        val causticRadius = (size.maxDimension * 0.85f).coerceAtLeast(1f)
-        drawRect(
-          brush = Brush.radialGradient(
-            colors = if (isDark) {
-              listOf(
-                Color(0x24FFFFFF), // Peak caustic focus
-                Color(0x08FFFFFF), // Soft dispersion
-                Color.Transparent  // Clean decay
-              )
-            } else {
-              listOf(
-                Color(0x50FFFFFF),
-                Color(0x18FFFFFF),
-                Color.Transparent
-              )
-            },
-            center = Offset(size.width * 0.5f, -size.height * 0.12f),
-            radius = causticRadius
-          )
-        )
-
-        // 3. Subtle Bottom Ambient Ground Refraction
-        drawRect(
-          brush = Brush.radialGradient(
-            colors = if (isDark) {
-              listOf(
-                Color(0x0CFFFFFF),
-                Color.Transparent
-              )
-            } else {
-              listOf(
-                Color(0x10000000),
-                Color.Transparent
-              )
-            },
-            center = Offset(size.width * 0.5f, size.height * 1.15f),
-            radius = (size.width * 0.6f).coerceAtLeast(1f)
-          )
-        )
-      }
+      drawRect(color = glassFill)
     }
-    .border(
-      width = borderWidth,
-      brush = outerBorderBrush,
-      shape = shape
+    .liquidGlassRim(shape, isDark, borderWidth)
+    .then(
+      if (customBorderColor != null && customBorderColor != Color.Unspecified && customBorderColor != defaultCardBrd) {
+        Modifier.border(borderWidth, customBorderColor.copy(alpha = 0.45f), shape)
+      } else Modifier
     )
-
-  return baseModifier
 }
 
 /**
@@ -1000,17 +896,12 @@ fun Modifier.glassSheen(
     .clip(shape)
     .drawWithContent {
       drawContent()
-      val h = size.height
-      val specularBrush = Brush.verticalGradient(
-        colors = listOf(
-          sheenColor.copy(alpha = 0.12f),
-          sheenColor.copy(alpha = 0.03f),
-          Color.Transparent
-        ),
-        startY = 0f,
-        endY = (h * 0.35f).coerceAtLeast(20.dp.toPx())
+      drawLine(
+        color = sheenColor.copy(alpha = 0.38f),
+        start = Offset(12.dp.toPx(), 1.dp.toPx()),
+        end = Offset((size.width - 12.dp.toPx()).coerceAtLeast(12.dp.toPx()), 1.dp.toPx()),
+        strokeWidth = 1.dp.toPx()
       )
-      drawRect(brush = specularBrush)
     }
 }
 
@@ -2311,45 +2202,22 @@ fun GroupedDivider(
 @Composable
 fun BentoHeroCard(
   modifier: Modifier = Modifier,
-  accentColor: Color = InkWashSlate,
+  accentColor: Color? = null,
   cornerRadius: Dp = 22.dp,
   onClick: (() -> Unit)? = null,
   content: @Composable ColumnScope.() -> Unit
 ) {
-  val isDark = LocalAppColors.current.isDark
-  val baseGradient = if (isDark) {
-    Brush.verticalGradient(
-      colors = listOf(
-        accentColor.copy(alpha = 0.20f),
-        InkWashCharcoalSurface
+  val shape = RoundedCornerShape(cornerRadius)
+  Column(
+    modifier = modifier
+      .fluidLensedGlass(
+        shape = shape,
+        isElevated = true,
+        isInteractive = onClick != null,
+        onClick = onClick
       )
-    )
-  } else {
-    Brush.verticalGradient(
-      colors = listOf(
-        accentColor.copy(alpha = 0.12f),
-        InkWashIvoryCard
-      )
-    )
-  }
-  val borderColor = if (isDark) InkWashCharcoalBorder else InkWashMist
-
-  val cardModifier = if (onClick != null) {
-    modifier
-      .clip(RoundedCornerShape(cornerRadius))
-      .bounceClick { onClick() }
-      .background(baseGradient)
-      .border(1.2.dp, borderColor, RoundedCornerShape(cornerRadius))
       .padding(18.dp)
-  } else {
-    modifier
-      .clip(RoundedCornerShape(cornerRadius))
-      .background(baseGradient)
-      .border(1.2.dp, borderColor, RoundedCornerShape(cornerRadius))
-      .padding(18.dp)
-  }
-
-  Column(modifier = cardModifier) {
+  ) {
     content()
   }
 }
@@ -2362,10 +2230,11 @@ fun CircularProgressGauge(
   progress: Float,
   modifier: Modifier = Modifier,
   strokeWidth: Dp = 8.dp,
-  primaryColor: Color = InkWashSlate,
+  primaryColor: Color? = null,
   secondaryColor: Color = InkWashIvory,
   centerContent: (@Composable () -> Unit)? = null
 ) {
+  val resolvedPrimaryColor = primaryColor ?: LocalAppColors.current.oklchPrimary
   val animatedProgress by animateFloatAsState(
     targetValue = progress.coerceIn(0f, 1f),
     animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
@@ -2398,15 +2267,11 @@ fun CircularProgressGauge(
         style = stroke
       )
 
-      // Active sweep arc with gradient
+      // Monochrome progress arc
       if (animatedProgress > 0.001f) {
         val sweep = animatedProgress * 360f
         drawArc(
-          brush = Brush.sweepGradient(
-            0.0f to primaryColor,
-            0.7f to secondaryColor,
-            1.0f to primaryColor
-          ),
+          color = resolvedPrimaryColor,
           startAngle = -90f,
           sweepAngle = sweep,
           useCenter = false,
@@ -2442,14 +2307,15 @@ fun PriorityPill(
   modifier: Modifier = Modifier
 ) {
   val isDark = LocalAppColors.current.isDark
+  val priorityAccent = LocalAppColors.current.oklchPrimary
   val (pillColor, textColor, label) = when (priority) {
     com.example.data.model.TaskPriority.HIGH -> {
       if (isDark) Triple(InkWashCharcoalElevated, InkWashIvory, "High")
       else Triple(InkWashCharcoal, InkWashIvory, "High")
     }
     com.example.data.model.TaskPriority.MEDIUM -> {
-      if (isDark) Triple(InkWashSlate.copy(alpha = 0.25f), InkWashSlate, "Med")
-      else Triple(InkWashSlate.copy(alpha = 0.15f), InkWashSlate, "Med")
+      if (isDark) Triple(priorityAccent.copy(alpha = 0.20f), priorityAccent, "Med")
+      else Triple(priorityAccent.copy(alpha = 0.12f), priorityAccent, "Med")
     }
     com.example.data.model.TaskPriority.LOW -> {
       if (isDark) Triple(InkWashMist.copy(alpha = 0.15f), InkWashMist, "Low")
@@ -2485,7 +2351,7 @@ fun StreakFlameBadge(
   streakCount: Int,
   modifier: Modifier = Modifier
 ) {
-  val flameColor = InkWashSlate
+  val flameColor = LocalAppColors.current.oklchPrimary
   val bgColor = if (LocalAppColors.current.isDark) InkWashCharcoalSurface else InkWashIvoryCard
 
   Row(

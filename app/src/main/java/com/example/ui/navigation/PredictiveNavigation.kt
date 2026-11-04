@@ -80,6 +80,7 @@ sealed interface AppNavDestination {
  * Modal surfaces that float above the active destination without unmounting it.
  */
 sealed interface AppNavOverlay {
+  data object Search : AppNavOverlay
   data object QuickCreate : AppNavOverlay
   data class FocusTimer(val initialMinutes: Int = 25) : AppNavOverlay
   data class ToolRunner(val tool: ToolDefinition) : AppNavOverlay
@@ -143,6 +144,9 @@ class PredictiveNavController(
   fun navigate(destination: AppNavDestination) {
     if (isTransitioning) return
     when (destination) {
+      is AppNavDestination.Search -> {
+        activeOverlay = AppNavOverlay.Search
+      }
       is AppNavDestination.QuickCreate -> {
         activeOverlay = AppNavOverlay.QuickCreate
       }
@@ -168,6 +172,9 @@ class PredictiveNavController(
     if (isTransitioning) return
     activeOverlay = null
     when (destination) {
+      is AppNavDestination.Search -> {
+        activeOverlay = AppNavOverlay.Search
+      }
       is AppNavDestination.QuickCreate -> {
         activeOverlay = AppNavOverlay.QuickCreate
       }

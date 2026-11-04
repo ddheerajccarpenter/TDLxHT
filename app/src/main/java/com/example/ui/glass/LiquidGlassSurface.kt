@@ -15,15 +15,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import kotlin.math.min
 
 /**
  * CompositionLocal providing ambient HazeState for Liquid Glass surfaces throughout the tree.
@@ -144,32 +152,60 @@ fun LiquidGlassBackdrop(
     )
 }
 
-/** 高光描邊：不進折射 shader，維持 1px 銳利。 */
+/** Crisp neutral rim with low-intensity spectral dispersion confined to rounded corners. */
+fun Modifier.liquidGlassRim(
+    shape: Shape,
+    isDark: Boolean,
+    borderWidth: Dp = 1.dp,
+): Modifier = clip(shape).drawWithContent {
+    drawContent()
+
+    val radius = min(size.height / 2f, 16.dp.toPx()).coerceAtLeast(borderWidth.toPx() * 2f)
+    val strokeWidth = borderWidth.toPx()
+    drawRoundRect(
+        color = Color.White.copy(alpha = if (isDark) 0.26f else 0.62f),
+        cornerRadius = CornerRadius(radius, radius),
+        style = Stroke(width = strokeWidth)
+    )
+
+    val diameter = radius * 2f
+    val spectralAlpha = if (isDark) 0.18f else 0.12f
+    val spectralColors = listOf(
+        Color(0xFFFF6A6A).copy(alpha = spectralAlpha),
+        Color(0xFFFFD166).copy(alpha = spectralAlpha),
+        Color(0xFF6EE7B7).copy(alpha = spectralAlpha),
+        Color(0xFF67D9FF).copy(alpha = spectralAlpha),
+        Color(0xFF9B8CFF).copy(alpha = spectralAlpha),
+        Color(0xFFFF6A6A).copy(alpha = spectralAlpha)
+    )
+    val corners = listOf(
+        Triple(Offset.Zero, 180f, Offset(radius, radius)),
+        Triple(Offset(size.width - diameter, 0f), 270f, Offset(size.width - radius, radius)),
+        Triple(Offset(size.width - diameter, size.height - diameter), 0f, Offset(size.width - radius, size.height - radius)),
+        Triple(Offset(0f, size.height - diameter), 90f, Offset(radius, size.height - radius))
+    )
+    corners.forEach { (topLeft, startAngle, center) ->
+        drawArc(
+            brush = Brush.sweepGradient(colors = spectralColors, center = center),
+            startAngle = startAngle,
+            sweepAngle = 90f,
+            useCenter = false,
+            topLeft = topLeft,
+            size = Size(diameter, diameter),
+            style = Stroke(width = strokeWidth * 1.5f)
+        )
+    }
+}
+
+/** Crisp highlight layer. The blurred content remains underneath the refraction shader. */
 @Composable
 fun LiquidGlassHighlight(
     shape: RoundedCornerShape,
     isDark: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val borderBrush = Brush.verticalGradient(
-        colors = if (isDark) {
-            listOf(Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0.05f))
-        } else {
-            listOf(Color.White.copy(alpha = 0.75f), Color.White.copy(alpha = 0.16f))
-        },
-    )
-    // 高光鋪滿全高（上強下弱）：只照上半部會把中下段夾成一條灰帶，
-    // 被上下亮邊對比得像「底部陰影」
-    val sheenBrush = Brush.verticalGradient(
-        0f to Color.White.copy(alpha = if (isDark) 0.07f else 0.10f),
-        0.55f to Color.White.copy(alpha = if (isDark) 0.02f else 0.08f),
-        1f to Color.White.copy(alpha = if (isDark) 0.05f else 0.09f),
-    )
     Box(
-        modifier = modifier
-            .clip(shape)
-            .background(sheenBrush)
-            .border(1.dp, borderBrush, shape),
+        modifier = modifier.liquidGlassRim(shape, isDark),
     )
 }
 

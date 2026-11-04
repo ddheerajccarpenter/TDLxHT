@@ -141,28 +141,9 @@ fun LiquidGlassPillSwitcher(
             }
         }
 
-        // ---- 藥丸（半透明主色漸層＋白高光邊；靜止不投影，抬起才有浮起影）----
-        val primary = MaterialTheme.colorScheme.primary
+        // Neutral glass selection lens; spectral light stays confined to the corners.
         val pillShape = RoundedCornerShape(percent = 50)
-        val pillBrush = remember(isDark, primary) {
-            Brush.verticalGradient(
-                colors = if (isDark) {
-                    listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.10f))
-                } else {
-                    listOf(primary.copy(alpha = 0.22f), primary.copy(alpha = 0.13f))
-                },
-            )
-        }
-        val pillBorder = remember(isDark, primary) {
-            Brush.verticalGradient(
-                colors = if (isDark) {
-                    listOf(Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0.05f))
-                } else {
-                    listOf(Color.White.copy(alpha = 0.90f), primary.copy(alpha = 0.16f))
-                },
-            )
-        }
-        val liftGlowColor = if (isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.28f)
+        val pillFill = if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.06f)
         val pillWidthDp = with(density) { pillWidthPx.toDp() }
         val shadowSpot = Color.Black.copy(alpha = 0.30f)
         val shadowAmbient = Color.Black.copy(alpha = 0.10f)
@@ -185,22 +166,10 @@ fun LiquidGlassPillSwitcher(
                     ambientShadowColor = shadowAmbient
                     shape = pillShape
                     clip = true
-                },
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(pillBrush)
-                    .border(1.dp, pillBorder, pillShape),
-            )
-            // lift 疊層：透過 layer 的 alpha 淡入，唯一的動畫讀值都在繪製階段
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = lift.value }
-                    .background(liftGlowColor),
-            )
-        }
+                }
+                .background(pillFill, pillShape)
+                .liquidGlassRim(pillShape, isDark, 1.dp),
+        )
 
         // ---- 標籤層（Android 13+ 掛藥丸透鏡：文字經過玻璃被放大、邊緣拉伸＋真色散）----
         val lensShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -221,9 +190,9 @@ fun LiquidGlassPillSwitcher(
                     pillWidthPx / 2f * stretch * liftScale,
                     size.height / 2f * liftScale,
                 )
-                // 靜止微放大、抬起放大＋色散全開
+                // Preserve a restrained lens response without a full-surface color fringe.
                 lensShader.setFloatUniform("uZoom", 0.10f + 0.22f * liftValue)
-                lensShader.setFloatUniform("uChroma", liftValue)
+                lensShader.setFloatUniform("uChroma", 0.03f * liftValue)
                 renderEffect = RenderEffect
                     .createRuntimeShaderEffect(lensShader, "content")
                     .asComposeRenderEffect()

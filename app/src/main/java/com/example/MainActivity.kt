@@ -88,6 +88,14 @@ import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Handyman
+import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Today
+import androidx.compose.material.icons.rounded.Checklist
+import androidx.compose.material.icons.rounded.Handyman
+import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.Today
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -161,6 +169,7 @@ import com.example.ui.screens.home.HomeScreen
 import com.example.ui.screens.productivity.ProductivityScreen
 import com.example.ui.screens.reports.ReportsScreen
 import com.example.ui.screens.search.SearchScreen
+import com.example.ui.screens.search.SearchOverlay
 import com.example.ui.screens.settings.SettingsScreen
 import com.example.ui.screens.tasks.TaskDetailEditScreen
 import com.example.ui.screens.tasks.TaskListScreen
@@ -182,7 +191,7 @@ import com.example.ui.theme.GrapeCanvasDark
 import com.example.ui.theme.InkWashCharcoal
 import com.example.ui.theme.InkWashMist
 import com.example.ui.theme.InkWashIvory
-import com.example.ui.theme.InkWashSlate
+import com.example.ui.theme.OklchPrimaryToken
 import com.example.ui.theme.InkWashCharcoalDeep
 import com.example.ui.theme.InkWashCharcoalSurface
 import com.example.ui.theme.InkWashCharcoalElevated
@@ -208,10 +217,10 @@ enum class AppDestination(
   val iconOutlined: ImageVector,
   @param:RawRes val animRes: Int
 ) {
-  TODAY("Home", Icons.Filled.Home, Icons.Outlined.Home, R.raw.anim_today),
-  PRODUCTIVITY("Productivity", Icons.AutoMirrored.Filled.FormatListBulleted, Icons.AutoMirrored.Outlined.FormatListBulleted, R.raw.anim_productivity),
-  TOOLS("Tools", Icons.Filled.Build, Icons.Outlined.Build, R.raw.anim_tools),
-  INSIGHTS("Insights", Icons.AutoMirrored.Filled.ShowChart, Icons.AutoMirrored.Outlined.ShowChart, R.raw.anim_insights)
+  TODAY("Home", Icons.Rounded.Today, Icons.Outlined.Today, R.raw.anim_today),
+  PRODUCTIVITY("Productivity", Icons.Rounded.Checklist, Icons.Outlined.Checklist, R.raw.anim_productivity),
+  TOOLS("Tools", Icons.Rounded.Handyman, Icons.Outlined.Handyman, R.raw.anim_tools),
+  INSIGHTS("Insights", Icons.Rounded.Insights, Icons.Outlined.Insights, R.raw.anim_insights)
 }
 
 class MainActivity : ComponentActivity() {
@@ -313,7 +322,8 @@ fun MainApp(
   shakeTrigger: Long = 0L,
   updateTrigger: Long = 0L
 ) {
-    val context = LocalContext.current
+  val context = LocalContext.current
+  val reduceMotion = remember { com.example.ui.components.isReducedMotionEnabled(context) }
   val coroutineScope = rememberCoroutineScope()
 
   val destinations = remember {
@@ -486,23 +496,21 @@ fun MainApp(
               AnimatedContent(
                 targetState = navController.selectedTab,
                 transitionSpec = {
-                  val forward = targetState >= initialState
-                  val slideDir = if (forward) 1 else -1
-                  (slideInHorizontally(
-                    initialOffsetX = { fullWidth -> slideDir * (fullWidth / 6) },
-                    animationSpec = spring(dampingRatio = 0.88f, stiffness = 450f)
-                  ) + fadeIn(
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    initialAlpha = 0f
-                  )).togetherWith(
-                    slideOutHorizontally(
-                      targetOffsetX = { fullWidth -> -slideDir * (fullWidth / 6) },
-                      animationSpec = tween(160, easing = FastOutSlowInEasing)
-                    ) + fadeOut(
-                      animationSpec = tween(140, easing = FastOutSlowInEasing),
-                      targetAlpha = 0f
+                  if (reduceMotion) {
+                    fadeIn(tween(80)).togetherWith(fadeOut(tween(80)))
+                  } else {
+                    val forward = targetState >= initialState
+                    val slideDir = if (forward) 1 else -1
+                    (slideInHorizontally(
+                      initialOffsetX = { fullWidth -> slideDir * (fullWidth / 10) },
+                      animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f)
+                    ) + fadeIn(tween(150, easing = FastOutSlowInEasing), initialAlpha = 0f)).togetherWith(
+                      slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> -slideDir * (fullWidth / 10) },
+                        animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f)
+                      ) + fadeOut(tween(120, easing = FastOutSlowInEasing), targetAlpha = 0f)
                     )
-                  )
+                  }
                 },
                 label = "mainTabContent"
               ) { tabIndex ->
@@ -650,6 +658,20 @@ fun MainApp(
 
     // OVERLAY LAYER: Renders modals/sheets over whatever screen is currently active
     when (val overlay = navController.activeOverlay) {
+      is AppNavOverlay.Search -> {
+        SearchOverlay(
+          viewModel = viewModel,
+          onDismiss = { navController.dismissOverlay() },
+          onTaskClick = { task ->
+            navController.dismissOverlay()
+            navController.navigate(AppNavDestination.TaskDetail(task = task))
+          },
+          onHabitClick = { habit ->
+            navController.dismissOverlay()
+            navController.navigate(AppNavDestination.HabitDetail(habit = habit))
+          }
+        )
+      }
       is AppNavOverlay.QuickCreate -> {
         GlassSheet(
           visible = true,
@@ -1497,7 +1519,7 @@ fun FocusTimerDialog(
         progress = timerProgress,
         modifier = Modifier.size(170.dp),
         strokeWidth = 9.dp,
-        primaryColor = InkWashSlate,
+        primaryColor = OklchPrimaryToken,
         secondaryColor = InkWashIvory
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1519,7 +1541,7 @@ fun FocusTimerDialog(
               fontSize = 10.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.sp,
-              color = InkWashSlate
+              color = OklchPrimaryToken
             )
           )
         }
