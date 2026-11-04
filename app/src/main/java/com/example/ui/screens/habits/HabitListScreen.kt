@@ -41,8 +41,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Unarchive
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -79,6 +77,8 @@ import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.SketchFilterChip
 import com.example.ui.components.SketchSearchBar
 import com.example.ui.components.bounceClick
+import com.example.ui.components.GlassMenu
+import com.example.ui.components.GlassMenuItem
 import com.example.ui.components.heroEntrance
 import com.example.ui.components.pulseEntrance
 import com.example.ui.components.staggeredEntrance
@@ -676,43 +676,44 @@ fun HabitCardItemWithActions(
             )
           }
 
-          DropdownMenu(
+          GlassMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false }
           ) {
-            DropdownMenuItem(
-              text = { Text(if (habit.isPaused) "Resume Habit" else "Pause Habit") },
-              leadingIcon = {
+            GlassMenuItem(
+              label = if (habit.isPaused) "Resume Habit" else "Pause Habit",
+              icon = {
                 Icon(
                   imageVector = if (habit.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
                   contentDescription = null,
                   modifier = Modifier.size(18.dp)
                 )
               },
-              onClick = {
+              onSelect = {
                 onPause()
                 menuExpanded = false
               }
             )
 
-            DropdownMenuItem(
-              text = { Text(if (habit.isArchived) "Unarchive Habit" else "Archive Habit") },
-              leadingIcon = {
+            GlassMenuItem(
+              label = if (habit.isArchived) "Unarchive Habit" else "Archive Habit",
+              icon = {
                 Icon(
                   imageVector = if (habit.isArchived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
                   contentDescription = null,
                   modifier = Modifier.size(18.dp)
                 )
               },
-              onClick = {
+              onSelect = {
                 onArchive()
                 menuExpanded = false
               }
             )
 
-            DropdownMenuItem(
-              text = { Text("Delete Habit", color = AccentRed) },
-              leadingIcon = {
+            GlassMenuItem(
+              label = "Delete Habit",
+              destructive = true,
+              icon = {
                 Icon(
                   imageVector = Icons.Outlined.DeleteOutline,
                   contentDescription = null,
@@ -720,7 +721,7 @@ fun HabitCardItemWithActions(
                   modifier = Modifier.size(18.dp)
                 )
               },
-              onClick = {
+              onSelect = {
                 onDelete()
                 menuExpanded = false
               }

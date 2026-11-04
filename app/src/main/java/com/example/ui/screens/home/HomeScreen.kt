@@ -69,8 +69,6 @@ import com.example.ui.theme.InnerCornerRadius
 import com.example.ui.theme.OuterCornerShape
 import com.example.ui.theme.InnerCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -107,6 +105,8 @@ import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassMenu
+import com.example.ui.components.GlassMenuItem
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassCapsule
 import com.example.ui.components.LiquidGlassSegmentedControl
@@ -280,19 +280,19 @@ fun HomeScreen(
                 ) {
                   Icon(Icons.Default.MoreVert, contentDescription = null, tint = InkPrimary)
                 }
-                DropdownMenu(
+                GlassMenu(
                   expanded = showHomeMenu,
                   onDismissRequest = { showHomeMenu = false }
                 ) {
-                  DropdownMenuItem(
-                    text = { Text(if (isDashboardEditMode) "Finish customization" else "Customize dashboard") },
-                    leadingIcon = {
+                  GlassMenuItem(
+                    label = if (isDashboardEditMode) "Finish customization" else "Customize dashboard",
+                    icon = {
                       Icon(
                         imageVector = if (isDashboardEditMode) Icons.Default.Check else Icons.Default.Settings,
                         contentDescription = null
                       )
                     },
-                    onClick = {
+                    onSelect = {
                       showHomeMenu = false
                       if (isDashboardEditMode) {
                         DashboardLayoutManager.saveLayout(context, editOrder, editVisibility)
@@ -301,10 +301,10 @@ fun HomeScreen(
                     },
                     modifier = Modifier.testTag("home_edit_mode_btn")
                   )
-                  DropdownMenuItem(
-                    text = { Text(if (showOverview) "Hide today’s overview" else "Today’s overview") },
-                    leadingIcon = { Icon(Icons.Outlined.Insights, contentDescription = null) },
-                    onClick = {
+                  GlassMenuItem(
+                    label = if (showOverview) "Hide today’s overview" else "Today’s overview",
+                    icon = { Icon(Icons.Outlined.Insights, contentDescription = null) },
+                    onSelect = {
                       showOverview = !showOverview
                       showHomeMenu = false
                     }
