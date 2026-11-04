@@ -1185,9 +1185,9 @@ fun GlassSwitch(
 
   val trackBgColor by animateColorAsState(
     targetValue = if (checked) {
-      if (isDark) Color(0x50FFFFFF) else Color(0xEE1C1C1E)
+      if (isDark) Color(0xFF777777) else Color(0xFF5F5F5F)
     } else {
-      if (isDark) Color(0x28181820) else Color(0x258E8E93)
+      if (isDark) Color(0x28303038) else Color(0x1F71717A)
     },
     animationSpec = tween(180),
     label = "glassSwitchTrackBg"
@@ -1198,7 +1198,7 @@ fun GlassSwitch(
       .size(width = trackWidth, height = trackHeight)
       .fluidLensedGlass(
         shape = CircleShape,
-        elevation = 1.dp,
+        elevation = if (checked) 2.dp else 1.dp,
         borderWidth = 0.75.dp,
         isElevated = checked,
         customBackgroundColor = trackBgColor,
@@ -1219,9 +1219,10 @@ fun GlassSwitch(
         .size(thumbSize)
         .fluidLensedGlass(
           shape = CircleShape,
-          elevation = 2.dp,
+          elevation = if (checked) 3.dp else 1.5.dp,
           borderWidth = 0.6.dp,
-          isElevated = true
+          isElevated = true,
+          customBackgroundColor = Color.White
         )
     )
   }
@@ -2206,6 +2207,7 @@ fun BentoHeroCard(
   content: @Composable ColumnScope.() -> Unit
 ) {
   val shape = RoundedCornerShape(cornerRadius)
+
   Column(
     modifier = modifier
       .fluidLensedGlass(

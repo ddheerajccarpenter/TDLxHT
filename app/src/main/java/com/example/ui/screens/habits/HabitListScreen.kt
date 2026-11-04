@@ -32,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
@@ -150,6 +151,7 @@ fun HabitListScreen(
   Box(
     modifier = modifier
       .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
       .paperDotBackground()
   ) {
     Column(
@@ -157,41 +159,22 @@ fun HabitListScreen(
         .fillMaxSize()
         .padding(horizontal = 16.dp)
     ) {
-      // Header: Reusable AppHeader
+      // Header: Standardized Reusable AppHeader
       AppHeader(
         title = "Habits",
-        leftContent = {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.bounceClick {
-              if (isMultiSelectMode) {
-                isMultiSelectMode = false
-                selectedHabitIds = emptySet()
-              } else {
-                onBack()
-              }
-            }
-          ) {
-            Icon(
-              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = "Back",
-              tint = InkPrimary,
-              modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-              text = if (isMultiSelectMode) "Done" else "Back",
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = InkPrimary
-              )
-            )
+        onBack = {
+          if (isMultiSelectMode) {
+            isMultiSelectMode = false
+            selectedHabitIds = emptySet()
+          } else {
+            onBack()
           }
         },
+        backLabel = if (isMultiSelectMode) "Done" else "Back",
         actionIcon = Icons.Default.Add,
-        onActionClick = onNavigateToAddHabit
+        actionContentDescription = "Add Habit",
+        onActionClick = onNavigateToAddHabit,
+        actionTestTag = "habits_add_button"
       )
 
       // Filter Tabs

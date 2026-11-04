@@ -73,7 +73,6 @@ import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkPrimary
 import com.example.ui.theme.InkSecondary
 import com.example.ui.theme.LocalAppColors
-import com.example.ui.theme.OklchIndigo
 import com.example.ui.theme.PrimaryAccentLime
 import com.example.ui.theme.SFProFontFamily
 import com.example.util.HapticManager
@@ -143,6 +142,39 @@ class AndroidSpatialBridge(
  */
 class SpatialCompanionController {
     var webViewRef: WebView? = null
+    private var primaryWebViewRef: WebView? = null
+    private var studioWebViewRef: WebView? = null
+
+    fun setPrimaryWebView(webView: WebView) {
+        primaryWebViewRef = webView
+        if (studioWebViewRef == null) webViewRef = webView
+    }
+
+    fun openStudio(webView: WebView) {
+        primaryWebViewRef?.evaluateJavascript("window.setRenderPaused && window.setRenderPaused(true);", null)
+        studioWebViewRef = webView
+        webViewRef = webView
+    }
+
+    fun closeStudio() {
+        studioWebViewRef?.evaluateJavascript("window.setRenderPaused && window.setRenderPaused(true);", null)
+        studioWebViewRef?.onPause()
+        studioWebViewRef?.destroy()
+        studioWebViewRef = null
+        webViewRef = primaryWebViewRef
+        primaryWebViewRef?.onResume()
+        primaryWebViewRef?.evaluateJavascript("window.setRenderPaused && window.setRenderPaused(false);", null)
+    }
+
+    fun destroyViews() {
+        studioWebViewRef?.onPause()
+        studioWebViewRef?.destroy()
+        primaryWebViewRef?.onPause()
+        primaryWebViewRef?.destroy()
+        studioWebViewRef = null
+        primaryWebViewRef = null
+        webViewRef = null
+    }
 
     fun triggerCelebration(priority: TaskPriority = TaskPriority.HIGH, streak: Int = 1) {
         webViewRef?.evaluateJavascript(
@@ -235,11 +267,7 @@ fun ThreeJsSpatialCompanion(
                 onModelInteracted?.invoke()
             },
             onModelLongPressed = {
-                interactionToast = "Double tap"
-                coroutineScope.launch {
-                    delay(2200)
-                    interactionToast = null
-                }
+                showExpandedPopup = true
                 onModelInteracted?.invoke()
             },
             onSwipeDetected = { _ -> },
@@ -321,24 +349,39 @@ fun ThreeJsSpatialCompanion(
                         }
                     }
 
-                    // 360 Indicator Pill
+                    // 360 Indicator & Pop-up trigger
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isDark) Color(0x14FFFFFF) else Color(0x0D000000))
                             .border(0.5.dp, CardBorder, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 7.dp, vertical = 2.dp)
+                            .clickable {
+                                VibrationHelper.tick(context)
+                                showExpandedPopup = true
+                            }
+                            .padding(horizontal = 7.dp, vertical = 3.dp)
                     ) {
-                        Text(
-                            text = if (isUsingProceduralFallback) "LOCAL MODEL" else "360° ORBIT",
-                            style = TextStyle(
-                                fontFamily = SFProFontFamily,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.4.sp,
-                                color = InkSecondary
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "360° ORBIT",
+                                style = TextStyle(
+                                    fontFamily = SFProFontFamily,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.4.sp,
+                                    color = InkSecondary
+                                )
                             )
-                        )
+                            Icon(
+                                imageVector = Icons.Default.OpenInFull,
+                                contentDescription = "Expand 3D Studio",
+                                tint = InkSecondary,
+                                modifier = Modifier.size(10.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -384,6 +427,11 @@ fun ThreeJsSpatialCompanion(
                             addJavascriptInterface(bridge, "AndroidBridge")
 
                             webViewClient = object : WebViewClient() {
+                                override fun shouldOverrideUrlLoading(
+                                    view: WebView?,
+                                    request: WebResourceRequest?
+                                ): Boolean = request?.url?.host != "appassets.androidplatform.net"
+
                                 override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                     isWebViewLoading = true
                                     hasWebViewError = false
@@ -413,9 +461,12 @@ fun ThreeJsSpatialCompanion(
                                     if (request?.isForMainFrame == true) {
                                         isWebViewLoading = false
                                         hasWebViewError = true
-                                    } else if (request != null) {
+                                    } else if (request?.url?.lastPathSegment == "cat.glb") {
                                         isUsingProceduralFallback = true
-                                        fallbackReason = "A companion resource could not be loaded"
+                                        fallbackReason = "The 3D model could not be loaded"
+                                    } else if (request?.url?.lastPathSegment == "bundle.js") {
+                                        isUsingProceduralFallback = true
+                                        fallbackReason = "The companion engine could not be loaded"
                                     }
                                 }
 
@@ -424,12 +475,21 @@ fun ThreeJsSpatialCompanion(
                                     request: WebResourceRequest?,
                                     errorResponse: android.webkit.WebResourceResponse?
                                 ) {
+                                    val failedResource = request?.url?.lastPathSegment
                                     if (request?.isForMainFrame == true && (errorResponse?.statusCode ?: 200) >= 400) {
                                         isWebViewLoading = false
                                         hasWebViewError = true
-                                    } else if (request?.isForMainFrame == false && (errorResponse?.statusCode ?: 200) >= 400) {
+                                    } else if (
+                                        request?.isForMainFrame == false &&
+                                        (errorResponse?.statusCode ?: 200) >= 400 &&
+                                        failedResource in setOf("cat.glb", "bundle.js")
+                                    ) {
                                         isUsingProceduralFallback = true
-                                        fallbackReason = "A companion resource could not be loaded"
+                                        fallbackReason = if (failedResource == "cat.glb") {
+                                            "The 3D model could not be loaded"
+                                        } else {
+                                            "The companion engine could not be loaded"
+                                        }
                                     }
                                 }
                             }
@@ -461,11 +521,11 @@ fun ThreeJsSpatialCompanion(
                             }
 
                             loadUrl(SPATIAL_COMPANION_URL)
-                            controller.webViewRef = this
+                            controller.setPrimaryWebView(this)
                         }
                     },
                     update = { view ->
-                        controller.webViewRef = view
+                        controller.setPrimaryWebView(view)
                     }
                 )
 
@@ -580,8 +640,7 @@ fun ThreeJsSpatialCompanion(
                                 controller.webViewRef?.onPause()
                             }
                             Lifecycle.Event.ON_DESTROY -> {
-                                controller.webViewRef?.destroy()
-                                controller.webViewRef = null
+                                controller.destroyViews()
                             }
                             else -> Unit
                         }
@@ -590,8 +649,7 @@ fun ThreeJsSpatialCompanion(
                     onDispose {
                         lifecycleOwner.lifecycle.removeObserver(observer)
                         controller.setRenderPaused(true)
-                        controller.webViewRef?.destroy()
-                        controller.webViewRef = null
+                        controller.destroyViews()
                     }
                 }
             }
@@ -657,7 +715,7 @@ fun ThreeJsSpatialCompanion(
                         Icon(
                             imageVector = Icons.Default.Timer,
                             contentDescription = null,
-                            tint = if (isFocusModeActive) OklchIndigo else InkSecondary,
+                            tint = if (isFocusModeActive) InkPrimary else InkSecondary,
                             modifier = Modifier.size(13.dp)
                         )
                     }
@@ -671,7 +729,7 @@ fun ThreeJsSpatialCompanion(
                             fontFamily = SFProFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isFocusModeActive) OklchIndigo else InkPrimary
+                            color = InkPrimary
                         )
                     )
                 }
@@ -711,6 +769,145 @@ fun ThreeJsSpatialCompanion(
                             color = InkPrimary
                         )
                     )
+                }
+            }
+        }
+    }
+
+    val dismissExpandedPopup = {
+        showExpandedPopup = false
+        controller.closeStudio()
+    }
+
+    if (showExpandedPopup) {
+        Dialog(onDismissRequest = dismissExpandedPopup) {
+            LiquidGlassCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(22.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Spatial Companion",
+                                style = TextStyle(
+                                    fontFamily = SFProFontFamily,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = InkPrimary
+                                )
+                            )
+                        }
+                        LiquidGlassIconButton(
+                            onClick = dismissExpandedPopup,
+                            contentDescription = "Close 3D Studio",
+                            size = 36.dp
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(18.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Large 3D Studio Stage
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isDark) Color(0x18000000) else Color(0x08000000))
+                            .border(1.dp, CardBorder, RoundedCornerShape(16.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AndroidView(
+                            modifier = Modifier.fillMaxSize(),
+                            factory = { ctx ->
+                                val assetLoader = WebViewAssetLoader.Builder()
+                                    .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(ctx))
+                                    .build()
+
+                                WebView(ctx).apply {
+                                    contentDescription = "Expanded interactive spatial companion"
+                                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                                    setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                                    setBackgroundResource(0)
+
+                                    settings.apply {
+                                        javaScriptEnabled = true
+                                        domStorageEnabled = true
+                                        allowFileAccess = false
+                                        allowContentAccess = false
+                                        loadWithOverviewMode = true
+                                        useWideViewPort = true
+                                        setSupportZoom(false)
+                                        cacheMode = WebSettings.LOAD_NO_CACHE
+                                    }
+
+                                    addJavascriptInterface(bridge, "AndroidBridge")
+                                    webViewClient = object : WebViewClient() {
+                                        override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): android.webkit.WebResourceResponse? {
+                                            return request?.url?.let(assetLoader::shouldInterceptRequest)
+                                        }
+                                        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean =
+                                            request?.url?.host != "appassets.androidplatform.net"
+
+                                        override fun onPageFinished(view: WebView?, url: String?) {
+                                            super.onPageFinished(view, url)
+                                            controller.setThemeMode(isDark)
+                                            controller.setReducedMotion(reduceMotion)
+                                        }
+                                    }
+                                    loadUrl(SPATIAL_COMPANION_URL)
+                                    controller.openStudio(this)
+                                }
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Studio Controls
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LiquidGlassButton(
+                            onClick = {
+                                VibrationHelper.tick(context)
+                                SoundManager.playTaskComplete(context)
+                                controller.triggerCelebration(TaskPriority.MEDIUM, 1)
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            icon = { Icon(Icons.Default.Favorite, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(15.dp)) }
+                        ) {
+                            Text("Pet", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary))
+                        }
+
+                        LiquidGlassButton(
+                            onClick = {
+                                HapticManager.taskCompleted(context)
+                                SoundManager.playTaskComplete(context)
+                                controller.triggerCelebration(TaskPriority.HIGH, 7)
+                            },
+                            modifier = Modifier.weight(1.2f),
+                            shape = RoundedCornerShape(12.dp),
+                            icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(15.dp)) }
+                        ) {
+                            Text("Celebrate", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                        }
+                    }
                 }
             }
         }

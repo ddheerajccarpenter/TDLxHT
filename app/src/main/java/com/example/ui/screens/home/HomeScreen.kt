@@ -676,7 +676,7 @@ fun HomeScreen(
               controller = spatialController,
               onOpenFocusTimer = onOpenFocusTimer
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
           }
         }
 
@@ -806,7 +806,7 @@ fun HomeScreen(
               }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
           }
         } else if (sectionVisibility[DashboardSection.QUICK_METRICS] != false) {
           // Standalone Quick Metrics (only displayed if Bento Hero is toggled off)
@@ -841,7 +841,7 @@ fun HomeScreen(
                 }
               }
             }
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
           }
         }
 
@@ -899,7 +899,7 @@ fun HomeScreen(
               }
             }
           }
-          Spacer(modifier = Modifier.height(16.dp))
+          Spacer(modifier = Modifier.height(10.dp))
         }
       }
 
@@ -912,7 +912,7 @@ fun HomeScreen(
           modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
       }
 
       // TODAY'S TASKS SECTION
@@ -922,7 +922,7 @@ fun HomeScreen(
             modifier = Modifier
               .fillMaxWidth()
               .sectionEntrance(delayMs = 60)
-              .padding(bottom = 8.dp),
+              .padding(bottom = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
           ) {
