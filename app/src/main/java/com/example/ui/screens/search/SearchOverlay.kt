@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -97,6 +98,11 @@ fun SearchOverlay(
   val keyboardController = LocalSoftwareKeyboardController.current
   val focusManager = LocalFocusManager.current
   var query by remember { mutableStateOf("") }
+  val dismissSearch = {
+    keyboardController?.hide()
+    focusManager.clearFocus()
+    onDismiss()
+  }
   val normalizedQuery = query.trim().lowercase(Locale.getDefault())
   val matchingTasks = remember(tasks, normalizedQuery) {
     if (normalizedQuery.isBlank()) emptyList() else tasks.filter { task ->
@@ -116,7 +122,7 @@ fun SearchOverlay(
     }
   }
 
-  BackHandler(onBack = onDismiss)
+  BackHandler(onBack = dismissSearch)
 
   LaunchedEffect(Unit) {
     focusRequester.requestFocus()
@@ -140,7 +146,7 @@ fun SearchOverlay(
         .clickable(
           interactionSource = remember { MutableInteractionSource() },
           indication = null,
-          onClick = onDismiss
+          onClick = dismissSearch
         )
     )
 
@@ -206,23 +212,14 @@ fun SearchOverlay(
                 }
               )
               if (query.isNotEmpty()) {
-                Icon(
-                  Icons.Default.Close,
-                  contentDescription = "Clear search",
-                  tint = InkSecondary,
-                  modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .clickable { query = "" }
-                    .padding(3.dp)
-                )
+                IconButton(onClick = { query = "" }, modifier = Modifier.size(48.dp)) {
+                  Icon(Icons.Default.Close, contentDescription = "Clear search", tint = InkSecondary)
+                }
               }
             }
           }
           SearchActionButton(onClick = {
-            keyboardController?.hide()
-            focusManager.clearFocus()
-            onDismiss()
+            dismissSearch()
           })
         }
 

@@ -15,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -126,7 +128,13 @@ fun LiquidGlassBackdrop(
         val fresnel = if (isDark) 0.22f else 0.10f
         Modifier.graphicsLayer {
             shader.setFloatUniform("uSize", size.width, size.height)
-            shader.setFloatUniform("uRadius", size.height * 0.5f)
+            val radiusPx = minOf(
+                shape.topStart.toPx(size, this),
+                shape.topEnd.toPx(size, this),
+                shape.bottomStart.toPx(size, this),
+                shape.bottomEnd.toPx(size, this)
+            ).coerceIn(0f, min(size.width, size.height) * 0.5f)
+            shader.setFloatUniform("uRadius", radiusPx)
             shader.setFloatUniform("uBand", bandPx)
             shader.setFloatUniform("uDisp", dispPx)
             shader.setFloatUniform("uFresnel", fresnel)
@@ -157,19 +165,23 @@ fun Modifier.liquidGlassRim(
     shape: Shape,
     isDark: Boolean,
     borderWidth: Dp = 1.dp,
-): Modifier = clip(shape).drawWithContent {
-    drawContent()
-
-    val radius = min(size.height / 2f, 16.dp.toPx()).coerceAtLeast(borderWidth.toPx() * 2f)
-    val strokeWidth = borderWidth.toPx()
-    drawRoundRect(
-        color = Color.White.copy(alpha = if (isDark) 0.26f else 0.62f),
-        cornerRadius = CornerRadius(radius, radius),
-        style = Stroke(width = strokeWidth)
-    )
-
+): Modifier = clip(shape).drawWithCache {
+    val outline = shape.createOutline(size, layoutDirection, this)
+    val outlinePath = Path().apply {
+        when (outline) {
+            is Outline.Rectangle -> addRect(outline.rect)
+            is Outline.Rounded -> addRoundRect(outline.roundRect)
+            is Outline.Generic -> addPath(outline.path)
+        }
+    }
+    val roundedOutline = outline as? Outline.Rounded
+    val radius = roundedOutline?.roundRect?.topLeftCornerRadius?.x
+        ?.coerceIn(0f, min(size.width, size.height) / 2f)
+        ?: 0f
     val diameter = radius * 2f
-    val spectralAlpha = if (isDark) 0.18f else 0.12f
+    val strokeWidth = borderWidth.toPx()
+    val neutralRim = if (isDark) Color.White.copy(alpha = 0.26f) else Color.Black.copy(alpha = 0.14f)
+    val spectralAlpha = if (isDark) 0.12f else 0.07f
     val spectralColors = listOf(
         Color(0xFFFF6A6A).copy(alpha = spectralAlpha),
         Color(0xFFFFD166).copy(alpha = spectralAlpha),
@@ -178,22 +190,30 @@ fun Modifier.liquidGlassRim(
         Color(0xFF9B8CFF).copy(alpha = spectralAlpha),
         Color(0xFFFF6A6A).copy(alpha = spectralAlpha)
     )
-    val corners = listOf(
+    val corners = if (radius > 0f) listOf(
         Triple(Offset.Zero, 180f, Offset(radius, radius)),
         Triple(Offset(size.width - diameter, 0f), 270f, Offset(size.width - radius, radius)),
         Triple(Offset(size.width - diameter, size.height - diameter), 0f, Offset(size.width - radius, size.height - radius)),
         Triple(Offset(0f, size.height - diameter), 90f, Offset(radius, size.height - radius))
-    )
-    corners.forEach { (topLeft, startAngle, center) ->
-        drawArc(
-            brush = Brush.sweepGradient(colors = spectralColors, center = center),
-            startAngle = startAngle,
-            sweepAngle = 90f,
-            useCenter = false,
-            topLeft = topLeft,
-            size = Size(diameter, diameter),
-            style = Stroke(width = strokeWidth * 1.5f)
-        )
+    ) else emptyList()
+    val cornerBrushes = corners.map { (_, _, center) ->
+        Brush.sweepGradient(colors = spectralColors, center = center)
+    }
+
+    onDrawWithContent {
+        drawContent()
+        drawPath(outlinePath, neutralRim, style = Stroke(width = strokeWidth))
+        corners.forEachIndexed { index, (topLeft, startAngle, _) ->
+            drawArc(
+                brush = cornerBrushes[index],
+                startAngle = startAngle,
+                sweepAngle = 90f,
+                useCenter = false,
+                topLeft = topLeft,
+                size = Size(diameter, diameter),
+                style = Stroke(width = strokeWidth * 1.5f)
+            )
+        }
     }
 }
 

@@ -4,13 +4,13 @@
  *
  * Designed specifically for hardware-accelerated Android WebView integration.
  * Features:
- *  - 100% Offline Asset Loading (file:///android_asset/three3d/)
- *  - ACES Filmic Tone Mapping with Cyprus (#004643), Sand (#F0EDE5) & Obsidian (#0D0F11)
- *  - Interactive 3D Cat Model with AnimationMixer & Procedural Glass Fallback
+ *  - Local HTTPS asset loading through AndroidX WebViewAssetLoader
+ *  - Monochrome lighting and materials across light and dark themes
+ *  - Interactive 3D Cat Model with AnimationMixer & Procedural Cat Fallback
  *  - Touch Orbit Controls with Inertia Physics & Tactile Detent Detection
  *  - 3D Confetti Particle Explosion Engine for Task Celebrations
  *  - Concentric 3D Particle Vortex for Focus Timer Sessions
- *  - Dynamic Theme Mode Interpolation (Dark Obsidian <-> Warm Sand)
+ *  - Dynamic neutral theme adjustment (black canvas <-> white canvas)
  *  - Lifecycle Power Governor: 0% CPU/GPU RAF Sleep when Inactive
  *  - Bidirectional AndroidBridge Communication
  */
@@ -28,6 +28,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   if (!gl) {
     if (window.AndroidBridge && window.AndroidBridge.logDiagnostics) {
       window.AndroidBridge.logDiagnostics('WebGL not available on this Android device');
+    }
+    if (window.AndroidBridge && window.AndroidBridge.notifyModelFallback) {
+      window.AndroidBridge.notifyModelFallback('WebGL is unavailable');
     }
     return;
   }
@@ -62,18 +65,18 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   renderer.domElement.style.display = 'block';
 
   // 3. Dynamic Lighting Rig
-  const ambientLight = new THREE.AmbientLight(0xF0EDE5, 1.6);
+  const ambientLight = new THREE.AmbientLight(0xD8D8D8, 1.5);
   scene.add(ambientLight);
 
-  const keyLight = new THREE.DirectionalLight(0xF0EDE5, 2.6);
+  const keyLight = new THREE.DirectionalLight(0xFFFFFF, 2.4);
   keyLight.position.set(4, 6, 6);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0x004643, 2.0);
+  const fillLight = new THREE.DirectionalLight(0x777777, 1.2);
   fillLight.position.set(-5, -2, 4);
   scene.add(fillLight);
 
-  const rimLight = new THREE.DirectionalLight(0xD4E815, 1.8); // Lime accent highlight
+  const rimLight = new THREE.DirectionalLight(0xE6E6E6, 1.5);
   rimLight.position.set(0, -4, -3);
   scene.add(rimLight);
 
@@ -88,6 +91,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   let animationMixer = null;
   let idleAction = null;
   let cheerAction = null;
+  let isReducedMotion = false;
+  let isDarkTheme = true;
+  let loadedCatModel = null;
+  let proceduralCatMaterial = null;
   const clock = new THREE.Clock();
 
   // 4. Procedural Stylized Fallback Geometry (immediate display)
@@ -127,9 +134,21 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
           child.castShadow = true;
           child.receiveShadow = true;
           if (child.material) {
-            child.material.roughness = 0.32;
-            child.material.metalness = 0.15;
-            child.material.envMapIntensity = 1.2;
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((material) => {
+              if (material.color) {
+                const neutral = (material.color.r + material.color.g + material.color.b) / 3;
+                material.color.setRGB(neutral, neutral, neutral);
+              }
+              material.map = null;
+              material.emissiveMap = null;
+              if (material.emissive) material.emissive.setRGB(0, 0, 0);
+              material.vertexColors = false;
+              material.roughness = 0.4;
+              material.metalness = 0.12;
+              material.envMapIntensity = 0.8;
+              material.needsUpdate = true;
+            });
           }
         }
       });
@@ -140,7 +159,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         if (idleClip) {
           idleAction = animationMixer.clipAction(idleClip);
           idleAction.setEffectiveTimeScale(0.9);
-          idleAction.play();
+          if (!isReducedMotion) idleAction.play();
         }
         const cheerClip = gltf.animations.find(a => a.name.toLowerCase().includes('jump') || a.name.toLowerCase().includes('cheer'));
         if (cheerClip) {
@@ -150,8 +169,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
       }
 
       modelGroup.add(catModel);
+      loadedCatModel = catModel;
+      applyCompanionPalette();
       if (window.AndroidBridge && window.AndroidBridge.logDiagnostics) {
         window.AndroidBridge.logDiagnostics('3D Cat model loaded successfully in Android WebGL');
+      }
+      if (window.AndroidBridge && window.AndroidBridge.notifyModelLoaded) {
+        window.AndroidBridge.notifyModelLoaded();
       }
     },
     undefined,
@@ -159,24 +183,25 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
       if (window.AndroidBridge && window.AndroidBridge.logDiagnostics) {
         window.AndroidBridge.logDiagnostics('Loaded procedural fallback model: ' + err);
       }
+      if (window.AndroidBridge && window.AndroidBridge.notifyModelFallback) {
+        window.AndroidBridge.notifyModelFallback('The 3D model could not be loaded');
+      }
     }
   );
 
   // 6. Confetti Particle System (Celebrations)
-  const confettiCount = 350;
+  const confettiCount = 120;
   const confettiGeometry = new THREE.BufferGeometry();
   const confettiPositions = new Float32Array(confettiCount * 3);
   const confettiVelocities = new Float32Array(confettiCount * 3);
   const confettiColors = new Float32Array(confettiCount * 3);
   const confettiAlphas = new Float32Array(confettiCount);
 
-  // Color palette: Lime (#D4E815), Amber (#F59E0B), Sand (#F0EDE5), Indigo (#6366F1)
+  // Celebration particles remain neutral so the companion follows the app palette.
   const palette = [
-    new THREE.Color(0xD4E815),
-    new THREE.Color(0xF59E0B),
-    new THREE.Color(0xF0EDE5),
-    new THREE.Color(0x6366F1),
-    new THREE.Color(0x10B981)
+    new THREE.Color(0xFFFFFF),
+    new THREE.Color(0xD8D8D8),
+    new THREE.Color(0xA8A8A8)
   ];
 
   for (let i = 0; i < confettiCount; i++) {
@@ -214,6 +239,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   let confettiLife = 0;
 
   function burstConfetti() {
+    if (isReducedMotion) return;
     isConfettiActive = true;
     confettiLife = 1.0;
     confettiMaterial.opacity = 1.0;
@@ -268,7 +294,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   vortexGeometry.setAttribute('position', new THREE.BufferAttribute(vortexPositions, 3));
   const vortexMaterial = new THREE.PointsMaterial({
     size: 0.05,
-    color: 0x6366F1,
+    color: 0xB8B8B8,
     transparent: true,
     opacity: 0,
     blending: THREE.AdditiveBlending
@@ -340,7 +366,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
         }
       } else {
         // Single tap: tactile bounce + haptic tick
-        modelBounceAnim = 1.0;
+        modelBounceAnim = isReducedMotion ? 0 : 1.0;
         if (window.AndroidBridge && window.AndroidBridge.notifyModelTapped) {
           window.AndroidBridge.notifyModelTapped('cat');
         }
@@ -353,9 +379,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   dom.addEventListener('pointerdown', onPointerDown, { passive: true });
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerup', onPointerUp, { passive: true });
-  dom.addEventListener('touchstart', onPointerDown, { passive: true });
-  window.addEventListener('touchmove', onPointerMove, { passive: true });
-  window.addEventListener('touchend', onPointerUp, { passive: true });
+  window.addEventListener('pointercancel', onPointerUp, { passive: true });
 
   // 9. Lifecycle Power Governor & RAF Loop
   let isRenderPaused = false;
@@ -374,23 +398,23 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
     // Inertia rotation damping
     if (!isPointerDown) {
-      targetRotationY += velocityY;
-      velocityY *= 0.92; // Friction damping
-      velocityX *= 0.92;
+      targetRotationY += isReducedMotion ? 0 : velocityY;
+      velocityY *= isReducedMotion ? 0 : 0.92;
+      velocityX *= isReducedMotion ? 0 : 0.92;
     }
 
-    currentRotationY += (targetRotationY - currentRotationY) * 0.12;
-    currentRotationX += (targetRotationX - currentRotationX) * 0.12;
+    if (isReducedMotion) {
+      currentRotationY = targetRotationY;
+      currentRotationX = targetRotationX;
+    } else {
+      currentRotationY += (targetRotationY - currentRotationY) * 0.12;
+      currentRotationX += (targetRotationX - currentRotationX) * 0.12;
+    }
     modelGroup.rotation.y = currentRotationY;
     modelGroup.rotation.x = currentRotationX;
 
-    // Idle slow breathing rotation when not dragged
-    if (!isPointerDown && Math.abs(velocityY) < 0.001) {
-      targetRotationY += 0.003;
-    }
-
     // Bounce animation
-    if (modelBounceAnim > 0) {
+    if (!isReducedMotion && modelBounceAnim > 0) {
       modelGroup.position.y = Math.sin(modelBounceAnim * Math.PI) * 0.28;
       modelBounceAnim = Math.max(0, modelBounceAnim - delta * 3.5);
     }
@@ -419,18 +443,20 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
     // Focus Vortex Update
     if (isFocusActive) {
-      vortexMaterial.opacity = Math.min(0.85, vortexMaterial.opacity + delta * 1.5);
+      vortexMaterial.opacity = isReducedMotion ? 0.55 : Math.min(0.85, vortexMaterial.opacity + delta * 1.5);
       const vpos = vortexGeometry.attributes.position.array;
       const speed = 0.8 + (1.0 - focusProgress) * 1.5;
 
-      for (let i = 0; i < focusVortexCount; i++) {
-        vortexAngles[i] += delta * speed * (0.6 + (i % 5) * 0.15);
-        vpos[i * 3] = Math.cos(vortexAngles[i]) * vortexRadii[i];
-        vpos[i * 3 + 2] = Math.sin(vortexAngles[i]) * vortexRadii[i];
+      if (!isReducedMotion) {
+        for (let i = 0; i < focusVortexCount; i++) {
+          vortexAngles[i] += delta * speed * (0.6 + (i % 5) * 0.15);
+          vpos[i * 3] = Math.cos(vortexAngles[i]) * vortexRadii[i];
+          vpos[i * 3 + 2] = Math.sin(vortexAngles[i]) * vortexRadii[i];
+        }
+        vortexGeometry.attributes.position.needsUpdate = true;
       }
-      vortexGeometry.attributes.position.needsUpdate = true;
     } else if (vortexMaterial.opacity > 0) {
-      vortexMaterial.opacity = Math.max(0, vortexMaterial.opacity - delta * 2.0);
+      vortexMaterial.opacity = isReducedMotion ? 0 : Math.max(0, vortexMaterial.opacity - delta * 2.0);
     }
 
     renderer.render(scene, camera);
@@ -460,16 +486,32 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   };
 
   window.setThemeMode = function(isDark) {
+    isDarkTheme = !!isDark;
     if (isDark) {
-      ambientLight.color.setHex(0xF0EDE5);
-      keyLight.color.setHex(0xF0EDE5);
-      fillLight.color.setHex(0x004643);
-      rimLight.color.setHex(0xD4E815);
+      ambientLight.color.setHex(0xD8D8D8);
+      keyLight.color.setHex(0xFFFFFF);
+      fillLight.color.setHex(0x777777);
+      rimLight.color.setHex(0xE6E6E6);
     } else {
-      ambientLight.color.setHex(0x2A2E35);
-      keyLight.color.setHex(0x004643);
-      fillLight.color.setHex(0xE0533C);
-      rimLight.color.setHex(0x6366F1);
+      ambientLight.color.setHex(0xFFFFFF);
+      keyLight.color.setHex(0xFFFFFF);
+      fillLight.color.setHex(0x999999);
+      rimLight.color.setHex(0xD0D0D0);
+    }
+    applyCompanionPalette();
+  };
+
+  window.setReducedMotion = function(reduced) {
+    isReducedMotion = !!reduced;
+    if (idleAction) {
+      if (isReducedMotion) idleAction.stop();
+      else if (!idleAction.isRunning()) idleAction.play();
+    }
+    if (isReducedMotion) {
+      modelBounceAnim = 0;
+      confettiLife = 0;
+      isConfettiActive = false;
+      confettiMaterial.opacity = 0;
     }
   };
 
@@ -489,36 +531,93 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
   // Procedural stylized cat helper
   function createProceduralCat() {
     const group = new THREE.Group();
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xF0EDE5,
-      metalness: 0.1,
-      roughness: 0.15,
-      transmission: 0.8,
-      transparent: true,
-      opacity: 0.85
+    proceduralCatMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xBDBDBD,
+      metalness: 0.12,
+      roughness: 0.38,
+      clearcoat: 0.35
     });
+    const faceMaterial = new THREE.MeshStandardMaterial({ color: 0x292929, roughness: 0.42 });
 
     const bodyGeo = new THREE.CylinderGeometry(0.35, 0.45, 0.9, 16);
-    const body = new THREE.Mesh(bodyGeo, glassMat);
+    const body = new THREE.Mesh(bodyGeo, proceduralCatMaterial);
     group.add(body);
 
     const headGeo = new THREE.SphereGeometry(0.38, 16, 16);
-    const head = new THREE.Mesh(headGeo, glassMat);
+    const head = new THREE.Mesh(headGeo, proceduralCatMaterial);
     head.position.y = 0.65;
     group.add(head);
 
     const earGeo = new THREE.ConeGeometry(0.12, 0.25, 8);
-    const leftEar = new THREE.Mesh(earGeo, glassMat);
+    const leftEar = new THREE.Mesh(earGeo, proceduralCatMaterial);
     leftEar.position.set(-0.2, 1.0, 0);
     leftEar.rotation.z = 0.25;
     group.add(leftEar);
 
-    const rightEar = new THREE.Mesh(earGeo, glassMat);
+    const rightEar = new THREE.Mesh(earGeo, proceduralCatMaterial);
     rightEar.position.set(0.2, 1.0, 0);
     rightEar.rotation.z = -0.25;
     group.add(rightEar);
 
+    const eyeGeo = new THREE.SphereGeometry(0.045, 10, 8);
+    [-0.14, 0.14].forEach((x) => {
+      const eye = new THREE.Mesh(eyeGeo, faceMaterial);
+      eye.position.set(x, 0.69, 0.34);
+      group.add(eye);
+    });
+
+    const muzzleGeo = new THREE.SphereGeometry(0.085, 10, 8);
+    [-0.075, 0.075].forEach((x) => {
+      const muzzle = new THREE.Mesh(muzzleGeo, proceduralCatMaterial);
+      muzzle.scale.set(1.1, 0.72, 0.65);
+      muzzle.position.set(x, 0.53, 0.34);
+      group.add(muzzle);
+    });
+
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), faceMaterial);
+    nose.scale.set(1.25, 0.85, 0.6);
+    nose.position.set(0, 0.56, 0.4);
+    group.add(nose);
+
+    const tailCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.28, -0.05, 0),
+      new THREE.Vector3(0.56, 0.02, 0),
+      new THREE.Vector3(0.7, 0.28, 0),
+      new THREE.Vector3(0.57, 0.48, 0)
+    ]);
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 18, 0.065, 8, false), proceduralCatMaterial));
+
     return group;
+  }
+
+  function applyCompanionPalette() {
+    if (proceduralCatMaterial) {
+      proceduralCatMaterial.color.setHex(isDarkTheme ? 0xBDBDBD : 0x5A5A5A);
+      proceduralCatMaterial.needsUpdate = true;
+    }
+    if (!loadedCatModel) return;
+
+    // The bundled GLB uses a white texture. Since textures are removed to keep
+    // the companion monochrome, give its model a theme-aware neutral base so
+    // it remains visible on both the black and white canvases.
+    const modelTone = isDarkTheme ? 0xC5C5C5 : 0x555555;
+    loadedCatModel.traverse((child) => {
+      if (!child.isMesh || !child.material) return;
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      materials.forEach((material) => {
+        if (material.color) material.color.setHex(modelTone);
+        material.map = null;
+        material.alphaMap = null;
+        material.emissiveMap = null;
+        if (material.emissive) material.emissive.setRGB(0, 0, 0);
+        material.opacity = 1;
+        material.transparent = false;
+        material.depthWrite = true;
+        material.vertexColors = false;
+        if ('transmission' in material) material.transmission = 0;
+        material.needsUpdate = true;
+      });
+    });
   }
 
   function disposeHierarchy(obj) {

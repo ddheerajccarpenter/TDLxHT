@@ -144,6 +144,7 @@ dependencies {
   implementation("com.airbnb.android:lottie-compose:6.6.2")
   // Haze for real-time background blur & liquid glass
   implementation(libs.haze)
+  implementation(libs.androidx.webkit)
 
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)

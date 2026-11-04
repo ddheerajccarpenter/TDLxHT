@@ -105,16 +105,10 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 // =========================================================================
-// AUTHENTIC LIQUID GLASS DESIGN SYSTEM (ZERO BLUR)
+// SHARED LIQUID GLASS COMPONENTS
 //
-// Constructed strictly via:
-// 1. Alpha-stratified translucent surfaces revealing underlying canvas activity.
-// 2. Dual-boundary specular hairline border (40% white top -> 10% lateral decay).
-// 3. Overhead convex optical caustic dome (radial dispersion without blur).
-// 4. Lower meniscus dark shading creating physical material separation.
-// 5. Curved optical glass lens for fluid gliding selections with spring physics.
-//
-// STRICTLY ZERO BLUR: No RenderEffect, no Modifier.blur, no BlurMaskFilter.
+// Shared card and capsule components use Haze when available, with neutral
+// fallback fills and crisp content. The corner-local rim stays sharp.
 // =========================================================================
 
 /**
@@ -294,8 +288,8 @@ fun LiquidGlassSegmentedControl(
   Box(
     modifier = modifier
       .fillMaxWidth()
-      .height(44.dp)
-      .liquidGlassCapsule(shape = RoundedCornerShape(14.dp), borderWidth = 0.75.dp, isDark = isDark)
+      .height(42.dp)
+      .liquidGlassCapsule(shape = RoundedCornerShape(percent = 50), borderWidth = 0.85.dp, isDark = isDark)
       .padding(3.dp)
   ) {
     LiquidGlassPillSwitcher(

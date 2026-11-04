@@ -5,14 +5,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 // =========================================================================
-// TDlxHT Monochromatic Apple-Style Liquid Glass Design System
-// Canonical tokens from designglass.md
-// Dark Canvas:           #151515 (Deep Charcoal Canvas)
-// Dark Secondary:        #1C1C1E (Elevated Panels)
-// Dark Glass Base:       rgba(37, 37, 42, 0.82)
-// Dark Text Primary:     #F5F5F7 (Bright Text / Highlights)
-// Dark Text Secondary:   #B0B0B8 (Muted Descriptions)
-// Dark Text Muted:       #7C7C85 (Inactive Controls)
+// TDlxHT monochrome theme tokens.
+// Light surfaces use white and near-black text; dark surfaces use black and white text.
 // =========================================================================
 
 // Canonical Dark Tokens (Solid Charcoal Grey System)
@@ -122,7 +116,7 @@ val InkWashRustMuted = Color(0xFF555555)
 
 // Semantic tokens are resolved from the active theme. Light mode uses slate ink;
 // dark mode uses a lighter steel tint so small labels retain clear contrast.
-val OklchIndigoSoft = Color(0x335E6E82)
+val OklchIndigoSoft = Color(0x335E5E5E)
 // These accessors are declared below LocalAppColors so every screen follows the
 // same light/dark semantic palette rather than carrying its own accent colors.
 

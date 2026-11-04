@@ -13,8 +13,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
+import com.example.util.SafeLog
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -209,17 +211,16 @@ class ReportsViewModel : ViewModel() {
 
     private fun refreshStats() {
         viewModelScope.launch {
-            // Collect a single snapshot from the repositories' flows
-            combine(
-                taskRepository.allTasks,
-                habitRepository.allHabits,
-                habitRepository.allRecords
-            ) { tasks, habits, records -> Triple(tasks, habits, records) }
-                .collect { (tasks, habits, records) ->
-                    recomputeStats(tasks, habits, records, _uiState.value)
-                    // Single shot — end collect
-                    throw CancellationException("snapshot done")
-                }
+            try {
+                val (tasks, habits, records) = combine(
+                    taskRepository.allTasks,
+                    habitRepository.allHabits,
+                    habitRepository.allRecords
+                ) { tasks, habits, records -> Triple(tasks, habits, records) }.first()
+                recomputeStats(tasks, habits, records, _uiState.value)
+            } catch (e: Exception) {
+                SafeLog.w("ReportsViewModel", "Failed to refresh stats safely", e)
+            }
         }
     }
 

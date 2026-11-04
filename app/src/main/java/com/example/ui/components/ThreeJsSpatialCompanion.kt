@@ -11,6 +11,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -35,11 +36,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -80,6 +84,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
+private const val SPATIAL_COMPANION_URL =
+    "https://appassets.androidplatform.net/assets/three3d/index.html"
+
 /**
  * Bidirectional JavascriptInterface Bridge for Three.js WebGL Engine.
  */
@@ -87,7 +94,9 @@ class AndroidSpatialBridge(
     private val context: Context,
     private val onModelTapped: (String) -> Unit,
     private val onModelLongPressed: (String) -> Unit,
-    private val onSwipeDetected: (String) -> Unit
+    private val onSwipeDetected: (String) -> Unit,
+    private val onModelFallback: (String) -> Unit,
+    private val onModelLoaded: () -> Unit
 ) {
     @JavascriptInterface
     fun notifyModelTapped(modelId: String) {
@@ -111,6 +120,16 @@ class AndroidSpatialBridge(
         ContextCompat.getMainExecutor(context).execute {
             onSwipeDetected(direction)
         }
+    }
+
+    @JavascriptInterface
+    fun notifyModelFallback(reason: String) {
+        ContextCompat.getMainExecutor(context).execute { onModelFallback(reason) }
+    }
+
+    @JavascriptInterface
+    fun notifyModelLoaded() {
+        ContextCompat.getMainExecutor(context).execute { onModelLoaded() }
     }
 
     @JavascriptInterface
@@ -146,6 +165,13 @@ class SpatialCompanionController {
         )
     }
 
+    fun setReducedMotion(reducedMotion: Boolean) {
+        webViewRef?.evaluateJavascript(
+            "window.setReducedMotion && window.setReducedMotion($reducedMotion);",
+            null
+        )
+    }
+
     fun setRenderPaused(paused: Boolean) {
         webViewRef?.evaluateJavascript(
             "window.setRenderPaused && window.setRenderPaused($paused);",
@@ -177,26 +203,31 @@ fun ThreeJsSpatialCompanion(
 ) {
     val context = LocalContext.current
     val isDark = LocalAppColors.current.isDark
+    val reduceMotion = remember { com.example.ui.components.isReducedMotionEnabled(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
 
     var isFocusModeActive by remember { mutableStateOf(false) }
     var interactionToast by remember { mutableStateOf<String?>(null) }
-    var interactionCount by remember { mutableIntStateOf(0) }
     var isWebViewLoading by remember { mutableStateOf(true) }
     var hasWebViewError by remember { mutableStateOf(false) }
+    var isUsingProceduralFallback by remember { mutableStateOf(false) }
+    var fallbackReason by remember { mutableStateOf("") }
+    var showExpandedPopup by remember { mutableStateOf(false) }
 
     // Sync theme to Three.js canvas
     LaunchedEffect(isDark) {
         controller.setThemeMode(isDark)
+    }
+    LaunchedEffect(reduceMotion) {
+        controller.setReducedMotion(reduceMotion)
     }
 
     val bridge = remember {
         AndroidSpatialBridge(
             context = context,
             onModelTapped = {
-                interactionCount++
-                interactionToast = "Purr! +1 Momentum"
+                interactionToast = "Tapped"
                 coroutineScope.launch {
                     delay(2200)
                     interactionToast = null
@@ -204,14 +235,22 @@ fun ThreeJsSpatialCompanion(
                 onModelInteracted?.invoke()
             },
             onModelLongPressed = {
-                interactionToast = "Acrobatic Leap!"
+                interactionToast = "Double tap"
                 coroutineScope.launch {
                     delay(2200)
                     interactionToast = null
                 }
                 onModelInteracted?.invoke()
             },
-            onSwipeDetected = { _ -> }
+            onSwipeDetected = { _ -> },
+            onModelFallback = { reason ->
+                isUsingProceduralFallback = true
+                fallbackReason = reason
+            },
+            onModelLoaded = {
+                isUsingProceduralFallback = false
+                fallbackReason = ""
+            }
         )
     }
 
@@ -240,16 +279,16 @@ fun ThreeJsSpatialCompanion(
                         modifier = Modifier
                             .size(7.dp)
                             .clip(CircleShape)
-                            .background(if (isDark) PrimaryAccentLime else OklchIndigo)
+                            .background(InkSecondary)
                     )
                     Text(
-                        text = "SPATIAL COMPANION",
+                        text = "COMPANION",
                         style = TextStyle(
                             fontFamily = SFProFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.8.sp,
-                            color = if (isDark) PrimaryAccentLime else OklchIndigo
+                            color = InkPrimary
                         )
                     )
                 }
@@ -276,7 +315,7 @@ fun ThreeJsSpatialCompanion(
                                     fontFamily = SFProFontFamily,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (isDark) PrimaryAccentLime else OklchIndigo
+                                    color = InkPrimary
                                 )
                             )
                         }
@@ -291,7 +330,7 @@ fun ThreeJsSpatialCompanion(
                             .padding(horizontal = 7.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text = "360° ORBIT",
+                            text = if (isUsingProceduralFallback) "LOCAL MODEL" else "360° ORBIT",
                             style = TextStyle(
                                 fontFamily = SFProFontFamily,
                                 fontSize = 9.sp,
@@ -319,7 +358,12 @@ fun ThreeJsSpatialCompanion(
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
+                        val assetLoader = WebViewAssetLoader.Builder()
+                            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(ctx))
+                            .build()
+
                         WebView(ctx).apply {
+                            contentDescription = "Interactive spatial companion"
                             setLayerType(View.LAYER_TYPE_HARDWARE, null)
                             setBackgroundColor(android.graphics.Color.TRANSPARENT)
                             setBackgroundResource(0)
@@ -327,8 +371,8 @@ fun ThreeJsSpatialCompanion(
                             settings.apply {
                                 javaScriptEnabled = true
                                 domStorageEnabled = true
-                                allowFileAccess = true
-                                allowContentAccess = true
+                                allowFileAccess = false
+                                allowContentAccess = false
                                 loadWithOverviewMode = true
                                 useWideViewPort = true
                                 setSupportZoom(false)
@@ -343,18 +387,50 @@ fun ThreeJsSpatialCompanion(
                                 override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                                     isWebViewLoading = true
                                     hasWebViewError = false
+                                    isUsingProceduralFallback = false
+                                    fallbackReason = ""
                                 }
 
                                 override fun onPageFinished(view: WebView?, url: String?) {
                                     super.onPageFinished(view, url)
                                     isWebViewLoading = false
-                                    hasWebViewError = false
                                     controller.setThemeMode(isDark)
+                                    controller.setReducedMotion(reduceMotion)
                                 }
 
-                                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                                    isWebViewLoading = false
-                                    hasWebViewError = true
+                                override fun shouldInterceptRequest(
+                                    view: WebView?,
+                                    request: WebResourceRequest?
+                                ): android.webkit.WebResourceResponse? {
+                                    return request?.url?.let(assetLoader::shouldInterceptRequest)
+                                }
+
+                                override fun onReceivedError(
+                                    view: WebView?,
+                                    request: WebResourceRequest?,
+                                    error: WebResourceError?
+                                ) {
+                                    if (request?.isForMainFrame == true) {
+                                        isWebViewLoading = false
+                                        hasWebViewError = true
+                                    } else if (request != null) {
+                                        isUsingProceduralFallback = true
+                                        fallbackReason = "A companion resource could not be loaded"
+                                    }
+                                }
+
+                                override fun onReceivedHttpError(
+                                    view: WebView?,
+                                    request: WebResourceRequest?,
+                                    errorResponse: android.webkit.WebResourceResponse?
+                                ) {
+                                    if (request?.isForMainFrame == true && (errorResponse?.statusCode ?: 200) >= 400) {
+                                        isWebViewLoading = false
+                                        hasWebViewError = true
+                                    } else if (request?.isForMainFrame == false && (errorResponse?.statusCode ?: 200) >= 400) {
+                                        isUsingProceduralFallback = true
+                                        fallbackReason = "A companion resource could not be loaded"
+                                    }
                                 }
                             }
 
@@ -384,7 +460,7 @@ fun ThreeJsSpatialCompanion(
                                 false
                             }
 
-                            loadUrl("file:///android_asset/three3d/index.html")
+                            loadUrl(SPATIAL_COMPANION_URL)
                             controller.webViewRef = this
                         }
                     },
@@ -405,14 +481,9 @@ fun ThreeJsSpatialCompanion(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                tint = if (isDark) PrimaryAccentLime else OklchIndigo,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            Icon(Icons.Default.Refresh, contentDescription = null, tint = InkSecondary, modifier = Modifier.size(16.dp))
                             Text(
-                                text = "Loading Spatial Engine...",
+                                text = "Loading companion…",
                                 style = TextStyle(
                                     fontFamily = SFProFontFamily,
                                     fontSize = 11.sp,
@@ -435,22 +506,63 @@ fun ThreeJsSpatialCompanion(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(
-                                text = "Spatial Companion Ready",
-                                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-                            )
-                            LiquidGlassButton(
-                                onClick = { controller.webViewRef?.reload() },
-                                shape = RoundedCornerShape(8.dp)
+                            Icon(Icons.Default.Favorite, contentDescription = null, tint = InkSecondary, modifier = Modifier.size(22.dp))
+                            Text("Companion unavailable", style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary))
+                            LiquidGlassIconButton(
+                                onClick = {
+                                    hasWebViewError = false
+                                    isWebViewLoading = true
+                                    controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
+                                },
+                                contentDescription = "Retry spatial companion",
+                                size = 48.dp
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(12.dp))
-                                    Text("Reload", fontSize = 11.sp)
-                                }
+                                Icon(Icons.Default.Refresh, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(18.dp))
                             }
+                        }
+                    }
+                }
+
+                if (
+                    isUsingProceduralFallback && !hasWebViewError && !isWebViewLoading &&
+                    fallbackReason != "The 3D model could not be loaded"
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(if (isDark) Color(0xF0101010) else Color(0xF2FFFFFF))
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(Icons.Default.Favorite, contentDescription = null, tint = InkSecondary, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Companion preview", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                            Text("Interactive model unavailable", fontSize = 10.sp, color = InkSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        LiquidGlassIconButton(
+                            onClick = {
+                                isWebViewLoading = true
+                                controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
+                            },
+                            contentDescription = "Retry companion model. $fallbackReason",
+                            size = 48.dp
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                } else if (isUsingProceduralFallback && !hasWebViewError && !isWebViewLoading) {
+                    Box(Modifier.align(Alignment.BottomEnd).padding(4.dp)) {
+                        LiquidGlassIconButton(
+                            onClick = {
+                                isWebViewLoading = true
+                                controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
+                            },
+                            contentDescription = "Retry companion model",
+                            size = 48.dp
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -498,7 +610,7 @@ fun ThreeJsSpatialCompanion(
                         VibrationHelper.tick(context)
                         SoundManager.playTaskComplete(context)
                         controller.triggerCelebration(TaskPriority.MEDIUM, 1)
-                        interactionToast = "Happy Companion!"
+                        interactionToast = "Petted"
                         coroutineScope.launch {
                             delay(2000)
                             interactionToast = null
@@ -551,7 +663,7 @@ fun ThreeJsSpatialCompanion(
                     }
                 ) {
                     Text(
-                        text = if (isFocusModeActive) "Focusing" else "Focus Core",
+                        text = if (isFocusModeActive) "Focusing" else "Focus",
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
@@ -582,7 +694,7 @@ fun ThreeJsSpatialCompanion(
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
-                            tint = OklchIndigo,
+                            tint = InkSecondary,
                             modifier = Modifier.size(13.dp)
                         )
                     }

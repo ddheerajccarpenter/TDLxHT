@@ -48,8 +48,13 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.ui.components.liquidGlassLens
+import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.LocalAppColors
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.exp
@@ -141,9 +146,8 @@ fun LiquidGlassPillSwitcher(
             }
         }
 
-        // Neutral glass selection lens; spectral light stays confined to the corners.
+        // Floating liquid lens matching the bottom navigation dock pill
         val pillShape = RoundedCornerShape(percent = 50)
-        val pillFill = if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.06f)
         val pillWidthDp = with(density) { pillWidthPx.toDp() }
         val shadowSpot = Color.Black.copy(alpha = 0.30f)
         val shadowAmbient = Color.Black.copy(alpha = 0.10f)
@@ -161,50 +165,20 @@ fun LiquidGlassPillSwitcher(
                     val liftScale = 1f + LIFT_SCALE * liftValue
                     scaleX = stretch * liftScale
                     scaleY = liftScale
-                    shadowElevation = 14.dp.toPx() * liftValue
+                    shadowElevation = 10.dp.toPx() * liftValue
                     spotShadowColor = shadowSpot
                     ambientShadowColor = shadowAmbient
                     shape = pillShape
                     clip = true
                 }
-                .background(pillFill, pillShape)
-                .liquidGlassRim(pillShape, isDark, 1.dp),
+                .liquidGlassLens(shape = pillShape, borderWidth = 0.75.dp, isDark = isDark)
         )
 
-        // ---- 標籤層（Android 13+ 掛藥丸透鏡：文字經過玻璃被放大、邊緣拉伸＋真色散）----
-        val lensShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            remember { RuntimeShader(PILL_LENS_SHADER) }
-        } else {
-            null
-        }
-        val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
-            Modifier.graphicsLayer {
-                val l = leftEdge.value
-                val r = rightEdge.value
-                val liftValue = lift.value
-                val liftScale = 1f + LIFT_SCALE * liftValue
-                val stretch = ((r - l) / pillWidthPx).coerceIn(0.75f, 1.5f)
-                lensShader.setFloatUniform("uCenter", (l + r) / 2f, size.height / 2f)
-                lensShader.setFloatUniform(
-                    "uHalf",
-                    pillWidthPx / 2f * stretch * liftScale,
-                    size.height / 2f * liftScale,
-                )
-                // Preserve a restrained lens response without a full-surface color fringe.
-                lensShader.setFloatUniform("uZoom", 0.10f + 0.22f * liftValue)
-                lensShader.setFloatUniform("uChroma", 0.03f * liftValue)
-                renderEffect = RenderEffect
-                    .createRuntimeShaderEffect(lensShader, "content")
-                    .asComposeRenderEffect()
-            }
-        } else {
-            Modifier
-        }
+        // ---- Text Label Row (crisp typography, zero lens distortion tearing) ----
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .zIndex(1f)
-                .then(lensModifier),
+                .zIndex(1f),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -214,6 +188,7 @@ fun LiquidGlassPillSwitcher(
                     selected = index == selectedIndex,
                     pressed = index == pressedIndex && !dragging,
                     onSelect = { onSelect(index) },
+                    isDark = isDark,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -284,15 +259,16 @@ private fun SwitcherItem(
     selected: Boolean,
     pressed: Boolean,
     onSelect: () -> Unit,
+    isDark: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val contentColor = if (selected) {
-        MaterialTheme.colorScheme.primary
+        if (isDark) Color.White else Color(0xFF111113)
     } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
+        if (isDark) Color.White.copy(alpha = 0.60f) else Color(0xFF111113).copy(alpha = 0.55f)
     }
     val pressScale by animateFloatAsState(
-        targetValue = if (pressed) 0.88f else 1f,
+        targetValue = if (pressed) 0.92f else 1f,
         animationSpec = spring(dampingRatio = 0.55f, stiffness = 700f),
         label = "switcher-item-press-scale",
     )
@@ -317,9 +293,12 @@ private fun SwitcherItem(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = contentColor,
+            style = TextStyle(
+                fontFamily = SFProFontFamily,
+                fontSize = 13.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = contentColor
+            ),
             maxLines = 1,
         )
     }

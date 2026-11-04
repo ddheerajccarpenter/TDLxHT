@@ -636,7 +636,7 @@ private fun MessageBanner(
         val isDark = LocalAppColors.current.isDark
 
         val bgColor = if (isError) {
-            if (isDark) Color(0x2E8C5252) else Color(0x1F8C5252)
+            if (isDark) Color(0x2E777777) else Color(0x1F777777)
         } else {
             CardBackground
         }

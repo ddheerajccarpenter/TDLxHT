@@ -27,6 +27,7 @@ secretsGradlePlugin = "2.0.1"
 supabaseBom = "3.1.4"
 ktor = "3.1.2"
 haze = "1.7.2"
+androidxWebkit = "1.18.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -68,6 +69,7 @@ ktor-android = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "
 ktor-serialization = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.8.0" }
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "androidxWebkit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

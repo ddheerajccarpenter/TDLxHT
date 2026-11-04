@@ -161,10 +161,8 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 
 /**
- * Textured base canvas adhering to the #080813 Black Iris & #E4FD97 material design.
- * Provides a 75-80% dominant solid base color (#080813 in Dark Mode) enriched with a
- * broad, very subtle (20% intensity maximum) material depth and soft tonal graduation.
- * Zero noise, zero grain, zero repeating tiles, and 100% GPU-efficient.
+ * Flat monochrome base canvas: pure black in dark mode and white in light mode.
+ * Glass surfaces provide depth separately from the page background.
  */
 @Composable
 fun Modifier.paperDotBackground(): Modifier {
@@ -1111,7 +1109,7 @@ fun GlassMenuItem(
           fontSize = 15.sp,
           fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
           color = when {
-            destructive -> Color(0xFFE05D5D)
+            destructive -> AccentRed
             checked -> InkPrimary
             else -> InkSecondary
           }

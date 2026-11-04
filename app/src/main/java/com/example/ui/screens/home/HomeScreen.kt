@@ -33,15 +33,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.activity.compose.BackHandler
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Job
@@ -89,17 +84,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -175,11 +165,6 @@ fun HomeScreen(
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val searchFocusRequester = remember { FocusRequester() }
-  val keyboardController = LocalSoftwareKeyboardController.current
-  val focusManager = LocalFocusManager.current
-  var isSearchExpanded by remember { mutableStateOf(false) }
-  var searchQuery by remember { mutableStateOf("") }
   val spatialController = rememberSpatialCompanionController()
   val settings by viewModel.settings.collectAsStateWithLifecycle()
   val todayTasksViewMode by AppPreferences.todayTasksViewMode.collectAsStateWithLifecycle()
@@ -257,40 +242,6 @@ fun HomeScreen(
     }
   }
 
-  val closeSearch = {
-    keyboardController?.hide()
-    focusManager.clearFocus()
-    searchQuery = ""
-    isSearchExpanded = false
-  }
-
-  LaunchedEffect(isSearchExpanded) {
-    if (isSearchExpanded) {
-      searchFocusRequester.requestFocus()
-      keyboardController?.show()
-    }
-  }
-
-  BackHandler(enabled = isSearchExpanded, onBack = closeSearch)
-
-  val normalizedSearchQuery = searchQuery.trim().lowercase(Locale.getDefault())
-  val matchingSearchTasks = remember(tasks, normalizedSearchQuery) {
-    if (normalizedSearchQuery.isEmpty()) emptyList() else tasks.filter { task ->
-      task.title.lowercase(Locale.getDefault()).contains(normalizedSearchQuery) ||
-        task.notes.lowercase(Locale.getDefault()).contains(normalizedSearchQuery) ||
-        task.category.lowercase(Locale.getDefault()).contains(normalizedSearchQuery) ||
-        task.tags.any { it.lowercase(Locale.getDefault()).contains(normalizedSearchQuery) }
-    }
-  }
-  val matchingSearchHabits = remember(habits, normalizedSearchQuery) {
-    if (normalizedSearchQuery.isEmpty()) emptyList() else habits.filter { habit ->
-      !habit.isArchived && (
-        habit.name.lowercase(Locale.getDefault()).contains(normalizedSearchQuery) ||
-          habit.description.lowercase(Locale.getDefault()).contains(normalizedSearchQuery) ||
-          habit.category.lowercase(Locale.getDefault()).contains(normalizedSearchQuery)
-        )
-    }
-  }
 
   Box(
     modifier = modifier
@@ -301,165 +252,12 @@ fun HomeScreen(
       state = listState,
       modifier = Modifier
         .fillMaxSize()
-        .padding(horizontal = 16.dp)
-        .then(if (isSearchExpanded) Modifier.imePadding() else Modifier),
+        .padding(horizontal = 16.dp),
       contentPadding = PaddingValues(
         top = 10.dp,
-        bottom = if (isSearchExpanded) 24.dp else FloatingNavContentBottomPadding
+        bottom = FloatingNavContentBottomPadding
       )
     ) {
-      if (isSearchExpanded) {
-        item(key = "home-search-field") {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-          ) {
-            LiquidGlassIconButton(
-              onClick = closeSearch,
-              contentDescription = "Close search",
-              size = 48.dp,
-              modifier = Modifier.testTag("home_search_close_button")
-            ) {
-              Icon(Icons.Default.Close, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(20.dp))
-            }
-
-            LiquidGlassCard(
-              modifier = Modifier.weight(1f).height(58.dp),
-              shape = RoundedCornerShape(18.dp)
-            ) {
-              Row(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-              ) {
-                Icon(Icons.Default.Search, contentDescription = null, tint = InkMuted, modifier = Modifier.size(21.dp))
-                BasicTextField(
-                  value = searchQuery,
-                  onValueChange = { searchQuery = it },
-                  modifier = Modifier.weight(1f).focusRequester(searchFocusRequester).testTag("home_inline_search_input"),
-                  singleLine = true,
-                  textStyle = TextStyle(
-                    fontFamily = SFProFontFamily,
-                    fontSize = 18.sp,
-                    color = InkPrimary
-                  ),
-                  cursorBrush = SolidColor(InkPrimary),
-                  keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                  keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
-                  decorationBox = { innerTextField ->
-                    Box {
-                      if (searchQuery.isEmpty()) {
-                        Text(
-                          "Search tasks, habits, notes...",
-                          style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, color = InkMuted),
-                          maxLines = 1,
-                          overflow = TextOverflow.Ellipsis
-                        )
-                      }
-                      innerTextField()
-                    }
-                  }
-                )
-                if (searchQuery.isNotEmpty()) {
-                  IconButton(onClick = { searchQuery = "" }) {
-                    Icon(Icons.Default.Close, contentDescription = "Clear search", tint = InkMuted)
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (normalizedSearchQuery.isEmpty()) {
-          item(key = "home-search-hint") {
-            Column(modifier = Modifier.fillMaxWidth().padding(start = 6.dp, top = 24.dp, end = 6.dp)) {
-              Text(
-                "Search your day",
-                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 21.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-              )
-              Spacer(Modifier.height(6.dp))
-              Text(
-                "Find tasks by title, note, category, or tag, and habits by name.",
-                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkSecondary)
-              )
-            }
-          }
-        } else {
-          val totalResults = matchingSearchTasks.size + matchingSearchHabits.size
-          item(key = "home-search-result-count") {
-            Row(
-              modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 20.dp, bottom = 8.dp),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-              Text("Results", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary))
-              Text("$totalResults found", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = InkMuted))
-            }
-          }
-
-          if (totalResults == 0) {
-            item(key = "home-search-no-results") {
-              AppEmptyState(
-                icon = Icons.Default.Search,
-                title = "No matching items",
-                subtitle = "Try another title, note, tag, or habit name.",
-                modifier = Modifier.padding(top = 20.dp)
-              )
-            }
-          } else {
-            if (matchingSearchTasks.isNotEmpty()) {
-              item(key = "home-search-tasks-heading") {
-                Text(
-                  "Tasks",
-                  modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 4.dp),
-                  style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkSecondary)
-                )
-              }
-              items(matchingSearchTasks, key = { "search-task-${it.id}" }) { task ->
-                val subtasks = viewModel.getSubtasksForTask(task.id)
-                TaskItemCard(
-                  task = task,
-                  subtasksCount = subtasks.size,
-                  subtasksDone = subtasks.count { it.isCompleted },
-                  is24Hour = settings.timeFormat24Hour,
-                  onToggle = { handleTaskToggle(task) },
-                  onClick = { onTaskClick(task) },
-                  onDelete = { taskToDelete = task },
-                  modifier = Modifier.padding(vertical = 4.dp)
-                )
-              }
-            }
-
-            if (matchingSearchHabits.isNotEmpty()) {
-              item(key = "home-search-habits-heading") {
-                Text(
-                  "Habits",
-                  modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp),
-                  style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkSecondary)
-                )
-              }
-              items(matchingSearchHabits, key = { "search-habit-${it.id}" }) { habit ->
-                val habitStreak = viewModel.getHabitStreak(habit)
-                HabitItemCard(
-                  habit = habit,
-                  isCompleted = completedHabitIds.contains(habit.id),
-                  currentSessions = todayHabitRecords[habit.id]?.currentValue?.toInt() ?: 0,
-                  streakDays = habitStreak.currentStreak,
-                  onToggle = {
-                    viewModel.toggleHabitToday(habit.id)
-                    com.example.util.SoundManager.playHabitTick(context)
-                    com.example.util.HapticManager.sliderSnap(context)
-                  },
-                  onClick = { onHabitClick(habit) },
-                  onDelete = { habitToDelete = habit },
-                  modifier = Modifier.padding(vertical = 4.dp)
-                )
-              }
-            }
-          }
-        }
-      } else {
       // Standardized Top Header
       item {
         AppHeader(
@@ -1512,7 +1310,6 @@ fun HomeScreen(
       }
       } // end HABIT_STREAKS
       } // end else (!isDashboardEditMode)
-      }
     }
 
     // Task Delete Confirmation Dialog
