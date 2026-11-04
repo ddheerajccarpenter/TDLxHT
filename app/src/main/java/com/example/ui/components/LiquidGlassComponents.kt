@@ -76,6 +76,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -184,12 +189,13 @@ fun LiquidGlassCard(
   val isDark = LocalAppColors.current.isDark
   val ambientHazeState = hazeState ?: LocalHazeState.current
   val clickModifier = if (onClick != null) {
-    Modifier.bounceClick(onClick = onClick)
+    Modifier.bounceClick(shine = true, onClick = onClick)
   } else Modifier
 
   if (ambientHazeState != null && shape is RoundedCornerShape) {
     Box(
       modifier = modifier
+        .clip(shape)
         .then(clickModifier)
     ) {
       LiquidGlassBackdrop(
@@ -288,7 +294,7 @@ fun LiquidGlassSegmentedControl(
   Box(
     modifier = modifier
       .fillMaxWidth()
-      .height(42.dp)
+      .height(48.dp)
       .liquidGlassCapsule(shape = RoundedCornerShape(percent = 50), borderWidth = 0.85.dp, isDark = isDark)
       .padding(3.dp)
   ) {
@@ -317,7 +323,7 @@ fun LiquidGlassButton(
   val isDark = LocalAppColors.current.isDark
   Box(
     modifier = modifier
-      .defaultMinSize(minHeight = 44.dp)
+      .defaultMinSize(minHeight = 48.dp)
       .liquidGlassSurface(
         shape = shape,
         borderWidth = 0.75.dp,
@@ -328,8 +334,7 @@ fun LiquidGlassButton(
         specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
         specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
       )
-      .bounceClick {
-        VibrationHelper.click(context)
+      .bounceClick(shine = true) {
         onClick()
       }
       .padding(horizontal = 14.dp, vertical = 10.dp),
@@ -356,7 +361,7 @@ fun LiquidGlassIconButton(
   onClick: () -> Unit,
   contentDescription: String?,
   modifier: Modifier = Modifier,
-  size: Dp = 44.dp,
+  size: Dp = 48.dp,
   shape: Shape = CircleShape,
   icon: @Composable () -> Unit
 ) {
@@ -364,7 +369,7 @@ fun LiquidGlassIconButton(
   val isDark = LocalAppColors.current.isDark
   Box(
     modifier = modifier
-      .size(size)
+      .size(size.coerceAtLeast(48.dp))
       .liquidGlassSurface(
         shape = shape,
         borderWidth = 0.75.dp,
@@ -375,8 +380,7 @@ fun LiquidGlassIconButton(
         specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
         specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
       )
-      .bounceClick {
-        VibrationHelper.click(context)
+      .bounceClick(shine = true) {
         onClick()
       },
     contentAlignment = Alignment.Center
@@ -465,7 +469,7 @@ fun LiquidGlassNavigationDock(
 
   Box(
     modifier = modifier
-      .height(60.dp)
+      .height(64.dp)
       .graphicsLayer {
         scaleX = dockScale
         scaleY = dockScale
@@ -558,28 +562,6 @@ fun LiquidGlassNavigationDock(
                   )
                 }
               }
-            } else {
-              val tappedSlot = (down.position.x / slotWidth).toInt().coerceIn(0, totalSlots - 1)
-              if (hasCenterFab && tappedSlot == 2) {
-                VibrationHelper.click(context)
-                com.example.util.SoundManager.playButtonClick(context)
-                onQuickAdd?.invoke()
-              } else {
-                val tappedTab = tabForSlotIndex(tappedSlot)
-                if (tappedTab != null) {
-                  VibrationHelper.tick(context)
-                  com.example.util.SoundManager.playSwipeNav(context)
-                  onDestinationSelected(destinations[tappedTab])
-                  val targetSlot = slotIndexForTab(tappedTab)
-                  coroutineScope.launch {
-                    val selectedX = slotWidth * (targetSlot + 0.5f)
-                    if (reduceMotion) indicatorX.snapTo(selectedX) else indicatorX.animateTo(
-                      selectedX,
-                      spring(dampingRatio = 0.75f, stiffness = 400f)
-                    )
-                  }
-                }
-              }
             }
           }
         },
@@ -587,13 +569,13 @@ fun LiquidGlassNavigationDock(
     ) {
       // 1. Sliding Curved Optical Glass Lens
       if (slotWidth > 0f) {
-        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 44.dp.toPx() })
+        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 46.dp.toPx() })
         val capsuleWidthDp = with(density) { capsuleWidthPx.toDp() }
 
         Box(
           modifier = Modifier
             .width(capsuleWidthDp)
-            .height(44.dp)
+            .height(46.dp)
             .graphicsLayer {
               translationX = indicatorX.value - (capsuleWidthPx / 2f)
             }
@@ -607,7 +589,7 @@ fun LiquidGlassNavigationDock(
       } else null
 
       val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && slotWidth > 0f) {
-        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 44.dp.toPx() })
+        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 46.dp.toPx() })
         Modifier.graphicsLayer {
           lensShader.setFloatUniform("uCenter", indicatorX.value, size.height / 2f)
           lensShader.setFloatUniform(
@@ -635,7 +617,6 @@ fun LiquidGlassNavigationDock(
             destination = destinations[0],
             isSelected = selectedTab == 0,
             onClick = {
-              VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               onDestinationSelected(destinations[0])
             },
@@ -646,7 +627,6 @@ fun LiquidGlassNavigationDock(
             destination = destinations[1],
             isSelected = selectedTab == 1,
             onClick = {
-              VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               onDestinationSelected(destinations[1])
             },
@@ -658,11 +638,11 @@ fun LiquidGlassNavigationDock(
               .weight(1f)
               .fillMaxHeight()
               .testTag("nav_center_fab")
-              .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-              ) {
-                VibrationHelper.click(context)
+              .semantics {
+                role = Role.Button
+                contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create"
+              }
+              .bounceClick(shine = true) {
                 com.example.util.SoundManager.playButtonClick(context)
                 onQuickAdd?.invoke()
               },
@@ -670,13 +650,13 @@ fun LiquidGlassNavigationDock(
           ) {
             Box(
               modifier = Modifier
-                .size(44.dp)
+                .size(48.dp)
                 .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark),
               contentAlignment = Alignment.Center
             ) {
               Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create",
+                contentDescription = null,
                 tint = if (isDark) Color(0xFFF5F5F7) else Color(0xFF1E2022),
                 modifier = Modifier
                   .size(22.dp)
@@ -689,7 +669,6 @@ fun LiquidGlassNavigationDock(
             destination = destinations[2],
             isSelected = selectedTab == 2,
             onClick = {
-              VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               onDestinationSelected(destinations[2])
             },
@@ -700,7 +679,6 @@ fun LiquidGlassNavigationDock(
             destination = destinations[3],
             isSelected = selectedTab == 3,
             onClick = {
-              VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               onDestinationSelected(destinations[3])
             },
@@ -712,7 +690,6 @@ fun LiquidGlassNavigationDock(
               destination = destination,
               isSelected = selectedTab == index,
               onClick = {
-                VibrationHelper.tick(context)
                 com.example.util.SoundManager.playSwipeNav(context)
                 onDestinationSelected(destination)
               },
@@ -755,9 +732,14 @@ fun LiquidGlassNavItem(
     modifier = modifier
       .fillMaxHeight()
       .testTag("nav_${destination.name.lowercase()}")
-      .clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null,
+      .semantics(mergeDescendants = true) {
+        role = Role.Tab
+        selected = isSelected
+        contentDescription = destination.label
+      }
+      .bounceClick(
+        level = com.example.ui.components.InteractionLevel.MINIMAL,
+        shine = true,
         onClick = onClick
       ),
     contentAlignment = Alignment.Center
@@ -798,8 +780,7 @@ fun LiquidGlassFloatingActionButton(
     modifier = modifier
       .size(54.dp)
       .liquidGlassLens(shape = CircleShape, borderWidth = 0.85.dp, isDark = isDark)
-      .bounceClick {
-        VibrationHelper.click(context)
+      .bounceClick(shine = true) {
         com.example.util.SoundManager.playButtonClick(context)
         onClick()
       }

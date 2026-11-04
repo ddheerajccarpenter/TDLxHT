@@ -9,9 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -30,21 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.data.model.Habit
 import com.example.data.model.Task
-import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.isReducedMotionEnabled
 import com.example.ui.components.paperDotBackground
 import com.example.ui.navigation.horizontalSwipeNavigation
 import com.example.ui.screens.calendar.CalendarScreen
 import com.example.ui.screens.habits.HabitListScreen
 import com.example.ui.screens.tasks.TaskListScreen
-import com.example.ui.theme.CardBorder
-import com.example.ui.theme.PrimaryDarkCanvas
 import com.example.ui.viewmodel.MainViewModel
 
 @Composable
@@ -59,13 +51,12 @@ fun ProductivityScreen(
   modifier: Modifier = Modifier
 ) {
   var selectedTab by remember { mutableIntStateOf(0) } // 0: Tasks, 1: Habits, 2: Calendar
+  val context = LocalContext.current
+  val reduceMotion = remember { isReducedMotionEnabled(context) }
 
   BackHandler(enabled = selectedTab > 0) {
     selectedTab = 0
   }
-
-  val isDark = com.example.ui.theme.LocalAppColors.current.isDark
-  val separatorColor = if (isDark) Color.White.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.12f)
 
   Box(
     modifier = modifier
@@ -92,7 +83,9 @@ fun ProductivityScreen(
     AnimatedContent(
       targetState = selectedTab,
       transitionSpec = {
-        if (targetState > initialState) {
+        if (reduceMotion) {
+          fadeIn(animationSpec = tween(80)) togetherWith fadeOut(animationSpec = tween(80))
+        } else if (targetState > initialState) {
           (slideInHorizontally { (it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
             (slideOutHorizontally { (-it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
         } else {
@@ -139,7 +132,7 @@ fun ProductivityScreen(
         .windowInsetsPadding(WindowInsets.navigationBars),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      // 1. Productivity Tab Nav Bar (Tasks | Habits | Calendar) positioned directly above the nav bar - Canonical Liquid Glass
+      // Secondary productivity tabs sit just above the fixed main dock.
       LiquidGlassSegmentedControl(
         items = listOf("Tasks", "Habits", "Calendar"),
         selectedIndex = selectedTab,
@@ -149,19 +142,7 @@ fun ProductivityScreen(
           .padding(horizontal = 16.dp)
       )
 
-      Spacer(modifier = Modifier.height(8.dp))
-
-      // 2. Center-strong, edge-fading separator line BETWEEN productivity tab nav and main bottom nav
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp)
-          .height(1.dp)
-          .background(separatorColor)
-      )
-
-      // 3. Clearance space matching the floating main navigation bar
-      Spacer(modifier = Modifier.height(FloatingNavContentBottomPadding))
+      Spacer(modifier = Modifier.height(76.dp))
     }
   }
 }

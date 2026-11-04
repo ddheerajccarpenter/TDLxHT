@@ -115,7 +115,6 @@ import com.example.ui.theme.InkWashCharcoalSurface
 import com.example.ui.theme.InkWashIvoryCard
 import com.example.ui.theme.InkWashCharcoalDeep
 import com.example.ui.theme.InkWashIvoryPaper
-import com.example.util.VibrationHelper
 import com.example.ui.components.FloatingNavContentBottomPadding
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -433,7 +432,7 @@ fun ToolsScreen(
                       val currentIndex = filteredTools.indexOf(tool)
                       Box(
                         modifier = Modifier
-                          .size(32.dp)
+                          .size(48.dp)
                           .border(1.dp, CardBorder, CircleShape)
                           .clip(CircleShape)
                           .bounceClick(enabled = currentIndex > 0) {
@@ -460,7 +459,7 @@ fun ToolsScreen(
 
                       Box(
                         modifier = Modifier
-                          .size(32.dp)
+                          .size(48.dp)
                           .border(1.dp, CardBorder, CircleShape)
                           .clip(CircleShape)
                           .bounceClick(enabled = currentIndex < filteredTools.size - 1) {
@@ -488,7 +487,7 @@ fun ToolsScreen(
                   } else {
                     Box(
                       modifier = Modifier
-                        .size(36.dp)
+                        .size(48.dp)
                         .bounceClick {
                           AppPreferences.toggleToolFavorite(context, tool.id)
                         },
@@ -944,7 +943,7 @@ fun ToolRunnerModal(
                 if (onCreateTaskFromResult != null && result.primaryValue != "—" && result.primaryValue != "Ready" && result.primaryValue != "Invalid Input") {
                   Box(
                     modifier = Modifier
-                      .height(38.dp)
+                      .height(48.dp)
                       .background(InkPrimary.copy(alpha = 0.08f), CircleShape)
                       .border(1.dp, CardBorder, CircleShape)
                       .clip(CircleShape)
@@ -979,14 +978,13 @@ fun ToolRunnerModal(
                 // Copy Button
                 Box(
                   modifier = Modifier
-                    .size(38.dp)
+                    .size(48.dp)
                     .background(AccentTerracotta, CircleShape)
                     .clip(CircleShape)
                     .bounceClick {
                       val clip = ClipData.newPlainText("Tool Result", "${result.primaryLabel}: ${result.primaryValue}")
                       val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                       cm.setPrimaryClip(clip)
-                      VibrationHelper.click(context)
                       Toast.makeText(context, "Copied ${result.primaryValue}", Toast.LENGTH_SHORT).show()
                     },
                   contentAlignment = Alignment.Center

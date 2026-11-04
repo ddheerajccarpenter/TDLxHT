@@ -477,7 +477,7 @@ fun TaskDetailEditScreen(
                 Box(
                   modifier = Modifier
                     .weight(1f)
-                    .height(34.dp)
+                    .height(48.dp)
                     .border(1.2.dp, pBorder, RoundedCornerShape(8.dp))
                     .clip(RoundedCornerShape(8.dp))
                     .background(pBg)
@@ -532,7 +532,7 @@ fun TaskDetailEditScreen(
                 )
                 Box(
                   modifier = Modifier
-                    .height(34.dp)
+                    .height(48.dp)
                     .border(1.2.dp, rBorder, RoundedCornerShape(8.dp))
                     .clip(RoundedCornerShape(8.dp))
                     .background(rBg)
@@ -643,6 +643,7 @@ fun TaskDetailEditScreen(
                       displayMonth = YearMonth.now()
                       selectedDate = LocalDate.now()
                     }
+                    .height(48.dp)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                   Text(
@@ -655,7 +656,7 @@ fun TaskDetailEditScreen(
               Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Box(
                   modifier = Modifier
-                    .size(30.dp)
+                    .size(48.dp)
                     .border(1.2.dp, CardBorder, RoundedCornerShape(6.dp))
                     .clip(RoundedCornerShape(6.dp))
                     .bounceClick(scaleDown = 0.90f) { displayMonth = displayMonth.minusMonths(1) },
@@ -671,7 +672,7 @@ fun TaskDetailEditScreen(
 
                 Box(
                   modifier = Modifier
-                    .size(30.dp)
+                    .size(48.dp)
                     .border(1.2.dp, CardBorder, RoundedCornerShape(6.dp))
                     .clip(RoundedCornerShape(6.dp))
                     .bounceClick(scaleDown = 0.90f) { displayMonth = displayMonth.plusMonths(1) },
@@ -742,7 +743,8 @@ fun TaskDetailEditScreen(
 
                   Box(
                     modifier = Modifier
-                      .size(34.dp)
+                      .width(36.dp)
+                      .height(48.dp)
                       .clip(CircleShape)
                       .bounceClick(scaleDown = 0.90f) {
                         selectedDate = cellDate

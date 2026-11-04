@@ -16,7 +16,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import com.example.R
 import com.example.util.AppPreferences
@@ -297,7 +296,7 @@ fun SettingsScreen(
             Box(
               modifier = Modifier
                 .weight(1f)
-                .height(40.dp)
+                .height(48.dp)
                 .fluidLensedGlass(
                   shape = RoundedCornerShape(10.dp),
                   elevation = 2.dp,
@@ -328,7 +327,7 @@ fun SettingsScreen(
             Box(
               modifier = Modifier
                 .weight(1f)
-                .height(40.dp)
+                .height(48.dp)
                 .fluidLensedGlass(
                   shape = RoundedCornerShape(10.dp),
                   elevation = 1.dp,
@@ -378,7 +377,7 @@ fun SettingsScreen(
                 Box(
                   modifier = Modifier
                     .weight(1f)
-                    .height(38.dp)
+                    .height(48.dp)
                     .then(
                       if (isSelected) {
                         Modifier.fluidLensedGlass(
@@ -390,7 +389,6 @@ fun SettingsScreen(
                           onClick = {
                             com.example.util.AppPreferences.setThemeMode(context, mode)
                             viewModel.updateSettings(settings.copy(themeMode = mode))
-                            VibrationHelper.tick(context)
                           }
                         )
                       } else {
@@ -400,7 +398,6 @@ fun SettingsScreen(
                           .bounceClick(level = InteractionLevel.MICRO) {
                             com.example.util.AppPreferences.setThemeMode(context, mode)
                             viewModel.updateSettings(settings.copy(themeMode = mode))
-                            VibrationHelper.tick(context)
                           }
                       }
                     )
@@ -826,9 +823,6 @@ fun SettingsScreen(
               checked = vibrations,
               onCheckedChange = { checked ->
                 AppPreferences.setVibrationsEnabled(context, checked)
-                if (checked) {
-                  VibrationHelper.click(context)
-                }
               }
             )
 
@@ -879,7 +873,7 @@ fun SettingsScreen(
                     Box(
                       modifier = Modifier
                         .weight(1f)
-                        .height(34.dp)
+                        .height(48.dp)
                         .clip(InnerCornerShape)
                         .border(1.dp, CardBorder, InnerCornerShape)
                         .bounceClick { playAction() },
@@ -937,13 +931,12 @@ fun SettingsScreen(
                     Box(
                       modifier = Modifier
                         .weight(1f)
-                        .height(34.dp)
+                        .height(48.dp)
                         .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
                         .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
                         .bounceClick {
                           AppPreferences.setShakeAction(context, actionKey)
-                          VibrationHelper.tick(context)
                         },
                       contentAlignment = Alignment.Center
                     ) {
@@ -977,13 +970,12 @@ fun SettingsScreen(
                       Box(
                         modifier = Modifier
                           .weight(1f)
-                          .height(32.dp)
+                          .height(48.dp)
                           .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
                         .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
                         .bounceClick {
                           AppPreferences.setShakeTimerDuration(context, mins)
-                          VibrationHelper.tick(context)
                         },
                         contentAlignment = Alignment.Center
                       ) {
@@ -1036,7 +1028,7 @@ fun SettingsScreen(
               Box(
                 modifier = Modifier
                   .weight(1f)
-                  .height(42.dp)
+                  .height(48.dp)
                   .background(PillBackgroundDark, RoundedCornerShape(10.dp))
                   .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
                   .clip(RoundedCornerShape(10.dp))
@@ -1073,7 +1065,7 @@ fun SettingsScreen(
               Box(
                 modifier = Modifier
                   .weight(1f)
-                  .height(42.dp)
+                  .height(48.dp)
                   .background(CardBackground, RoundedCornerShape(10.dp))
                   .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
                   .clip(RoundedCornerShape(10.dp))
@@ -1135,7 +1127,7 @@ fun SettingsScreen(
           Box(
             modifier = Modifier
               .fillMaxWidth()
-              .clickable { showDeleteAccountDialog = true }
+              .bounceClick { showDeleteAccountDialog = true }
               .padding(16.dp),
             contentAlignment = Alignment.Center
           ) {
@@ -1253,7 +1245,7 @@ fun SettingsScreen(
               )
               Box(
                 modifier = Modifier
-                  .size(32.dp)
+                  .size(48.dp)
                   .border(1.dp, CardBorder, CircleShape)
                   .clip(CircleShape)
                   .background(CardBackground)
@@ -1297,7 +1289,7 @@ fun SettingsScreen(
                   Box(
                     modifier = Modifier
                       .weight(1f)
-                      .height(40.dp)
+                      .height(48.dp)
                       .border(1.2.dp, borderCol, RoundedCornerShape(10.dp))
                       .clip(RoundedCornerShape(10.dp))
                       .background(bg)
@@ -1342,7 +1334,7 @@ fun SettingsScreen(
             Spacer(Modifier.height(20.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
               Box(
-                modifier = Modifier.weight(1f).height(42.dp)
+                modifier = Modifier.weight(1f).height(48.dp)
                   .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
                   .clip(RoundedCornerShape(10.dp))
                   .bounceClick { showLogoutDialog = false },
@@ -1351,7 +1343,7 @@ fun SettingsScreen(
                 Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
               }
               Box(
-                modifier = Modifier.weight(1f).height(42.dp)
+                modifier = Modifier.weight(1f).height(48.dp)
                   .background(AccentRed.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
                   .border(1.2.dp, AccentRed.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                   .clip(RoundedCornerShape(10.dp))
@@ -1380,7 +1372,7 @@ fun SettingsScreen(
             Spacer(Modifier.height(20.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
               Box(
-                modifier = Modifier.weight(1f).height(42.dp)
+                modifier = Modifier.weight(1f).height(48.dp)
                   .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
                   .clip(RoundedCornerShape(10.dp))
                   .bounceClick { showDeleteAccountDialog = false },
@@ -1389,7 +1381,7 @@ fun SettingsScreen(
                 Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
               }
               Box(
-                modifier = Modifier.weight(1f).height(42.dp)
+                modifier = Modifier.weight(1f).height(48.dp)
                   .background(AccentRed, RoundedCornerShape(10.dp))
                   .clip(RoundedCornerShape(10.dp))
                   .bounceClick {

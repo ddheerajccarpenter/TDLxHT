@@ -36,6 +36,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
@@ -86,6 +88,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,6 +112,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -137,6 +141,7 @@ import com.example.ui.theme.InkWashIvoryPaper
 import com.example.ui.theme.InkWashIvoryCard
 
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.material3.HorizontalDivider
@@ -174,13 +179,13 @@ fun Modifier.paperDotBackground(): Modifier {
 
 /**
  * Inset-aware dynamic content bottom clearance for all scrolling screens above the floating navigation dock.
- * Calculates clearance from dock height (60dp), vertical dock padding (12dp), system navigation/gesture inset,
- * and an intentional content clearance gap (48dp) ensuring the bottom-most CTA / card is 100% visible and interactable.
+ * Calculates clearance from the 64dp dock shell, its vertical padding, system gesture inset,
+ * and a content gap so the bottom-most card remains reachable above the glass edge band.
  */
 val FloatingNavContentBottomPadding: Dp
   @Composable get() {
     val navInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    return 60.dp + 12.dp + navInsets + 32.dp
+    return 64.dp + 12.dp + navInsets + 24.dp
   }
 
 /**
@@ -443,10 +448,10 @@ fun Modifier.pulseEntrance(
  * Navigation Items: MINIMAL (0.985f)
  */
 enum class InteractionLevel(val scaleDown: Float, val pressedAlpha: Float) {
-  MICRO(scaleDown = 0.97f, pressedAlpha = 0.94f),
-  SMALL(scaleDown = 0.94f, pressedAlpha = 0.88f),
-  MEDIUM(scaleDown = 0.92f, pressedAlpha = 0.84f),
-  MINIMAL(scaleDown = 0.985f, pressedAlpha = 0.96f)
+  MICRO(scaleDown = 0.985f, pressedAlpha = 0.97f),
+  SMALL(scaleDown = 0.975f, pressedAlpha = 0.96f),
+  MEDIUM(scaleDown = 0.96f, pressedAlpha = 0.94f),
+  MINIMAL(scaleDown = 0.99f, pressedAlpha = 0.98f)
 }
 
 /**
@@ -483,6 +488,7 @@ fun Modifier.shimmerBadge(
 fun Modifier.bounceClick(
   level: InteractionLevel = InteractionLevel.SMALL,
   scaleDown: Float = level.scaleDown,
+  shine: Boolean = true,
   enabled: Boolean = true,
   onLongClick: (() -> Unit)? = null,
   onClick: (() -> Unit)? = null
@@ -492,7 +498,7 @@ fun Modifier.bounceClick(
     val context = LocalContext.current
     val isReduced = remember { isReducedMotionEnabled(context) }
     val effectiveScale = if (isReduced) 1.0f else scaleDown
-    val effectiveAlpha = if (isReduced) 0.94f else level.pressedAlpha
+    val effectiveAlpha = level.pressedAlpha
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -503,13 +509,31 @@ fun Modifier.bounceClick(
     )
     val alpha by animateFloatAsState(
       targetValue = if (isPressed) effectiveAlpha else 1f,
-      animationSpec = PhysicalMotionSpecs.TactilePress,
+      animationSpec = if (isReduced) androidx.compose.animation.core.snap() else PhysicalMotionSpecs.TactilePress,
       label = "springAlpha"
+    )
+    val shineAmount by animateFloatAsState(
+      targetValue = if (shine && isPressed) 0.20f else 0f,
+      animationSpec = if (isReduced) androidx.compose.animation.core.snap() else tween(120),
+      label = "glassPressShine"
     )
 
     this
       .scale(scale)
       .alpha(alpha)
+      .drawWithContent {
+        drawContent()
+        if (shineAmount > 0.001f) {
+          drawRect(
+            brush = Brush.linearGradient(
+              colors = listOf(Color.White, Color.White.copy(alpha = 0.3f), Color.Transparent),
+              start = Offset(0f, 0f),
+              end = Offset(size.width, size.height)
+            ),
+            alpha = shineAmount
+          )
+        }
+      }
       .combinedClickable(
         interactionSource = interactionSource,
         indication = null,
@@ -723,7 +747,7 @@ fun UndoConfirmationPill(
         )
         Box(
           modifier = Modifier
-            .bouncyPress(onClick = onUndo)
+            .bounceClick(scaleDown = 0.985f) { onUndo() }
             .background(Color(0x22FFFFFF), CircleShape)
             .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
@@ -750,8 +774,9 @@ fun UndoConfirmationPill(
  */
 @OptIn(ExperimentalFoundationApi::class)
 fun Modifier.elasticStretchPress(
-  horizontalStretch: Float = 1.05f,
-  verticalSquash: Float = 0.93f,
+  horizontalStretch: Float = 1.015f,
+  verticalSquash: Float = 0.99f,
+  shineShape: Shape? = null,
   enabled: Boolean = true,
   onLongClick: (() -> Unit)? = null,
   onClick: (() -> Unit)? = null
@@ -783,9 +808,14 @@ fun Modifier.elasticStretchPress(
       label = "kernScaleY"
     )
     val alpha by animateFloatAsState(
-      targetValue = if (isPressed) 0.88f else 1f,
-      animationSpec = spring(dampingRatio = 0.70f, stiffness = 450f),
+      targetValue = if (isPressed) 0.97f else 1f,
+      animationSpec = if (isReduced) androidx.compose.animation.core.snap() else spring(dampingRatio = 0.75f, stiffness = 560f),
       label = "kernAlpha"
+    )
+    val shineAmount by animateFloatAsState(
+      targetValue = if (isPressed) 0.18f else 0f,
+      animationSpec = if (isReduced) androidx.compose.animation.core.snap() else tween(120),
+      label = "glassElasticPressShine"
     )
 
     this
@@ -793,6 +823,34 @@ fun Modifier.elasticStretchPress(
         this.scaleX = scaleX
         this.scaleY = scaleY
         this.alpha = alpha
+      }
+      .drawWithContent {
+        drawContent()
+        if (shineAmount > 0.001f) {
+          val shine = Brush.linearGradient(
+            colors = listOf(Color.White, Color.White.copy(alpha = 0.28f), Color.Transparent),
+            start = Offset.Zero,
+            end = Offset(size.width, size.height)
+          )
+          if (shineShape != null) {
+            when (val outline = shineShape.createOutline(size, layoutDirection, this)) {
+              is androidx.compose.ui.graphics.Outline.Rectangle ->
+                drawRect(brush = shine, topLeft = outline.rect.topLeft, size = outline.rect.size, alpha = shineAmount)
+              is androidx.compose.ui.graphics.Outline.Rounded ->
+                drawRoundRect(
+                  brush = shine,
+                  topLeft = Offset(outline.roundRect.left, outline.roundRect.top),
+                  size = androidx.compose.ui.geometry.Size(outline.roundRect.width, outline.roundRect.height),
+                  cornerRadius = outline.roundRect.topLeftCornerRadius,
+                  alpha = shineAmount
+                )
+              is androidx.compose.ui.graphics.Outline.Generic ->
+                drawPath(path = outline.path, brush = shine, alpha = shineAmount)
+            }
+          } else {
+            drawRect(brush = shine, alpha = shineAmount)
+          }
+        }
       }
       .combinedClickable(
         interactionSource = interactionSource,
@@ -853,16 +911,18 @@ fun Modifier.fluidLensedGlass(
 
   return this
     .then(hazeModifier)
+    .then(if (isInteractive) Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp) else Modifier)
+    .clip(shape)
     .then(
       if (isInteractive && onClick != null) {
         Modifier.elasticStretchPress(
           horizontalStretch = 1.015f,
           verticalSquash = 0.99f,
+          shineShape = shape,
           onClick = onClick
         )
       } else Modifier
     )
-    .clip(shape)
     .drawBehind {
       drawRect(color = glassFill)
     }
@@ -918,6 +978,7 @@ fun SketchCard(
 
   Box(
     modifier = modifier
+      .defaultMinSize(minHeight = 48.dp)
       .fluidLensedGlass(
         shape = shape,
         elevation = elevation,
@@ -983,6 +1044,7 @@ fun GlassButton(
 ) {
   Box(
     modifier = modifier
+      .defaultMinSize(minHeight = 48.dp)
       .fluidLensedGlass(
         shape = CircleShape,
         elevation = 2.dp,
@@ -1016,12 +1078,12 @@ fun GlassButton(
   onClick: () -> Unit,
   contentDescription: String,
   modifier: Modifier = Modifier,
-  buttonSize: Dp = 40.dp,
+  buttonSize: Dp = 48.dp,
   size: Dp = buttonSize,
   enabled: Boolean = true,
   icon: @Composable () -> Unit
 ) {
-  val resolvedSize = if (size != 40.dp) size else buttonSize
+  val resolvedSize = (if (size != 40.dp) size else buttonSize).coerceAtLeast(48.dp)
   Box(
     modifier = modifier
       .size(resolvedSize)
@@ -1090,7 +1152,8 @@ fun GlassMenuItem(
     modifier = modifier
       .fillMaxWidth()
       .clip(RoundedCornerShape(10.dp))
-      .bounceClick { onSelect() }
+      .defaultMinSize(minHeight = 48.dp)
+      .bounceClick(shine = true) { onSelect() }
       .padding(horizontal = 12.dp, vertical = 10.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
@@ -1165,6 +1228,9 @@ fun GlassSwitch(
   val isDark = LocalAppColors.current.isDark
   val context = LocalContext.current
   val density = LocalDensity.current
+  val reduceMotion = remember { isReducedMotionEnabled(context) }
+  val interactionSource = remember { MutableInteractionSource() }
+  val isPressed by interactionSource.collectIsPressedAsState()
 
   val trackWidth = 50.dp
   val trackHeight = 28.dp
@@ -1176,7 +1242,7 @@ fun GlassSwitch(
 
   val animatedOffset by animateFloatAsState(
     targetValue = targetOffset,
-    animationSpec = spring(
+    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else spring(
       dampingRatio = 0.75f,
       stiffness = 500f
     ),
@@ -1189,42 +1255,80 @@ fun GlassSwitch(
     } else {
       if (isDark) Color(0x28303038) else Color(0x1F71717A)
     },
-    animationSpec = tween(180),
+    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else tween(180),
     label = "glassSwitchTrackBg"
+  )
+  val pressScale by animateFloatAsState(
+    targetValue = if (isPressed && !reduceMotion) 0.985f else 1f,
+    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else spring(dampingRatio = 0.62f, stiffness = 650f),
+    label = "glassSwitchPressScale"
+  )
+  val shineAmount by animateFloatAsState(
+    targetValue = if (isPressed) 0.16f else 0f,
+    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else tween(120),
+    label = "glassSwitchPressShine"
   )
 
   Box(
     modifier = modifier
-      .size(width = trackWidth, height = trackHeight)
-      .fluidLensedGlass(
-        shape = CircleShape,
-        elevation = if (checked) 2.dp else 1.dp,
-        borderWidth = 0.75.dp,
-        isElevated = checked,
-        customBackgroundColor = trackBgColor,
-        isInteractive = enabled,
-        onClick = {
-          if (enabled) {
-            VibrationHelper.tick(context)
-            onCheckedChange(!checked)
-          }
+      .size(width = trackWidth, height = 48.dp)
+      .clip(CircleShape)
+      .graphicsLayer {
+        scaleX = pressScale
+        scaleY = pressScale
+      }
+      .drawWithContent {
+        drawContent()
+        if (shineAmount > 0.001f) {
+          drawRoundRect(
+            brush = Brush.linearGradient(
+              colors = listOf(Color.White, Color.White.copy(alpha = 0.3f), Color.Transparent),
+              start = Offset.Zero,
+              end = Offset(size.width, size.height)
+            ),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
+            alpha = shineAmount
+          )
         }
-      )
-      .padding(thumbPadding),
-    contentAlignment = Alignment.CenterStart
+      }
+      .toggleable(
+        value = checked,
+        enabled = enabled,
+        role = Role.Switch,
+        interactionSource = interactionSource,
+        indication = null
+      ) { newValue ->
+        VibrationHelper.tick(context)
+        onCheckedChange(newValue)
+      },
+    contentAlignment = Alignment.Center
   ) {
     Box(
       modifier = Modifier
-        .graphicsLayer { translationX = animatedOffset }
-        .size(thumbSize)
+        .size(trackWidth, trackHeight)
         .fluidLensedGlass(
           shape = CircleShape,
-          elevation = if (checked) 3.dp else 1.5.dp,
-          borderWidth = 0.6.dp,
-          isElevated = true,
-          customBackgroundColor = Color.White
+          elevation = if (checked) 2.dp else 1.dp,
+          borderWidth = 0.75.dp,
+          isElevated = checked,
+          customBackgroundColor = trackBgColor
         )
-    )
+        .padding(thumbPadding),
+      contentAlignment = Alignment.CenterStart
+    ) {
+      Box(
+        modifier = Modifier
+          .graphicsLayer { translationX = animatedOffset }
+          .size(thumbSize)
+          .fluidLensedGlass(
+            shape = CircleShape,
+            elevation = if (checked) 3.dp else 1.5.dp,
+            borderWidth = 0.6.dp,
+            isElevated = true,
+            customBackgroundColor = Color.White
+          )
+      )
+    }
   }
 }
 
@@ -1304,14 +1408,19 @@ fun GlassInput(
       }
 
       if (value.isNotEmpty() && onClear != null) {
-        Icon(
-          imageVector = Icons.Default.Clear,
-          contentDescription = "Clear",
-          tint = InkMuted,
+        Box(
           modifier = Modifier
-            .size(18.dp)
-            .bounceClick { onClear() }
-        )
+            .size(48.dp)
+            .bounceClick { onClear() },
+          contentAlignment = Alignment.Center
+        ) {
+          Icon(
+            imageVector = Icons.Default.Clear,
+            contentDescription = "Clear",
+            tint = InkMuted,
+            modifier = Modifier.size(18.dp)
+          )
+        }
       } else if (trailingIcon != null) {
         trailingIcon()
       }
@@ -1387,14 +1496,14 @@ fun AppHeader(
   Row(
     modifier = modifier
       .fillMaxWidth()
-      .height(52.dp)
+      .height(56.dp)
       .padding(vertical = 4.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
   ) {
     // 1. Left Action (Back or custom control)
     Box(
-      modifier = Modifier.widthIn(min = 44.dp),
+      modifier = Modifier.widthIn(min = 48.dp),
       contentAlignment = Alignment.CenterStart
     ) {
       if (leftContent != null) {
@@ -1432,7 +1541,7 @@ fun AppHeader(
 
     // 3. Right Action (Primary Action button or contextual control)
     Box(
-      modifier = Modifier.widthIn(min = 44.dp),
+      modifier = Modifier.widthIn(min = 48.dp),
       contentAlignment = Alignment.CenterEnd
     ) {
       if (rightContent != null) {
@@ -1482,7 +1591,7 @@ fun SketchFilterChip(
 
   Box(
     modifier = modifier
-      .height(34.dp)
+      .height(48.dp)
       .fluidLensedGlass(
         shape = CircleShape,
         elevation = if (active) 2.dp else 0.dp,
@@ -1651,8 +1760,9 @@ fun SketchCheckbox(
     modifier = modifier
       .size(size = 48.dp)
       .elasticStretchPress(
-        horizontalStretch = 1.10f,
-        verticalSquash = 0.90f
+        horizontalStretch = 1.015f,
+        verticalSquash = 0.99f,
+        shineShape = CircleShape
       ) {
         val next = !checked
         if (next) {
@@ -1783,10 +1893,13 @@ fun SketchSegmentedControl(
 ) {
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
+  val currentSelection by rememberUpdatedState(selectedIndex)
+  val onItemSelectedUpdated by rememberUpdatedState(onItemSelected)
 
   Box(
     modifier = modifier
       .fillMaxWidth()
+      .height(56.dp)
       .fluidLensedGlass(
         shape = RoundedCornerShape(14.dp),
         elevation = if (isElevated) 4.dp else 0.dp,
@@ -1797,27 +1910,42 @@ fun SketchSegmentedControl(
     androidx.compose.foundation.layout.BoxWithConstraints(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(4.dp)
-        .pointerInput(items, selectedIndex) {
+        .padding(2.dp)
+        .pointerInput(items.size) {
           awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             val count = items.size
+            var lastSelected = currentSelection
+            var totalDx = 0f
+            var totalDy = 0f
+            var dragging = false
+            val touchSlop = viewConfiguration.touchSlop
             fun selectForX(x: Float) {
               if (count == 0 || size.width <= 0) return
               val itemWidth = size.width / count.toFloat()
               val targetIndex = (x / itemWidth).toInt().coerceIn(0, count - 1)
-              if (targetIndex != selectedIndex) {
-                onItemSelected(targetIndex)
+              if (targetIndex != lastSelected) {
+                lastSelected = targetIndex
+                onItemSelectedUpdated(targetIndex)
                 VibrationHelper.tick(context)
               }
             }
-            selectForX(down.position.x)
-            while (true) {
+            do {
               val event = awaitPointerEvent()
-              val change = event.changes.firstOrNull() ?: break
-              if (!change.pressed) break
-              selectForX(change.position.x)
-            }
+              val change = event.changes.firstOrNull { it.id == down.id } ?: break
+              if (!dragging) {
+                totalDx += change.position.x - change.previousPosition.x
+                totalDy += change.position.y - change.previousPosition.y
+                if (kotlin.math.abs(totalDx) > touchSlop && kotlin.math.abs(totalDx) > kotlin.math.abs(totalDy)) {
+                  dragging = true
+                  change.consume()
+                }
+              }
+              if (dragging) {
+                change.consume()
+                selectForX(change.position.x)
+              }
+            } while (event.changes.any { it.pressed })
           }
         }
     ) {
@@ -1836,7 +1964,7 @@ fun SketchSegmentedControl(
         modifier = Modifier
           .offset(x = animatedOffset)
           .width(segmentWidth)
-          .height(34.dp)
+          .fillMaxHeight()
           .fluidLensedGlass(
             shape = RoundedCornerShape(10.dp),
             elevation = if (isDark) 2.dp else 1.dp,
@@ -1863,12 +1991,11 @@ fun SketchSegmentedControl(
           Box(
             modifier = Modifier
               .weight(1f)
-              .height(34.dp)
+              .fillMaxHeight()
               .clip(RoundedCornerShape(10.dp))
-              .bounceClick(level = InteractionLevel.MICRO, scaleDown = 0.97f) {
+      .bounceClick(level = InteractionLevel.MICRO, scaleDown = 0.985f, shine = true) {
                 if (index != selectedIndex) {
                   onItemSelected(index)
-                  VibrationHelper.tick(context)
                 }
               }
               .testTag("segment_$title"),

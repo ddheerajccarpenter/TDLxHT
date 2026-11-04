@@ -513,7 +513,6 @@ fun CalendarScreen(
                 }
                 if (!isDone) {
                   com.example.util.SoundManager.playHabitTick(context)
-                  com.example.util.VibrationHelper.tick(context)
                 }
               },
               onClick = { onHabitClick(habit) },
@@ -594,7 +593,7 @@ fun MonthViewCard(
         ) {
           Box(
             modifier = Modifier
-              .size(34.dp)
+              .size(48.dp)
               .border(1.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .background(CardBackground)
@@ -645,7 +644,7 @@ fun MonthViewCard(
 
           Box(
             modifier = Modifier
-              .size(34.dp)
+              .size(48.dp)
               .border(1.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .background(CardBackground)
@@ -737,7 +736,8 @@ fun MonthViewCard(
             ) {
               Box(
                 modifier = Modifier
-                  .size(32.dp)
+                  .width(36.dp)
+                  .height(48.dp)
                   .clip(CircleShape)
                   .bounceClick(scaleDown = 0.90f) { onDateSelected(cellDate) }
                   .then(
@@ -838,7 +838,7 @@ fun WeekViewCard(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           Box(
             modifier = Modifier
-              .size(32.dp)
+              .size(48.dp)
               .border(1.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .background(CardBackground)
@@ -850,7 +850,7 @@ fun WeekViewCard(
 
           Box(
             modifier = Modifier
-              .size(32.dp)
+              .size(48.dp)
               .border(1.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .background(CardBackground)
@@ -892,7 +892,8 @@ fun WeekViewCard(
             val isDarkCal = LocalAppColors.current.isDark
             Box(
               modifier = Modifier
-                .size(36.dp)
+                .width(36.dp)
+              .height(48.dp)
                 .clip(CircleShape)
                 .bounceClick(scaleDown = 0.90f) { onDateSelected(date) }
                 .background(if (isSelected) (if (isDarkCal) Color(0x30FFFFFF) else Color(0xEEFFFFFF)) else Color.Transparent)
@@ -950,7 +951,7 @@ fun DayViewSelector(
     ) {
       Box(
         modifier = Modifier
-          .size(34.dp)
+          .size(48.dp)
           .border(1.2.dp, CardBorder, RoundedCornerShape(8.dp))
           .clip(RoundedCornerShape(8.dp))
           .bounceClick(scaleDown = 0.90f) { onDateSelected(selectedDate.minusDays(1)) },
@@ -972,7 +973,7 @@ fun DayViewSelector(
 
       Box(
         modifier = Modifier
-          .size(34.dp)
+          .size(48.dp)
           .border(1.2.dp, CardBorder, RoundedCornerShape(8.dp))
           .clip(RoundedCornerShape(8.dp))
           .bounceClick(scaleDown = 0.90f) { onDateSelected(selectedDate.plusDays(1)) },

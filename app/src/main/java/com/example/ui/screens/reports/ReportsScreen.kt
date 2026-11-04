@@ -2,6 +2,11 @@ package com.example.ui.screens.reports
 
 import com.example.ui.theme.SFProFontFamily
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -30,10 +35,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.ui.platform.LocalContext
 import com.example.util.MonthlyDotMatrixComposable
 import com.example.ui.components.fluidLensedGlass
@@ -49,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -74,10 +82,12 @@ import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.SketchSegmentedControl
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
+import com.example.ui.components.isReducedMotionEnabled
 import com.example.ui.components.staggeredEntrance
 import com.example.ui.components.paperDotBackground
 import com.example.ui.theme.AccentTerracotta
@@ -114,6 +124,8 @@ fun ReportsScreen(
     val coroutineScope = rememberCoroutineScope()
     val aiEngine = remember { AiIntelligenceEngine.instance }
     var isRefreshingAi by remember { mutableStateOf(false) }
+    var showAiAdvisor by rememberSaveable { mutableStateOf(false) }
+    val reduceMotion = remember { isReducedMotionEnabled(context) }
     val listState = rememberLazyListState()
 
     Box(modifier = modifier.fillMaxSize().paperDotBackground()) {
@@ -133,22 +145,50 @@ fun ReportsScreen(
                 Spacer(Modifier.height(10.dp))
             }
 
-            // AI Productivity Advisor Section — single source of truth bound to ReportStats
+            // Keep optional coaching behind one explicit entry point; report data stays visible first.
             item {
-                AiProductivitySection(
-                    stats = state.stats,
-                    isRefreshing = isRefreshingAi,
-                    onRefresh = {
-                        coroutineScope.launch {
-                            isRefreshingAi = true
-                            aiEngine.refreshInsights(forceNetwork = true)
-                            isRefreshingAi = false
-                        }
-                    },
-                    onActionSuggestionClick = {
-                        onNavigateToAddTask?.invoke() ?: onBack?.invoke()
+                LiquidGlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    onClick = { showAiAdvisor = !showAiAdvisor }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Advisor",
+                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Icon(
+                            imageVector = if (showAiAdvisor) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (showAiAdvisor) "Hide advisor" else "Show advisor",
+                            tint = InkSecondary
+                        )
                     }
-                )
+                }
+                AnimatedVisibility(
+                    visible = showAiAdvisor,
+                    enter = if (reduceMotion) EnterTransition.None else fadeIn(tween(120)) + expandVertically(animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)),
+                    exit = if (reduceMotion) ExitTransition.None else shrinkVertically(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)) + fadeOut(tween(100))
+                ) {
+                    AiProductivitySection(
+                        stats = state.stats,
+                        isRefreshing = isRefreshingAi,
+                        onRefresh = {
+                            coroutineScope.launch {
+                                isRefreshingAi = true
+                                aiEngine.refreshInsights(forceNetwork = true)
+                                isRefreshingAi = false
+                            }
+                        },
+                        onActionSuggestionClick = {
+                            onNavigateToAddTask?.invoke() ?: onBack?.invoke()
+                        }
+                    )
+                }
                 Spacer(Modifier.height(14.dp))
             }
 
@@ -233,7 +273,7 @@ fun ReportsScreen(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(48.dp)
                             .fluidLensedGlass(shape = InnerCornerShape, elevation = 2.dp)
                             .bounceClick {
                                 viewModel.downloadMonthlyReport(context, isDark)
@@ -266,7 +306,7 @@ fun ReportsScreen(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(48.dp)
                             .fluidLensedGlass(
                                 shape = InnerCornerShape,
                                 elevation = 3.dp,
@@ -459,7 +499,7 @@ private fun StatRow(label: String, value: String, rate: Float) {
 @Composable
 private fun EmptyStatsCard() {
     AppEmptyState(
-        icon = Icons.Default.AutoAwesome,
+        icon = Icons.AutoMirrored.Filled.ShowChart,
         title = "No data yet",
         subtitle = "Complete tasks or habits to generate insights"
     )
@@ -484,56 +524,25 @@ private fun AiProductivitySection(
     if (stats.hasEnoughData) {
         if (stats.tasksTotal == 0 && stats.habitsTotal > 0) {
             val habitPct = (stats.habitCompletionRate * 100).roundToInt()
-            title = if (stats.habitsCompleted > 0) "Habits Active ($habitPct% Targets Met)" else "Habits In Motion"
-            message = if (stats.habitsCompleted > 0) {
-                "You have met ${stats.habitsCompleted} of ${stats.habitsTotal} habit daily targets (${stats.sessionsCompleted}/${stats.sessionsTotal} sessions logged) during ${stats.periodLabel}. No tasks are currently scheduled for this period."
-            } else {
-                "No tasks are scheduled for ${stats.periodLabel}. You have ${stats.habitsTotal} habit check-in days scheduled (${stats.sessionsTotal} sessions total). Add a task to start tracking your daily to-dos alongside your habits."
-            }
-            actionSuggestion = "Add a Task"
+            title = "Habit completion: $habitPct%"
+            message = "Met ${stats.habitsCompleted} of ${stats.habitsTotal} scheduled targets and logged ${stats.sessionsCompleted} of ${stats.sessionsTotal} sessions during ${stats.periodLabel}. No tasks are scheduled for this period."
+            actionSuggestion = "Add a task"
         } else if (stats.tasksTotal > 0 && stats.habitsTotal == 0) {
-            title = when {
-                stats.taskCompletionRate >= 0.8f -> "Peak Performance ($pct% Done)"
-                stats.taskCompletionRate >= 0.5f -> "Solid Momentum ($pct% Done)"
-                else -> "Focus Opportunity ($pct% Done)"
-            }
-            message = when {
-                stats.taskCompletionRate >= 0.8f -> "You completed ${stats.tasksCompleted} of ${stats.tasksTotal} scheduled tasks during ${stats.periodLabel}. Excellent execution!"
-                stats.taskCompletionRate >= 0.5f -> "You completed ${stats.tasksCompleted} of ${stats.tasksTotal} tasks this period.${if (stats.tasksOverdue > 0) " Notice: ${stats.tasksOverdue} overdue tasks need attention." else " Keep pushing forward to close remaining goals."}"
-                else -> "Completed ${stats.tasksCompleted} of ${stats.tasksTotal} scheduled tasks.${if (stats.tasksOverdue > 0) " You have ${stats.tasksOverdue} overdue tasks to review." else " Break tasks into smaller subtasks to build momentum."}"
-            }
-            actionSuggestion = when {
-                stats.tasksOverdue > 0 -> "Resolve ${stats.tasksOverdue} Overdue"
-                stats.taskCompletionRate >= 0.8f -> "Maintain Current Cadence"
-                stats.taskCompletionRate >= 0.5f -> "Prioritize Pending Tasks"
-                else -> "Focus on 1 Quick Win"
-            }
+            title = "Task completion: $pct%"
+            message = "Completed ${stats.tasksCompleted} of ${stats.tasksTotal} scheduled tasks during ${stats.periodLabel}.${if (stats.tasksOverdue > 0) " ${stats.tasksOverdue} are overdue." else ""}"
+            actionSuggestion = "Add a task"
         } else {
-            title = when {
-                overallRate >= 0.8f -> "Peak Performance ($pct% Done)"
-                overallRate >= 0.5f -> "Solid Momentum ($pct% Done)"
-                else -> "Focus Opportunity ($pct% Done)"
-            }
-            message = when {
-                overallRate >= 0.8f -> "You completed ${stats.tasksCompleted} of ${stats.tasksTotal} tasks and maintained ${stats.habitsCompleted} of ${stats.habitsTotal} habit targets during ${stats.periodLabel}. Outstanding consistency!"
-                overallRate >= 0.5f -> "You completed ${stats.tasksCompleted} of ${stats.tasksTotal} tasks this period with ${stats.habitsCompleted} habit targets met.${if (stats.tasksOverdue > 0) " Notice: ${stats.tasksOverdue} overdue tasks need attention." else " Keep pushing forward to close remaining goals."}"
-                else -> "Completed ${stats.tasksCompleted} of ${stats.tasksTotal} scheduled tasks and ${stats.habitsCompleted} of ${stats.habitsTotal} habit targets.${if (stats.tasksOverdue > 0) " You have ${stats.tasksOverdue} overdue tasks to review." else " Break tasks into smaller subtasks to build momentum."}"
-            }
-            actionSuggestion = when {
-                stats.tasksOverdue > 0 -> "Resolve ${stats.tasksOverdue} Overdue"
-                overallRate >= 0.8f -> "Maintain Current Cadence"
-                overallRate >= 0.5f -> "Prioritize Pending Tasks"
-                else -> "Focus on 1 Quick Win"
-            }
+            title = "Overall completion: $pct%"
+            message = "Completed ${stats.tasksCompleted} of ${stats.tasksTotal} tasks and met ${stats.habitsCompleted} of ${stats.habitsTotal} habit targets during ${stats.periodLabel}.${if (stats.tasksOverdue > 0) " ${stats.tasksOverdue} tasks are overdue." else ""}"
+            actionSuggestion = "Add a task"
         }
     } else {
-        title = "No Activity Data"
-        message = "No scheduled tasks or habits were recorded for ${stats.periodLabel.ifEmpty { "this period" }}. Complete tasks or log habit sessions to unlock personalized AI productivity guidance."
-        actionSuggestion = "Schedule a Task"
+        title = "No activity recorded"
+        message = "No tasks or habit targets were recorded for ${stats.periodLabel.ifEmpty { "this period" }}."
+        actionSuggestion = "Add a task"
     }
 
-    val isDark = com.example.ui.theme.LocalAppColors.current.isDark
-    val advisorAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
+    val advisorAccent = InkPrimary
 
     GlassCard(
         modifier = Modifier.fillMaxWidth().heroEntrance(delayMs = 40),
@@ -546,15 +555,8 @@ private fun AiProductivitySection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = null,
-                        tint = advisorAccent,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "AI PRODUCTIVITY ADVISOR",
+                        text = "PERIOD SUMMARY",
                         style = TextStyle(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -566,8 +568,8 @@ private fun AiProductivitySection(
 
                 Box(
                     modifier = Modifier
-                        .size(30.dp)
-                        .border(1.dp, if (isDark) PrimaryAccentLime.copy(alpha = 0.5f) else CardBorder, CircleShape)
+                        .size(48.dp)
+                        .border(1.dp, CardBorder, CircleShape)
                         .clip(CircleShape)
                         .bounceClick { if (!isRefreshing) onRefresh() },
                     contentAlignment = Alignment.Center
@@ -582,7 +584,7 @@ private fun AiProductivitySection(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Refresh Insights",
-                            tint = if (isDark) PrimaryAccentLime else InkSecondary,
+                            tint = InkSecondary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -633,10 +635,6 @@ private fun AiProductivitySection(
                         )
                     }
 
-                    Text(
-                        text = "Real activity analysis",
-                        style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = InkMuted)
-                    )
                 }
             }
         }

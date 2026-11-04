@@ -168,7 +168,7 @@ private fun LoginContent(viewModel: AuthViewModel, uiState: com.example.ui.viewm
             trailingIcon = {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .bounceClick(scaleDown = 0.88f) { showPassword = !showPassword },
                     contentAlignment = Alignment.Center
@@ -315,7 +315,7 @@ private fun RegisterContent(viewModel: AuthViewModel, uiState: com.example.ui.vi
             trailingIcon = {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .bounceClick(scaleDown = 0.88f) { showPassword = !showPassword },
                     contentAlignment = Alignment.Center

@@ -60,7 +60,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -455,12 +454,12 @@ fun HabitListScreen(
                 Box(
                   modifier = Modifier
                     .fillMaxWidth()
-                    .combinedClickable(
-                      onClick = { onHabitClick(habit) },
+                    .bounceClick(
                       onLongClick = {
                         isMultiSelectMode = true
                         selectedHabitIds = selectedHabitIds + habit.id
-                      }
+                      },
+                      onClick = { onHabitClick(habit) }
                     )
                 ) {
                   val currentSessions = todayHabitRecords[habit.id]?.currentValue?.toInt() ?: 0
@@ -472,7 +471,6 @@ fun HabitListScreen(
                     onToggle = {
                       viewModel.toggleHabitToday(habit.id)
                       com.example.util.SoundManager.playHabitTick(context)
-                      com.example.util.VibrationHelper.tick(context)
                     },
                     onClick = { onHabitClick(habit) },
                     onPause = { viewModel.togglePauseHabit(habit.id) },
@@ -629,7 +627,7 @@ fun HabitCardItemWithActions(
         if (habit.targetValue > 1f && !isCompleted) {
           Box(
             modifier = Modifier
-              .height(34.dp)
+              .height(48.dp)
               .background(PillBackgroundDark.copy(alpha = 0.10f), RoundedCornerShape(17.dp))
               .border(1.2.dp, CardBorder, RoundedCornerShape(17.dp))
               .clip(RoundedCornerShape(17.dp))
@@ -665,7 +663,7 @@ fun HabitCardItemWithActions(
         Box {
           Box(
             modifier = Modifier
-              .size(36.dp)
+              .size(48.dp)
               .clip(CircleShape)
               .bounceClick(scaleDown = 0.88f) { menuExpanded = true },
             contentAlignment = Alignment.Center

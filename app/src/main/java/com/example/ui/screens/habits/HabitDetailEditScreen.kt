@@ -322,7 +322,7 @@ fun HabitDetailEditScreen(
             Box(
               modifier = Modifier
                 .weight(1f)
-                .height(40.dp)
+                .height(48.dp)
                 .border(1.2.dp, borderCol, RoundedCornerShape(10.dp))
                 .clip(RoundedCornerShape(10.dp))
                 .background(bg)
@@ -387,7 +387,7 @@ fun HabitDetailEditScreen(
               // Decrement button
               Box(
                 modifier = Modifier
-                  .size(36.dp)
+                  .size(48.dp)
                   .border(1.2.dp, CardBorder, CircleShape)
                   .clip(CircleShape)
                   .bounceClick(scaleDown = 0.88f) {
@@ -418,7 +418,7 @@ fun HabitDetailEditScreen(
               // Increment button
               Box(
                 modifier = Modifier
-                  .size(36.dp)
+                  .size(48.dp)
                   .border(1.2.dp, CardBorder, CircleShape)
                   .clip(CircleShape)
                   .bounceClick(scaleDown = 0.88f) {

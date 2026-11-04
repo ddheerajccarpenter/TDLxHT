@@ -128,7 +128,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import dev.chrisbanes.haze.rememberHazeState
 import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeTint
 import com.example.ui.glass.LocalHazeState
+import com.example.ui.theme.LocalAppColors
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -1414,11 +1417,24 @@ fun SketchBottomNavigationBar(
   onQuickAdd: () -> Unit,
   hazeState: dev.chrisbanes.haze.HazeState? = null
 ) {
+  val isDark = LocalAppColors.current.isDark
+  val bottomTint = if (isDark) Color.Black.copy(alpha = 0.84f) else Color.White.copy(alpha = 0.90f)
   Box(
     modifier = Modifier
       .fillMaxWidth()
+      .background(bottomTint)
+      .then(
+        if (hazeState != null) {
+          Modifier.hazeEffect(state = hazeState) {
+            blurRadius = 32.dp
+            noiseFactor = 0f
+            tints = listOf(HazeTint(bottomTint))
+            fallbackTint = HazeTint(if (isDark) Color.Black else Color.White)
+          }
+        } else Modifier
+      )
       .windowInsetsPadding(WindowInsets.navigationBars)
-      .padding(horizontal = 20.dp, vertical = 6.dp),
+      .padding(horizontal = 16.dp, vertical = 6.dp),
     contentAlignment = Alignment.Center
   ) {
     LiquidGlassNavigationDock(

@@ -331,7 +331,7 @@ fun DiagnosticsScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
           Box(
             modifier = Modifier
-              .size(40.dp)
+              .size(48.dp)
               .border(1.2.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .bounceClick { onNavigateBack() },
@@ -367,7 +367,7 @@ fun DiagnosticsScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
           Box(
             modifier = Modifier
-              .size(40.dp)
+              .size(48.dp)
               .border(1.2.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .bounceClick(enabled = !isRunningChecks) { runAllDiagnostics() },
@@ -393,7 +393,7 @@ fun DiagnosticsScreen(
 
           Box(
             modifier = Modifier
-              .size(40.dp)
+              .size(48.dp)
               .border(1.2.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .bounceClick { copyRedactedReport() },

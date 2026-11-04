@@ -9,7 +9,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -454,7 +453,6 @@ fun SearchScreen(
                   viewModel.toggleHabitToday(habit.id)
                   if (!isCompleted) {
                     com.example.util.SoundManager.playHabitTick(context)
-                    com.example.util.VibrationHelper.tick(context)
                   }
                 },
                 onClick = { onHabitClick(habit) },
@@ -526,13 +524,11 @@ fun SearchTaskCard(
   SketchCard(
     modifier = modifier
       .fillMaxWidth()
-      .combinedClickable(
+      .bounceClick(
+        onLongClick = { onLongClick() },
         onClick = {
           if (isMultiSelectMode) onToggleSelect() else onClick()
         },
-        onLongClick = {
-          onLongClick()
-        }
       )
       .testTag("search_task_${task.id}"),
     backgroundColor = if (isSelected) AccentTerracotta.copy(alpha = 0.14f) else CardBackground,
@@ -651,13 +647,11 @@ fun SearchHabitCard(
   SketchCard(
     modifier = modifier
       .fillMaxWidth()
-      .combinedClickable(
+      .bounceClick(
+        onLongClick = { onLongClick() },
         onClick = {
           if (isMultiSelectMode) onToggleSelect() else onClick()
         },
-        onLongClick = {
-          onLongClick()
-        }
       )
       .testTag("search_habit_${habit.id}"),
     backgroundColor = if (isSelected) AccentTerracotta.copy(alpha = 0.14f) else CardBackground,

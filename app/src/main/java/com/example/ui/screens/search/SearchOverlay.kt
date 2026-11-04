@@ -299,9 +299,9 @@ private fun SearchActionButton(onClick: () -> Unit) {
   LiquidGlassCard(
     modifier = Modifier
       .size(48.dp)
-      .clickable(onClick = onClick)
       .testTag("search_overlay_close_button"),
-    shape = CircleShape
+    shape = CircleShape,
+    onClick = onClick
   ) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       Icon(Icons.Default.Close, contentDescription = "Close search", tint = InkPrimary, modifier = Modifier.size(20.dp))
@@ -331,9 +331,9 @@ private fun SearchResultRow(
   LiquidGlassCard(
     modifier = Modifier
       .fillMaxWidth()
-      .height(64.dp)
-      .clickable(onClick = onClick),
-    shape = RoundedCornerShape(16.dp)
+      .height(64.dp),
+    shape = RoundedCornerShape(16.dp),
+    onClick = onClick
   ) {
     Row(
       modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
