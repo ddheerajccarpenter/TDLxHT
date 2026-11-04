@@ -43,8 +43,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 58
-    versionName = "2.5.21"
+    versionCode = 59
+    versionName = "2.5.22"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

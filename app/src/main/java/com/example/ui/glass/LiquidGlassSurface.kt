@@ -4,7 +4,6 @@ import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,10 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -26,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import kotlin.math.min
 
 /**
  * CompositionLocal providing ambient HazeState for Liquid Glass surfaces throughout the tree.
@@ -33,7 +39,7 @@ import dev.chrisbanes.haze.hazeEffect
 val LocalHazeState = androidx.compose.runtime.staticCompositionLocalOf<HazeState?> { null }
 
 /**
- * Liquid Glass Refraction Shader (AGSL, Android 13+).
+ * Liquid Glass Refraction Shader (AGSL, Android 13+ / API 33).
  * Evaluates the live backdrop blurred scene:
  * 1. SDF rounded rectangle clipping with 1.2px anti-aliased edge falloff.
  * 2. Curvature-based refractive coordinate offset with spectral dispersion (RGB channel separation).
@@ -138,24 +144,64 @@ fun LiquidGlassBackdrop(
     )
 }
 
-/** Crisp neutral rim with directional specular highlights. */
+/**
+ * Crisp neutral rim with directional specular highlights and corner rainbow spectral dispersion.
+ * Corners refract chromatic spectral light through curved glass bevels.
+ */
 fun Modifier.liquidGlassRim(
     shape: Shape,
     isDark: Boolean,
     borderWidth: Dp = 1.dp,
-): Modifier {
-    val borderBrush = Brush.verticalGradient(
-        colors = if (isDark) {
-            listOf(Color.White.copy(alpha = 0.35f), Color.White.copy(alpha = 0.06f))
-        } else {
-            listOf(Color.White.copy(alpha = 0.80f), Color.Black.copy(alpha = 0.14f))
+): Modifier = clip(shape).drawWithCache {
+    val outline = shape.createOutline(size, layoutDirection, this)
+    val outlinePath = Path().apply {
+        when (outline) {
+            is Outline.Rectangle -> addRect(outline.rect)
+            is Outline.Rounded -> addRoundRect(outline.roundRect)
+            is Outline.Generic -> addPath(outline.path)
         }
+    }
+    val roundedOutline = outline as? Outline.Rounded
+    val radius = roundedOutline?.roundRect?.topLeftCornerRadius?.x
+        ?.coerceIn(0f, min(size.width, size.height) / 2f)
+        ?: 0f
+    val diameter = radius * 2f
+    val strokeWidth = borderWidth.toPx()
+    val neutralRim = if (isDark) Color.White.copy(alpha = 0.28f) else Color.Black.copy(alpha = 0.14f)
+    val spectralAlpha = if (isDark) 0.14f else 0.08f
+    val spectralColors = listOf(
+        Color(0xFFFF6A6A).copy(alpha = spectralAlpha),
+        Color(0xFFFFD166).copy(alpha = spectralAlpha),
+        Color(0xFF6EE7B7).copy(alpha = spectralAlpha),
+        Color(0xFF67D9FF).copy(alpha = spectralAlpha),
+        Color(0xFF9B8CFF).copy(alpha = spectralAlpha),
+        Color(0xFFFF6A6A).copy(alpha = spectralAlpha)
     )
-    return clip(shape).border(
-        width = borderWidth,
-        brush = borderBrush,
-        shape = shape,
-    )
+    val corners = if (radius > 0f) listOf(
+        Triple(Offset.Zero, 180f, Offset(radius, radius)),
+        Triple(Offset(size.width - diameter, 0f), 270f, Offset(size.width - radius, radius)),
+        Triple(Offset(size.width - diameter, size.height - diameter), 0f, Offset(size.width - radius, size.height - radius)),
+        Triple(Offset(0f, size.height - diameter), 90f, Offset(radius, size.height - radius))
+    ) else emptyList()
+    val cornerBrushes = corners.map { (_, _, center) ->
+        Brush.sweepGradient(colors = spectralColors, center = center)
+    }
+
+    onDrawWithContent {
+        drawContent()
+        drawPath(outlinePath, neutralRim, style = Stroke(width = strokeWidth))
+        corners.forEachIndexed { index, (topLeft, startAngle, _) ->
+            drawArc(
+                brush = cornerBrushes[index],
+                startAngle = startAngle,
+                sweepAngle = 90f,
+                useCenter = false,
+                topLeft = topLeft,
+                size = Size(diameter, diameter),
+                style = Stroke(width = strokeWidth * 1.5f)
+            )
+        }
+    }
 }
 
 /** Crisp specular highlight and ambient surface sheen. */
