@@ -6,10 +6,12 @@ import android.graphics.Bitmap
 import android.view.MotionEvent
 import android.view.View
 import android.webkit.JavascriptInterface
+import android.webkit.ConsoleMessage
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
 import androidx.compose.animation.AnimatedVisibility
@@ -244,8 +246,18 @@ fun ThreeJsSpatialCompanion(
     var isWebViewLoading by remember { mutableStateOf(true) }
     var hasWebViewError by remember { mutableStateOf(false) }
     var isUsingProceduralFallback by remember { mutableStateOf(false) }
+    var hasCompanionResponse by remember { mutableStateOf(false) }
     var fallbackReason by remember { mutableStateOf("") }
     var showExpandedPopup by remember { mutableStateOf(false) }
+
+    val openExpandedPopup = {
+        isWebViewLoading = true
+        hasWebViewError = false
+        hasCompanionResponse = false
+        isUsingProceduralFallback = false
+        fallbackReason = ""
+        showExpandedPopup = true
+    }
 
     // Sync theme to Three.js canvas
     LaunchedEffect(isDark) {
@@ -267,19 +279,31 @@ fun ThreeJsSpatialCompanion(
                 onModelInteracted?.invoke()
             },
             onModelLongPressed = {
-                showExpandedPopup = true
+                openExpandedPopup()
                 onModelInteracted?.invoke()
             },
             onSwipeDetected = { _ -> },
             onModelFallback = { reason ->
+                hasCompanionResponse = true
                 isUsingProceduralFallback = true
                 fallbackReason = reason
             },
             onModelLoaded = {
+                hasCompanionResponse = true
                 isUsingProceduralFallback = false
                 fallbackReason = ""
             }
         )
+    }
+
+    LaunchedEffect(isWebViewLoading, hasWebViewError, hasCompanionResponse) {
+        if (!isWebViewLoading && !hasWebViewError && !hasCompanionResponse) {
+            delay(7000)
+            if (!hasCompanionResponse) {
+                isUsingProceduralFallback = true
+                fallbackReason = "The companion preview did not start"
+            }
+        }
     }
 
     LiquidGlassCard(
@@ -357,7 +381,7 @@ fun ThreeJsSpatialCompanion(
                             .border(0.5.dp, CardBorder, RoundedCornerShape(8.dp))
                             .clickable {
                                 VibrationHelper.tick(context)
-                                showExpandedPopup = true
+                                openExpandedPopup()
                             }
                             .padding(horizontal = 7.dp, vertical = 3.dp)
                     ) {
@@ -425,6 +449,20 @@ fun ThreeJsSpatialCompanion(
                             }
 
                             addJavascriptInterface(bridge, "AndroidBridge")
+                            webChromeClient = object : WebChromeClient() {
+                                override fun onConsoleMessage(message: ConsoleMessage?): Boolean {
+                                    if (message?.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                                        SafeLog.e(
+                                            "SpatialCompanionWeb",
+                                            "${message.message()} at line ${message.lineNumber()}"
+                                        )
+                                        hasCompanionResponse = true
+                                        isUsingProceduralFallback = true
+                                        fallbackReason = "The companion preview encountered an error"
+                                    }
+                                    return true
+                                }
+                            }
 
                             webViewClient = object : WebViewClient() {
                                 override fun shouldOverrideUrlLoading(
@@ -436,6 +474,7 @@ fun ThreeJsSpatialCompanion(
                                     isWebViewLoading = true
                                     hasWebViewError = false
                                     isUsingProceduralFallback = false
+                                    hasCompanionResponse = false
                                     fallbackReason = ""
                                 }
 
@@ -444,6 +483,9 @@ fun ThreeJsSpatialCompanion(
                                     isWebViewLoading = false
                                     controller.setThemeMode(isDark)
                                     controller.setReducedMotion(reduceMotion)
+                                    controller.setRenderPaused(
+                                        !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                                    )
                                 }
 
                                 override fun shouldInterceptRequest(
@@ -462,9 +504,11 @@ fun ThreeJsSpatialCompanion(
                                         isWebViewLoading = false
                                         hasWebViewError = true
                                     } else if (request?.url?.lastPathSegment == "cat.glb") {
+                                        hasCompanionResponse = true
                                         isUsingProceduralFallback = true
                                         fallbackReason = "The 3D model could not be loaded"
                                     } else if (request?.url?.lastPathSegment == "bundle.js") {
+                                        hasCompanionResponse = true
                                         isUsingProceduralFallback = true
                                         fallbackReason = "The companion engine could not be loaded"
                                     }
@@ -484,6 +528,7 @@ fun ThreeJsSpatialCompanion(
                                         (errorResponse?.statusCode ?: 200) >= 400 &&
                                         failedResource in setOf("cat.glb", "bundle.js")
                                     ) {
+                                        hasCompanionResponse = true
                                         isUsingProceduralFallback = true
                                         fallbackReason = if (failedResource == "cat.glb") {
                                             "The 3D model could not be loaded"
@@ -572,6 +617,9 @@ fun ThreeJsSpatialCompanion(
                                 onClick = {
                                     hasWebViewError = false
                                     isWebViewLoading = true
+                                    hasCompanionResponse = false
+                                    isUsingProceduralFallback = false
+                                    fallbackReason = ""
                                     controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
                                 },
                                 contentDescription = "Retry spatial companion",
@@ -604,6 +652,9 @@ fun ThreeJsSpatialCompanion(
                         LiquidGlassIconButton(
                             onClick = {
                                 isWebViewLoading = true
+                                hasCompanionResponse = false
+                                isUsingProceduralFallback = false
+                                fallbackReason = ""
                                 controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
                             },
                             contentDescription = "Retry companion model. $fallbackReason",
@@ -617,6 +668,9 @@ fun ThreeJsSpatialCompanion(
                         LiquidGlassIconButton(
                             onClick = {
                                 isWebViewLoading = true
+                                hasCompanionResponse = false
+                                isUsingProceduralFallback = false
+                                fallbackReason = ""
                                 controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
                             },
                             contentDescription = "Retry companion model",
@@ -855,6 +909,20 @@ fun ThreeJsSpatialCompanion(
                                     }
 
                                     addJavascriptInterface(bridge, "AndroidBridge")
+                                    webChromeClient = object : WebChromeClient() {
+                                        override fun onConsoleMessage(message: ConsoleMessage?): Boolean {
+                                            if (message?.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                                                SafeLog.e(
+                                                    "SpatialCompanionWeb",
+                                                    "${message.message()} at line ${message.lineNumber()}"
+                                                )
+                                                hasCompanionResponse = true
+                                                isUsingProceduralFallback = true
+                                                fallbackReason = "The companion preview encountered an error"
+                                            }
+                                            return true
+                                        }
+                                    }
                                     webViewClient = object : WebViewClient() {
                                         override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): android.webkit.WebResourceResponse? {
                                             return request?.url?.let(assetLoader::shouldInterceptRequest)
@@ -862,10 +930,53 @@ fun ThreeJsSpatialCompanion(
                                         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean =
                                             request?.url?.host != "appassets.androidplatform.net"
 
+                                        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                                            isWebViewLoading = true
+                                            hasWebViewError = false
+                                            hasCompanionResponse = false
+                                            isUsingProceduralFallback = false
+                                            fallbackReason = ""
+                                        }
+
                                         override fun onPageFinished(view: WebView?, url: String?) {
                                             super.onPageFinished(view, url)
+                                            isWebViewLoading = false
                                             controller.setThemeMode(isDark)
                                             controller.setReducedMotion(reduceMotion)
+                                            controller.setRenderPaused(
+                                                !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                                            )
+                                        }
+
+                                        override fun onReceivedError(
+                                            view: WebView?,
+                                            request: WebResourceRequest?,
+                                            error: WebResourceError?
+                                        ) {
+                                            if (request?.isForMainFrame == true) {
+                                                isWebViewLoading = false
+                                                hasWebViewError = true
+                                            } else if (request?.url?.lastPathSegment in setOf("cat.glb", "bundle.js")) {
+                                                hasCompanionResponse = true
+                                                isUsingProceduralFallback = true
+                                                fallbackReason = "The 3D companion model could not be loaded"
+                                            }
+                                        }
+
+                                        override fun onReceivedHttpError(
+                                            view: WebView?,
+                                            request: WebResourceRequest?,
+                                            errorResponse: android.webkit.WebResourceResponse?
+                                        ) {
+                                            if ((errorResponse?.statusCode ?: 200) < 400) return
+                                            if (request?.isForMainFrame == true) {
+                                                isWebViewLoading = false
+                                                hasWebViewError = true
+                                            } else if (request?.url?.lastPathSegment in setOf("cat.glb", "bundle.js")) {
+                                                hasCompanionResponse = true
+                                                isUsingProceduralFallback = true
+                                                fallbackReason = "The 3D companion model could not be loaded"
+                                            }
                                         }
                                     }
                                     loadUrl(SPATIAL_COMPANION_URL)
@@ -873,6 +984,52 @@ fun ThreeJsSpatialCompanion(
                                 }
                             }
                         )
+
+                        if (isWebViewLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(10.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isDark) Color(0xCC111111) else Color(0xCCFFFFFF))
+                                    .padding(horizontal = 12.dp, vertical = 7.dp)
+                            ) {
+                                Text("Loading companion…", fontSize = 11.sp, color = InkSecondary)
+                            }
+                        } else if (hasWebViewError || isUsingProceduralFallback) {
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isDark) Color(0xCC111111) else Color(0xCCFFFFFF))
+                                    .padding(start = 12.dp, end = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = if (hasWebViewError) "Companion unavailable" else "Using preview fallback",
+                                    fontSize = 11.sp,
+                                    color = InkSecondary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                LiquidGlassIconButton(
+                                    onClick = {
+                                        isWebViewLoading = true
+                                        hasWebViewError = false
+                                        hasCompanionResponse = false
+                                        isUsingProceduralFallback = false
+                                        fallbackReason = ""
+                                        controller.webViewRef?.loadUrl(SPATIAL_COMPANION_URL)
+                                    },
+                                    contentDescription = "Retry spatial companion",
+                                    size = 48.dp
+                                ) {
+                                    Icon(Icons.Default.Refresh, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(18.dp))
+                                }
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))

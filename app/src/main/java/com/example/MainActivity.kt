@@ -130,6 +130,8 @@ import dev.chrisbanes.haze.rememberHazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.HazeTint
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.example.ui.glass.LocalHazeState
 import com.example.ui.theme.LocalAppColors
 import androidx.compose.ui.Alignment
@@ -445,6 +447,7 @@ fun MainApp(
   }
 
   val hazeState = rememberHazeState()
+  val appBackdrop = rememberLayerBackdrop()
 
   CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(
@@ -473,7 +476,8 @@ fun MainApp(
                     }
                   },
                   onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
-                  hazeState = hazeState
+                  hazeState = hazeState,
+                  backdrop = appBackdrop
                 )
               }
             ) { innerPadding ->
@@ -481,6 +485,7 @@ fun MainApp(
                 modifier = Modifier
                   .fillMaxSize()
                   .hazeSource(hazeState)
+                  .layerBackdrop(appBackdrop)
                   .background(PaperBackground)
                   .padding(top = innerPadding.calculateTopPadding())
                   .horizontalSwipeNavigation(
@@ -1415,7 +1420,8 @@ fun SketchBottomNavigationBar(
   isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
   onQuickAdd: () -> Unit,
-  hazeState: dev.chrisbanes.haze.HazeState? = null
+  hazeState: dev.chrisbanes.haze.HazeState? = null,
+  backdrop: com.kyant.backdrop.Backdrop? = null
 ) {
   val isDark = LocalAppColors.current.isDark
   val bottomTint = if (isDark) Color.Black.copy(alpha = 0.84f) else Color.White.copy(alpha = 0.90f)
@@ -1444,6 +1450,7 @@ fun SketchBottomNavigationBar(
       onDestinationSelected = onDestinationSelected,
       onQuickAdd = onQuickAdd,
       hazeState = hazeState,
+      backdrop = backdrop,
       modifier = Modifier.fillMaxWidth()
     )
   }

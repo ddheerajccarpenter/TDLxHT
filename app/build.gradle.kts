@@ -118,6 +118,8 @@ dependencies {
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
+  // Kyant0's upstream Compose Liquid Glass renderer (blur, lens refraction and highlights)
+  implementation("io.github.kyant0:backdrop:1.0.0")
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)

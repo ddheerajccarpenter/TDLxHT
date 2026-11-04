@@ -1,18 +1,19 @@
 package com.example.ui.components
 
-import android.graphics.RenderEffect
-import android.graphics.RuntimeShader
-import android.os.Build
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import com.example.ui.glass.LIQUID_GLASS_SHADER
-import com.example.ui.glass.PILL_LENS_SHADER
+import com.kyant.backdrop.Backdrop
 import com.example.ui.glass.LiquidGlassBackdrop
 import com.example.ui.glass.LiquidGlassHighlight
-import com.example.ui.glass.LiquidGlassContainer
-import com.example.ui.glass.LiquidGlassPillSwitcher
 import com.example.ui.glass.LocalHazeState
 import com.example.ui.glass.liquidGlassRim
 import dev.chrisbanes.haze.HazeState
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+import com.kyant.backdrop.highlight.Highlight
+import com.kyant.backdrop.shadow.InnerShadow
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -25,6 +26,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -40,7 +42,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -49,6 +50,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +80,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -112,8 +115,8 @@ import kotlin.math.roundToInt
 // =========================================================================
 // SHARED LIQUID GLASS COMPONENTS
 //
-// Shared card and capsule components use Haze when available, with neutral
-// fallback fills and crisp content. The corner-local rim stays sharp.
+// Shared glass surfaces use Kyant0 Backdrop for refraction, lensing, and crisp
+// highlights. Haze supplies a live blurred scene where the screen exposes one.
 // =========================================================================
 
 /**
@@ -173,6 +176,69 @@ fun Modifier.liquidGlassCapsule(
 )
 
 /**
+ * A glass layer built from the upstream Backdrop renderer. The Haze scene is
+ * recorded into its own backdrop first; the refractive layer is drawn as a
+ * sibling so it never samples itself.
+ */
+@Composable
+private fun UpstreamLiquidGlassSurface(
+  modifier: Modifier = Modifier,
+  shape: Shape,
+  isDark: Boolean,
+  hazeState: HazeState?,
+  borderWidth: Dp,
+  fallbackColor: Color,
+  content: @Composable BoxScope.() -> Unit
+) {
+  val surfaceBackdrop = rememberLayerBackdrop()
+  Box(modifier = modifier.clip(shape)) {
+    Box(
+      modifier = Modifier
+        .matchParentSize()
+        .layerBackdrop(surfaceBackdrop)
+    ) {
+      if (hazeState != null && shape is RoundedCornerShape) {
+        LiquidGlassBackdrop(
+          hazeState = hazeState,
+          shape = shape,
+          isDark = isDark,
+          modifier = Modifier.matchParentSize()
+        )
+      } else {
+        Box(Modifier.fillMaxSize().background(fallbackColor))
+      }
+    }
+    Box(
+      modifier = Modifier
+        .matchParentSize()
+        .drawBackdrop(
+          backdrop = surfaceBackdrop,
+          shape = { shape },
+          effects = {
+            vibrancy()
+            blur(2f.dp.toPx())
+            lens(12f.dp.toPx(), 22f.dp.toPx(), chromaticAberration = true)
+          },
+          highlight = { Highlight.Default.copy(alpha = 0.30f) },
+          innerShadow = { InnerShadow(radius = 5.dp, alpha = 0.12f) },
+          onDrawSurface = {
+            drawRect(
+              if (isDark) Color.White.copy(alpha = 0.055f)
+              else Color.White.copy(alpha = 0.16f)
+            )
+          }
+        )
+    )
+    Box(
+      Modifier
+        .matchParentSize()
+        .liquidGlassRim(shape, isDark, borderWidth)
+    )
+    Box(Modifier.padding(borderWidth), content = content)
+  }
+}
+
+/**
  * 1. LiquidGlassCard
  * Large smoked glass panel for Today's Momentum, Time Blocks, and Card sections.
  * Supports optional Haze backdrop blur with graceful fallback.
@@ -192,42 +258,15 @@ fun LiquidGlassCard(
     Modifier.bounceClick(shine = true, onClick = onClick)
   } else Modifier
 
-  if (ambientHazeState != null && shape is RoundedCornerShape) {
-    Box(
-      modifier = modifier
-        .clip(shape)
-        .then(clickModifier)
-    ) {
-      LiquidGlassBackdrop(
-        hazeState = ambientHazeState,
-        shape = shape,
-        isDark = isDark,
-        modifier = Modifier.matchParentSize()
-      )
-      LiquidGlassHighlight(
-        shape = shape,
-        isDark = isDark,
-        modifier = Modifier.matchParentSize()
-      )
-      Box(modifier = Modifier.padding(borderWidth), content = content)
-    }
-  } else {
-    Box(
-      modifier = modifier
-        .liquidGlassSurface(
-          shape = shape,
-          borderWidth = borderWidth,
-          isDark = isDark,
-          topFill = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated,
-          bottomFill = if (isDark) LiquidGlassCardBottomDark else LightSurfaceCard,
-          specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
-          specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
-          specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
-        )
-        .then(clickModifier),
-      content = content
-    )
-  }
+  UpstreamLiquidGlassSurface(
+    modifier = modifier.then(clickModifier),
+    shape = shape,
+    isDark = isDark,
+    hazeState = ambientHazeState,
+    borderWidth = borderWidth,
+    fallbackColor = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated,
+    content = content
+  )
 }
 
 /**
@@ -244,44 +283,20 @@ fun LiquidGlassCapsule(
   content: @Composable BoxScope.() -> Unit
 ) {
   val isDark = LocalAppColors.current.isDark
-  if (hazeState != null && shape is RoundedCornerShape) {
-    Box(modifier = modifier) {
-      LiquidGlassBackdrop(
-        hazeState = hazeState,
-        shape = shape,
-        isDark = isDark,
-        modifier = Modifier.matchParentSize()
-      )
-      LiquidGlassHighlight(
-        shape = shape,
-        isDark = isDark,
-        modifier = Modifier.matchParentSize()
-      )
-      Box(modifier = Modifier.padding(borderWidth), content = content)
-    }
-  } else {
-    Box(
-      modifier = modifier
-        .liquidGlassSurface(
-          shape = shape,
-          borderWidth = borderWidth,
-          isDark = isDark,
-          topFill = if (isDark) LiquidGlassCapsuleTopDark else LightSurfaceElevated,
-          bottomFill = if (isDark) LiquidGlassCapsuleBottomDark else LightSurfaceCard,
-          specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
-          specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
-          specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
-        ),
-      content = content
-    )
-  }
+  UpstreamLiquidGlassSurface(
+    modifier = modifier,
+    shape = shape,
+    isDark = isDark,
+    hazeState = hazeState ?: LocalHazeState.current,
+    borderWidth = borderWidth,
+    fallbackColor = if (isDark) LiquidGlassCapsuleTopDark else LightSurfaceElevated,
+    content = content
+  )
 }
 
 /**
  * 3. LiquidGlassSegmentedControl
- * iOS 26 Liquid Glass Segmented Control powered by LiquidGlassPillSwitcher.
- * Features dual-spring jelly sliding physics, 120Hz frame-loop touch tracking,
- * 160ms hold/drag lift effect, haptic slot ticks, and PILL_LENS_SHADER magnification.
+ * Segmented glass pill using Kyant0's backdrop, lens and highlight renderer.
  */
 @Composable
 fun LiquidGlassSegmentedControl(
@@ -291,19 +306,109 @@ fun LiquidGlassSegmentedControl(
   modifier: Modifier = Modifier
 ) {
   val isDark = LocalAppColors.current.isDark
-  Box(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(48.dp)
-      .liquidGlassCapsule(shape = RoundedCornerShape(percent = 50), borderWidth = 0.85.dp, isDark = isDark)
-      .padding(3.dp)
+  if (items.isEmpty()) return
+  val hazeState = LocalHazeState.current
+  val controlShape = RoundedCornerShape(percent = 50)
+  val trackBackdrop = rememberLayerBackdrop()
+  val selectedPosition by animateFloatAsState(
+    targetValue = selectedIndex.coerceIn(items.indices).toFloat(),
+    animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f),
+    label = "segmented-glass-position"
+  )
+  var isSegmentPressed by remember { mutableStateOf(false) }
+  val pressProgress by animateFloatAsState(
+    targetValue = if (isSegmentPressed) 1f else 0f,
+    animationSpec = spring(dampingRatio = 0.72f, stiffness = 520f),
+    label = "segmented-glass-press"
+  )
+  val trackColor = if (isDark) Color.White.copy(alpha = 0.085f) else Color.Black.copy(alpha = 0.065f)
+  val selectedColor = if (isDark) Color.White.copy(alpha = 0.075f) else Color.White.copy(alpha = 0.64f)
+  BoxWithConstraints(
+    modifier = modifier.fillMaxWidth().height(48.dp),
+    contentAlignment = Alignment.CenterStart
   ) {
-    LiquidGlassPillSwitcher(
-      items = items,
-      selectedIndex = selectedIndex,
-      onSelect = onItemSelected,
-      modifier = Modifier.fillMaxSize()
+    val sideInset = 3.dp
+    val indicatorWidth = (maxWidth - sideInset * 2) / items.size
+    Box(
+      Modifier
+        .matchParentSize()
+        .layerBackdrop(trackBackdrop)
+        .clip(controlShape)
+    ) {
+      if (hazeState != null) {
+        LiquidGlassBackdrop(
+          hazeState = hazeState,
+          shape = controlShape,
+          isDark = isDark,
+          modifier = Modifier.matchParentSize()
+        )
+      } else {
+        Box(Modifier.fillMaxSize().background(trackColor))
+      }
+      Box(Modifier.matchParentSize().background(trackColor))
+    }
+    Box(
+      Modifier
+        .padding(horizontal = sideInset)
+        .height(42.dp)
+        .width(indicatorWidth)
+        .graphicsLayer { translationX = size.width * selectedPosition }
+        .drawBackdrop(
+          backdrop = trackBackdrop,
+          shape = { controlShape },
+          effects = {
+            vibrancy()
+            blur(3f.dp.toPx())
+            lens(11f.dp.toPx(), 21f.dp.toPx(), chromaticAberration = true)
+          },
+          highlight = { Highlight.Default.copy(alpha = 0.22f + 0.72f * pressProgress) },
+          innerShadow = { InnerShadow(radius = 4.dp, alpha = 0.14f) },
+          layerBlock = {
+            scaleX = 1f + 0.035f * pressProgress
+            scaleY = 1f + 0.065f * pressProgress
+          },
+          onDrawSurface = { drawRect(selectedColor) }
+        )
     )
+    Row(Modifier.fillMaxSize().padding(horizontal = sideInset, vertical = 3.dp)) {
+      items.forEachIndexed { index, item ->
+        val selected = index == selectedIndex
+        Box(
+          Modifier
+            .weight(1f)
+            .fillMaxHeight()
+            .clip(controlShape)
+            .pointerInput(index) {
+              detectTapGestures(onPress = {
+                isSegmentPressed = true
+                val released = tryAwaitRelease()
+                isSegmentPressed = false
+                if (released) onItemSelected(index)
+              })
+            }
+            .semantics {
+              role = Role.Tab
+              this.selected = selected
+              contentDescription = item
+              onClick {
+                onItemSelected(index)
+                true
+              }
+            },
+          contentAlignment = Alignment.Center
+        ) {
+          Text(
+            text = item,
+            color = if (selected) com.example.ui.theme.InkPrimary else com.example.ui.theme.InkSecondary,
+            fontFamily = SFProFontFamily,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1
+          )
+        }
+      }
+    }
+    Box(Modifier.matchParentSize().border(0.8.dp, if (isDark) Color.White.copy(alpha = 0.14f) else Color.Black.copy(alpha = 0.12f), controlShape))
   }
 }
 
@@ -321,33 +426,28 @@ fun LiquidGlassButton(
 ) {
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
-  Box(
+  UpstreamLiquidGlassSurface(
     modifier = modifier
       .defaultMinSize(minHeight = 48.dp)
-      .liquidGlassSurface(
-        shape = shape,
-        borderWidth = 0.75.dp,
-        isDark = isDark,
-        topFill = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated,
-        bottomFill = if (isDark) LiquidGlassCardBottomDark else LightSurfaceCard,
-        specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
-        specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
-        specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
-      )
       .bounceClick(shine = true) {
         onClick()
-      }
-      .padding(horizontal = 14.dp, vertical = 10.dp),
-    contentAlignment = Alignment.Center
+      },
+    shape = shape,
+    isDark = isDark,
+    hazeState = LocalHazeState.current,
+    borderWidth = 0.75.dp,
+    fallbackColor = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated
   ) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      if (icon != null) {
-        icon()
+    Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        if (icon != null) {
+          icon()
+        }
+        content()
       }
-      content()
     }
   }
 }
@@ -367,23 +467,17 @@ fun LiquidGlassIconButton(
 ) {
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
-  Box(
+  UpstreamLiquidGlassSurface(
     modifier = modifier
       .size(size.coerceAtLeast(48.dp))
-      .liquidGlassSurface(
-        shape = shape,
-        borderWidth = 0.75.dp,
-        isDark = isDark,
-        topFill = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated,
-        bottomFill = if (isDark) LiquidGlassCardBottomDark else LightSurfaceCard,
-        specularBorderTop = if (isDark) LiquidGlassBorderSpecularTop else Color(0xB3FFFFFF),
-        specularBorderMid = if (isDark) LiquidGlassBorderSpecularMid else LightHairline,
-        specularBorderBottom = if (isDark) LiquidGlassBorderSpecularBottom else LightHairline.copy(alpha = 0.65f)
-      )
       .bounceClick(shine = true) {
         onClick()
       },
-    contentAlignment = Alignment.Center
+    shape = shape,
+    isDark = isDark,
+    hazeState = LocalHazeState.current,
+    borderWidth = 0.75.dp,
+    fallbackColor = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated
   ) {
     icon()
   }
@@ -402,7 +496,8 @@ fun LiquidGlassNavigationDock(
   modifier: Modifier = Modifier,
   isQuickAddOpen: Boolean = false,
   onQuickAdd: (() -> Unit)? = null,
-  hazeState: HazeState? = null
+  hazeState: HazeState? = null,
+  backdrop: Backdrop? = null
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
@@ -462,7 +557,20 @@ fun LiquidGlassNavigationDock(
   )
 
   val dockBackdropModifier = if (hazeState != null) {
-    Modifier
+    if (backdrop != null) Modifier.drawBackdrop(
+      backdrop = backdrop,
+      shape = { RoundedCornerShape(percent = 50) },
+      effects = {
+        vibrancy()
+        blur(8f.dp.toPx())
+        lens(22f.dp.toPx(), 26f.dp.toPx())
+      },
+      highlight = { Highlight.Default.copy(alpha = if (isHoldingDock) 0.92f else 0.24f) },
+      innerShadow = { InnerShadow(radius = 7.dp, alpha = 0.13f) },
+      onDrawSurface = {
+        drawRect(if (isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.52f))
+      }
+    ) else Modifier
   } else {
     Modifier.liquidGlassCapsule(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
   }
@@ -478,7 +586,7 @@ fun LiquidGlassNavigationDock(
       .padding(horizontal = 6.dp),
     contentAlignment = Alignment.Center
   ) {
-    if (hazeState != null) {
+    if (hazeState != null && backdrop == null) {
       LiquidGlassBackdrop(
         hazeState = hazeState,
         shape = RoundedCornerShape(percent = 50),
@@ -579,36 +687,31 @@ fun LiquidGlassNavigationDock(
             .graphicsLayer {
               translationX = indicatorX.value - (capsuleWidthPx / 2f)
             }
-            .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
+            .then(
+              if (backdrop != null) {
+                Modifier.drawBackdrop(
+                  backdrop = backdrop,
+                  shape = { RoundedCornerShape(percent = 50) },
+                  effects = {
+                    vibrancy()
+                    blur(2f.dp.toPx())
+                    lens(11f.dp.toPx(), 19f.dp.toPx(), chromaticAberration = true)
+                  },
+                  highlight = { Highlight.Default.copy(alpha = if (isHoldingDock) 0.95f else 0.30f) },
+                  innerShadow = { InnerShadow(radius = 5.dp, alpha = 0.16f) },
+                  onDrawSurface = {
+                    drawRect(if (isDark) Color.White.copy(alpha = 0.13f) else Color.White.copy(alpha = 0.72f))
+                  }
+                )
+              } else {
+                Modifier.liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
+              }
+            )
         )
       }
 
-      // 2. Icon Row with real AGSL optical lens magnification & chromatic aberration
-      val lensShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        remember { RuntimeShader(PILL_LENS_SHADER) }
-      } else null
-
-      val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && slotWidth > 0f) {
-        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 46.dp.toPx() })
-        Modifier.graphicsLayer {
-          lensShader.setFloatUniform("uCenter", indicatorX.value, size.height / 2f)
-          lensShader.setFloatUniform(
-            "uHalf",
-            capsuleWidthPx / 2f,
-            size.height / 2f
-          )
-          lensShader.setFloatUniform("uZoom", if (isDragging) 0.18f else 0.08f)
-          lensShader.setFloatUniform("uChroma", if (isDragging) 0.10f else 0.03f)
-          renderEffect = RenderEffect
-            .createRuntimeShaderEffect(lensShader, "content")
-            .asComposeRenderEffect()
-        }
-      } else Modifier
-
       Row(
-        modifier = Modifier
-          .fillMaxSize()
-          .then(lensModifier),
+        modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically
       ) {
         if (hasCenterFab) {
@@ -651,7 +754,22 @@ fun LiquidGlassNavigationDock(
             Box(
               modifier = Modifier
                 .size(48.dp)
-                .liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark),
+              .then(
+                if (backdrop != null) Modifier.drawBackdrop(
+                  backdrop = backdrop,
+                  shape = { CircleShape },
+                  effects = {
+                    vibrancy()
+                    blur(2f.dp.toPx())
+                    lens(10f.dp.toPx(), 18f.dp.toPx(), chromaticAberration = true)
+                  },
+                  highlight = { Highlight.Default.copy(alpha = if (isHoldingDock) 0.95f else 0.30f) },
+                  innerShadow = { InnerShadow(radius = 5.dp, alpha = 0.16f) },
+                  onDrawSurface = {
+                    drawRect(if (isDark) Color.White.copy(alpha = 0.13f) else Color.White.copy(alpha = 0.72f))
+                  }
+                ) else Modifier.liquidGlassLens(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
+              ),
               contentAlignment = Alignment.Center
             ) {
               Icon(
@@ -776,16 +894,19 @@ fun LiquidGlassFloatingActionButton(
     label = "fabRotation"
   )
 
-  Box(
+  UpstreamLiquidGlassSurface(
     modifier = modifier
       .size(54.dp)
-      .liquidGlassLens(shape = CircleShape, borderWidth = 0.85.dp, isDark = isDark)
       .bounceClick(shine = true) {
         com.example.util.SoundManager.playButtonClick(context)
         onClick()
       }
       .testTag("nav_center_fab"),
-    contentAlignment = Alignment.Center
+    shape = CircleShape,
+    isDark = isDark,
+    hazeState = LocalHazeState.current,
+    borderWidth = 0.85.dp,
+    fallbackColor = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated
   ) {
     Icon(
       imageVector = Icons.Default.Add,

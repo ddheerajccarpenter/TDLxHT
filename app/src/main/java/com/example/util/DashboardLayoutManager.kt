@@ -27,6 +27,8 @@ enum class DashboardSection(
             HABIT_STREAKS
         )
 
+        val DEFAULT_VISIBILITY = entries.associateWith { it != TIME_BLOCKS }
+
         fun fromId(id: String): DashboardSection? = entries.firstOrNull { it.id == id }
     }
 }
@@ -39,9 +41,7 @@ object DashboardLayoutManager {
     private val _sectionOrder = MutableStateFlow(DashboardSection.DEFAULT_ORDER)
     val sectionOrder: StateFlow<List<DashboardSection>> = _sectionOrder.asStateFlow()
 
-    private val _sectionVisibility = MutableStateFlow(
-        DashboardSection.entries.associateWith { true }
-    )
+    private val _sectionVisibility = MutableStateFlow(DashboardSection.DEFAULT_VISIBILITY)
     val sectionVisibility: StateFlow<Map<DashboardSection, Boolean>> = _sectionVisibility.asStateFlow()
 
     private var isInitialized = false
@@ -65,7 +65,7 @@ object DashboardLayoutManager {
         // 2. Read Visibility
         val visibilityCsv = prefs.getString(KEY_DASHBOARD_VISIBILITY, null)
         val loadedVisibility = if (!visibilityCsv.isNullOrBlank()) {
-            val map = DashboardSection.entries.associateWith { true }.toMutableMap()
+            val map = DashboardSection.DEFAULT_VISIBILITY.toMutableMap()
             visibilityCsv.split(";").forEach { pair ->
                 val parts = pair.split(":")
                 if (parts.size == 2) {
@@ -78,7 +78,7 @@ object DashboardLayoutManager {
             }
             map
         } else {
-            DashboardSection.entries.associateWith { true }
+            DashboardSection.DEFAULT_VISIBILITY
         }
         _sectionVisibility.value = loadedVisibility
 
@@ -104,7 +104,7 @@ object DashboardLayoutManager {
         saveLayout(
             context,
             order = DashboardSection.DEFAULT_ORDER,
-            visibility = DashboardSection.entries.associateWith { true }
+            visibility = DashboardSection.DEFAULT_VISIBILITY
         )
     }
 
