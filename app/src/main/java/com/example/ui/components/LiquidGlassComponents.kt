@@ -1,5 +1,17 @@
 package com.example.ui.components
 
+import android.graphics.RenderEffect
+import android.graphics.RuntimeShader
+import android.os.Build
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import com.example.ui.glass.LIQUID_GLASS_SHADER
+import com.example.ui.glass.PILL_LENS_SHADER
+import com.example.ui.glass.LiquidGlassBackdrop
+import com.example.ui.glass.LiquidGlassHighlight
+import com.example.ui.glass.LiquidGlassContainer
+import com.example.ui.glass.LiquidGlassPillSwitcher
+import dev.chrisbanes.haze.HazeState
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -237,58 +249,103 @@ fun Modifier.liquidGlassCapsule(
 /**
  * 1. LiquidGlassCard
  * Large smoked glass panel for Today's Momentum, Time Blocks, and Card sections.
+ * Supports optional Haze backdrop blur with graceful fallback.
  */
 @Composable
 fun LiquidGlassCard(
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(24.dp),
   borderWidth: Dp = 0.75.dp,
+  hazeState: HazeState? = null,
   onClick: (() -> Unit)? = null,
   content: @Composable BoxScope.() -> Unit
 ) {
+  val isDark = LocalAppColors.current.isDark
   val clickModifier = if (onClick != null) {
     Modifier.bounceClick(onClick = onClick)
   } else Modifier
 
-  Box(
-    modifier = modifier
-      .liquidGlassSurface(
+  if (hazeState != null && shape is RoundedCornerShape) {
+    Box(
+      modifier = modifier
+        .then(clickModifier)
+    ) {
+      LiquidGlassBackdrop(
+        hazeState = hazeState,
         shape = shape,
-        borderWidth = borderWidth,
-        topFill = LiquidGlassCardTopDark,
-        bottomFill = LiquidGlassCardBottomDark
+        isDark = isDark,
+        modifier = Modifier.matchParentSize()
       )
-      .then(clickModifier),
-    content = content
-  )
+      LiquidGlassHighlight(
+        shape = shape,
+        isDark = isDark,
+        modifier = Modifier.matchParentSize()
+      )
+      Box(modifier = Modifier.padding(borderWidth), content = content)
+    }
+  } else {
+    Box(
+      modifier = modifier
+        .liquidGlassSurface(
+          shape = shape,
+          borderWidth = borderWidth,
+          topFill = LiquidGlassCardTopDark,
+          bottomFill = LiquidGlassCardBottomDark
+        )
+        .then(clickModifier),
+      content = content
+    )
+  }
 }
 
 /**
  * 2. LiquidGlassCapsule
  * Unified transparent glass capsule for metric groups and segmented controls.
+ * Supports optional Haze backdrop blur with graceful fallback.
  */
 @Composable
 fun LiquidGlassCapsule(
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(20.dp),
   borderWidth: Dp = 0.75.dp,
+  hazeState: HazeState? = null,
   content: @Composable BoxScope.() -> Unit
 ) {
-  Box(
-    modifier = modifier
-      .liquidGlassSurface(
+  val isDark = LocalAppColors.current.isDark
+  if (hazeState != null && shape is RoundedCornerShape) {
+    Box(modifier = modifier) {
+      LiquidGlassBackdrop(
+        hazeState = hazeState,
         shape = shape,
-        borderWidth = borderWidth,
-        topFill = LiquidGlassCapsuleTopDark,
-        bottomFill = LiquidGlassCapsuleBottomDark
-      ),
-    content = content
-  )
+        isDark = isDark,
+        modifier = Modifier.matchParentSize()
+      )
+      LiquidGlassHighlight(
+        shape = shape,
+        isDark = isDark,
+        modifier = Modifier.matchParentSize()
+      )
+      Box(modifier = Modifier.padding(borderWidth), content = content)
+    }
+  } else {
+    Box(
+      modifier = modifier
+        .liquidGlassSurface(
+          shape = shape,
+          borderWidth = borderWidth,
+          topFill = LiquidGlassCapsuleTopDark,
+          bottomFill = LiquidGlassCapsuleBottomDark
+        ),
+      content = content
+    )
+  }
 }
 
 /**
  * 3. LiquidGlassSegmentedControl
- * Moving curved glass lens gliding smoothly between segments with spring physics.
+ * iOS 26 Liquid Glass Segmented Control powered by LiquidGlassPillSwitcher.
+ * Features dual-spring jelly sliding physics, 120Hz frame-loop touch tracking,
+ * 160ms hold/drag lift effect, haptic slot ticks, and PILL_LENS_SHADER magnification.
  */
 @Composable
 fun LiquidGlassSegmentedControl(
@@ -297,102 +354,19 @@ fun LiquidGlassSegmentedControl(
   onItemSelected: (Int) -> Unit,
   modifier: Modifier = Modifier
 ) {
-  val context = LocalContext.current
-  val density = LocalDensity.current
-
   Box(
     modifier = modifier
       .fillMaxWidth()
       .height(44.dp)
       .liquidGlassCapsule(shape = RoundedCornerShape(14.dp), borderWidth = 0.75.dp)
+      .padding(3.dp)
   ) {
-    BoxWithConstraints(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(3.dp)
-        .pointerInput(items, selectedIndex) {
-          awaitEachGesture {
-            val down = awaitFirstDown(requireUnconsumed = false)
-            val count = items.size
-            fun selectForX(x: Float) {
-              if (count == 0 || size.width <= 0) return
-              val itemWidth = size.width / count.toFloat()
-              val targetIndex = (x / itemWidth).toInt().coerceIn(0, count - 1)
-              if (targetIndex != selectedIndex) {
-                onItemSelected(targetIndex)
-                VibrationHelper.tick(context)
-              }
-            }
-            selectForX(down.position.x)
-            while (true) {
-              val event = awaitPointerEvent()
-              val change = event.changes.firstOrNull() ?: break
-              if (!change.pressed) break
-              selectForX(change.position.x)
-            }
-          }
-        }
-    ) {
-      val count = items.size.coerceAtLeast(1)
-      val segmentWidth = maxWidth / count
-      val safeIndex = selectedIndex.coerceIn(0, count - 1)
-
-      val animatedOffset by animateDpAsState(
-        targetValue = segmentWidth * safeIndex,
-        animationSpec = spring(dampingRatio = 0.76f, stiffness = 420f),
-        label = "glassSegmentOffset"
-      )
-
-      // 1. Gliding Optical Glass Lens
-      Box(
-        modifier = Modifier
-          .offset(x = animatedOffset)
-          .width(segmentWidth)
-          .fillMaxHeight()
-          .liquidGlassLens(shape = RoundedCornerShape(11.dp), borderWidth = 0.75.dp)
-      )
-
-      // 2. Foreground Typography Labels
-      Row(
-        modifier = Modifier.fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        items.forEachIndexed { index, title ->
-          val isSelected = index == selectedIndex
-          val textColor by animateColorAsState(
-            targetValue = if (isSelected) Color(0xFFF5F5F7) else Color(0xFF8E9298),
-            animationSpec = tween(160),
-            label = "glassSegmentText"
-          )
-
-          Box(
-            modifier = Modifier
-              .weight(1f)
-              .fillMaxHeight()
-              .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-              ) {
-                if (selectedIndex != index) {
-                  onItemSelected(index)
-                  VibrationHelper.tick(context)
-                }
-              },
-            contentAlignment = Alignment.Center
-          ) {
-            Text(
-              text = title,
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 13.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                color = textColor
-              )
-            )
-          }
-        }
-      }
-    }
+    LiquidGlassPillSwitcher(
+      items = items,
+      selectedIndex = selectedIndex,
+      onSelect = onItemSelected,
+      modifier = Modifier.fillMaxSize()
+    )
   }
 }
 
@@ -482,7 +456,8 @@ fun LiquidGlassNavigationDock(
   onDestinationSelected: (AppDestination) -> Unit,
   modifier: Modifier = Modifier,
   isQuickAddOpen: Boolean = false,
-  onQuickAdd: (() -> Unit)? = null
+  onQuickAdd: (() -> Unit)? = null,
+  hazeState: HazeState? = null
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
@@ -540,6 +515,12 @@ fun LiquidGlassNavigationDock(
     label = "fabRotation"
   )
 
+  val dockBackdropModifier = if (hazeState != null) {
+    Modifier
+  } else {
+    Modifier.liquidGlassCapsule(shape = CircleShape, borderWidth = 0.75.dp)
+  }
+
   Box(
     modifier = modifier
       .height(50.dp)
@@ -547,10 +528,23 @@ fun LiquidGlassNavigationDock(
         scaleX = dockScale
         scaleY = dockScale
       }
-      .liquidGlassCapsule(shape = CircleShape, borderWidth = 0.75.dp)
+      .then(dockBackdropModifier)
       .padding(horizontal = 6.dp),
     contentAlignment = Alignment.Center
   ) {
+    if (hazeState != null) {
+      LiquidGlassBackdrop(
+        hazeState = hazeState,
+        shape = RoundedCornerShape(percent = 50),
+        isDark = isDark,
+        modifier = Modifier.matchParentSize()
+      )
+      LiquidGlassHighlight(
+        shape = RoundedCornerShape(percent = 50),
+        isDark = isDark,
+        modifier = Modifier.matchParentSize()
+      )
+    }
     Box(
       modifier = Modifier
         .fillMaxWidth()
@@ -663,9 +657,32 @@ fun LiquidGlassNavigationDock(
         )
       }
 
-      // 2. Icon Row
+      // 2. Icon Row with real AGSL optical lens magnification & chromatic aberration
+      val lensShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        remember { RuntimeShader(PILL_LENS_SHADER) }
+      } else null
+
+      val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && slotWidth > 0f) {
+        val capsuleWidthPx = (slotWidth * 0.90f).coerceAtLeast(with(density) { 34.dp.toPx() })
+        Modifier.graphicsLayer {
+          lensShader.setFloatUniform("uCenter", indicatorX.value, size.height / 2f)
+          lensShader.setFloatUniform(
+            "uHalf",
+            capsuleWidthPx / 2f,
+            size.height / 2f
+          )
+          lensShader.setFloatUniform("uZoom", if (isDragging) 0.18f else 0.08f)
+          lensShader.setFloatUniform("uChroma", if (isDragging) 0.50f else 0.15f)
+          renderEffect = RenderEffect
+            .createRuntimeShaderEffect(lensShader, "content")
+            .asComposeRenderEffect()
+        }
+      } else Modifier
+
       Row(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+          .fillMaxSize()
+          .then(lensModifier),
         verticalAlignment = Alignment.CenterVertically
       ) {
         if (hasCenterFab) {

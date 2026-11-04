@@ -43,8 +43,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 53
-    versionName = "2.5.16"
+    versionCode = 54
+    versionName = "2.5.17"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -142,6 +142,8 @@ dependencies {
   coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
   // Lottie Compose for animated icons
   implementation("com.airbnb.android:lottie-compose:6.6.2")
+  // Haze for real-time background blur & liquid glass
+  implementation(libs.haze)
 
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)

@@ -111,12 +111,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import dev.chrisbanes.haze.rememberHazeState
+import dev.chrisbanes.haze.hazeSource
+import com.example.ui.glass.LocalHazeState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -402,40 +406,46 @@ fun MainApp(
     navController.navigateBack()
   }
 
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(PaperBackground)
-  ) {
-    PredictiveNavigationHost(
-      navController = navController,
-      modifier = Modifier.fillMaxSize()
-    ) { destination ->
-      when (destination) {
-        is AppNavDestination.Main -> {
-          Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = PaperBackground,
-            bottomBar = {
-              SketchBottomNavigationBar(
-                destinations = destinations,
-                selectedTab = navController.selectedTab,
-                isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
-                onDestinationSelected = { dest ->
-                  val targetIndex = destinations.indexOf(dest)
-                  if (targetIndex >= 0) {
-                    navController.switchTab(targetIndex)
-                  }
-                },
-                onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) }
-              )
-            }
-          ) { innerPadding ->
-            Box(
-              modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-                .horizontalSwipeNavigation(
+  val hazeState = rememberHazeState()
+
+  CompositionLocalProvider(LocalHazeState provides hazeState) {
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(PaperBackground)
+    ) {
+      PredictiveNavigationHost(
+        navController = navController,
+        modifier = Modifier.fillMaxSize()
+      ) { destination ->
+        when (destination) {
+          is AppNavDestination.Main -> {
+            Scaffold(
+              modifier = Modifier.fillMaxSize(),
+              containerColor = PaperBackground,
+              bottomBar = {
+                SketchBottomNavigationBar(
+                  destinations = destinations,
+                  selectedTab = navController.selectedTab,
+                  isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
+                  onDestinationSelected = { dest ->
+                    val targetIndex = destinations.indexOf(dest)
+                    if (targetIndex >= 0) {
+                      navController.switchTab(targetIndex)
+                    }
+                  },
+                  onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
+                  hazeState = hazeState
+                )
+              }
+            ) { innerPadding ->
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .hazeSource(hazeState)
+                  .background(PaperBackground)
+                  .padding(top = innerPadding.calculateTopPadding())
+                  .horizontalSwipeNavigation(
                   onSwipeLeft = {
                     if (navController.selectedTab < destinations.size - 1) {
                       navController.switchTab(navController.selectedTab + 1)
@@ -830,6 +840,7 @@ fun MainApp(
 
       null -> {}
     }
+  }
   }
 
   // Single-time first launch permission dialog
@@ -1317,7 +1328,8 @@ fun SketchBottomNavigationBar(
   selectedTab: Int,
   isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
-  onQuickAdd: () -> Unit
+  onQuickAdd: () -> Unit,
+  hazeState: dev.chrisbanes.haze.HazeState? = null
 ) {
   Box(
     modifier = Modifier
@@ -1332,6 +1344,7 @@ fun SketchBottomNavigationBar(
       isQuickAddOpen = isQuickAddOpen,
       onDestinationSelected = onDestinationSelected,
       onQuickAdd = onQuickAdd,
+      hazeState = hazeState,
       modifier = Modifier.fillMaxWidth()
     )
   }
