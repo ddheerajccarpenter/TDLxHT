@@ -1354,7 +1354,7 @@ fun GlassInput(
   Box(
     modifier = modifier
       .fillMaxWidth()
-      .height(46.dp)
+      .height(48.dp)
       .fluidLensedGlass(
         shape = RoundedCornerShape(14.dp),
         elevation = 1.dp,

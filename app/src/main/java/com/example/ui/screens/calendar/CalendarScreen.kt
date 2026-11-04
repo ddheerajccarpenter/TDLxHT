@@ -187,6 +187,7 @@ fun CalendarScreen(
             Row(
               verticalAlignment = Alignment.CenterVertically,
               modifier = Modifier
+                .height(48.dp)
                 .bounceClick {
                   val currentDeviceDate = LocalDate.now()
                   viewModel.setSelectedCalendarDate(currentDeviceDate)

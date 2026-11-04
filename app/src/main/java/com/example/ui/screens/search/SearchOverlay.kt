@@ -41,7 +41,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,6 +68,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassIconButton
 import com.example.ui.glass.LocalHazeState
 import com.example.ui.theme.InkMuted
 import com.example.ui.theme.InkPrimary
@@ -212,8 +212,11 @@ fun SearchOverlay(
                 }
               )
               if (query.isNotEmpty()) {
-                IconButton(onClick = { query = "" }, modifier = Modifier.size(48.dp)) {
-                  Icon(Icons.Default.Close, contentDescription = "Clear search", tint = InkSecondary)
+                LiquidGlassIconButton(
+                  onClick = { query = "" },
+                  contentDescription = "Clear search"
+                ) {
+                  Icon(Icons.Default.Close, contentDescription = null, tint = InkSecondary)
                 }
               }
             }
