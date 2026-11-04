@@ -63,6 +63,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -73,8 +74,10 @@ import com.example.data.model.Task
 import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
+import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.SketchCard
 import com.example.ui.components.SketchSegmentedControl
+import com.example.ui.theme.SFProFontFamily
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
 import com.example.ui.components.sectionEntrance
@@ -216,9 +219,9 @@ fun CalendarScreen(
         Spacer(modifier = Modifier.height(10.dp))
       }
 
-      // View mode segmented toggle: [Month] [Week] [Day]
+      // View mode segmented toggle: [Month] [Week] [Day] - Canonical Liquid Glass Segmented
       item {
-        SketchSegmentedControl(
+        LiquidGlassSegmentedControl(
           items = listOf("Month", "Week", "Day"),
           selectedIndex = calendarViewMode,
           onItemSelected = { calendarViewMode = it },
@@ -292,6 +295,9 @@ fun CalendarScreen(
         ) {
           Text(
             text = if (isToday) "TODAY'S AGENDA • $formattedSelected" else "AGENDA FOR $formattedSelected",
+            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             style = TextStyle(
               fontSize = 11.sp,
               fontWeight = FontWeight.Bold,
@@ -301,15 +307,23 @@ fun CalendarScreen(
           )
 
           if (isToday) {
+            Spacer(modifier = Modifier.width(8.dp))
             Box(
               modifier = Modifier
-                .background(AccentTerracotta.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                .border(1.dp, AccentTerracotta.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                .padding(horizontal = 6.dp, vertical = 2.dp)
+                .background(PillBackgroundDark, RoundedCornerShape(8.dp))
+                .border(0.75.dp, CardBorder, RoundedCornerShape(8.dp))
+                .padding(horizontal = 8.dp, vertical = 3.dp)
             ) {
               Text(
                 text = "Today",
-                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AccentTerracotta)
+                maxLines = 1,
+                softWrap = false,
+                style = TextStyle(
+                  fontFamily = SFProFontFamily,
+                  fontSize = 11.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = PillTextDark
+                )
               )
             }
           }

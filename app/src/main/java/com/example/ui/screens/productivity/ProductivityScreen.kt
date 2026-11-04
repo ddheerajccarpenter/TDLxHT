@@ -36,7 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.model.Habit
 import com.example.data.model.Task
-import com.example.ui.components.GlassSegmented
+import com.example.ui.components.FloatingNavContentBottomPadding
+import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.paperDotBackground
 import com.example.ui.navigation.horizontalSwipeNavigation
 import com.example.ui.screens.calendar.CalendarScreen
@@ -156,12 +157,11 @@ fun ProductivityScreen(
         .windowInsetsPadding(WindowInsets.navigationBars),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      // 1. Productivity Tab Nav Bar (Tasks | Habits | Calendar) positioned directly above the nav bar - Apple Liquid Glass
-      GlassSegmented(
+      // 1. Productivity Tab Nav Bar (Tasks | Habits | Calendar) positioned directly above the nav bar - Canonical Liquid Glass
+      LiquidGlassSegmentedControl(
         items = listOf("Tasks", "Habits", "Calendar"),
         selectedIndex = selectedTab,
         onItemSelected = { selectedTab = it },
-        isElevated = true,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp)
@@ -179,7 +179,7 @@ fun ProductivityScreen(
       )
 
       // 3. Clearance space matching the floating main navigation bar
-      Spacer(modifier = Modifier.height(78.dp))
+      Spacer(modifier = Modifier.height(FloatingNavContentBottomPadding))
     }
   }
 }

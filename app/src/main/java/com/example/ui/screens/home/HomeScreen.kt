@@ -725,13 +725,15 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.height(3.dp))
 
-                    val momentumText = if (summary.tasksTotal == 0 && summary.habitsTotal == 0) {
-                      "No tasks scheduled today"
+                    val momentumHeadline = if (summary.tasksTotal == 0 && summary.habitsTotal == 0) {
+                      "All clear for today"
+                    } else if (summary.overallProgress >= 1f) {
+                      "All activities completed! 🎉"
                     } else {
-                      "${summary.tasksCompleted}/${summary.tasksTotal} Tasks • ${summary.habitsCompleted}/${summary.habitsTotal} Habits"
+                      "${(summary.overallProgress * 100).toInt()}% of daily momentum achieved"
                     }
                     Text(
-                      text = momentumText,
+                      text = momentumHeadline,
                       style = TextStyle(
                         fontFamily = SFProFontFamily,
                         fontSize = 14.sp,
@@ -772,7 +774,8 @@ fun HomeScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Text("TASKS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = InkSecondary))
                       Spacer(modifier = Modifier.height(2.dp))
-                      Text("${todayTasks.count { it.isCompleted }}/${todayTasks.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                      val tasksVal = if (todayTasks.isEmpty()) "None" else "${todayTasks.count { it.isCompleted }}/${todayTasks.size}"
+                      Text(tasksVal, style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                     }
                   }
 
@@ -788,7 +791,8 @@ fun HomeScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Text("HABITS", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp, color = InkSecondary))
                       Spacer(modifier = Modifier.height(2.dp))
-                      Text("${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+                      val habitsVal = if (todayHabits.isEmpty()) "None" else "${todayHabits.count { completedHabitIds.contains(it.id) }}/${todayHabits.size}"
+                      Text(habitsVal, style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
                     }
                   }
 
@@ -808,15 +812,6 @@ fun HomeScreen(
                     }
                   }
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Row 3: Linear Progress Rail
-                SketchProgressBar(
-                  progress = summary.overallProgress,
-                  modifier = Modifier.fillMaxWidth(),
-                  height = 4.dp
-                )
               }
             }
 
@@ -1019,9 +1014,11 @@ fun HomeScreen(
           item {
             AppEmptyState(
               icon = Icons.Default.Check,
-              title = "No tasks",
+              title = "All tasks completed!",
+              subtitle = "Nothing due for today. Tap below to plan ahead.",
               actionText = "Add Task",
-              onAction = onNavigateToAddTask
+              onAction = onNavigateToAddTask,
+              modifier = Modifier.padding(vertical = 12.dp)
             )
           }
         } else if (todayTasksViewMode == "GRID") {
@@ -1251,9 +1248,11 @@ fun HomeScreen(
           item {
             AppEmptyState(
               icon = Icons.Default.Check,
-              title = "No habits",
+              title = "No habits scheduled today",
+              subtitle = "Build daily streaks by setting up recurring habits.",
               actionText = "Add Habit",
-              onAction = onNavigateToAddHabit
+              onAction = onNavigateToAddHabit,
+              modifier = Modifier.padding(vertical = 12.dp)
             )
           }
         } else if (todayHabitsViewMode == "GRID") {

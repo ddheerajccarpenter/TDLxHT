@@ -74,6 +74,7 @@ import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.SketchSegmentedControl
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
@@ -151,9 +152,9 @@ fun ReportsScreen(
                 Spacer(Modifier.height(14.dp))
             }
 
-            // Period selector
+            // Period selector - Canonical Liquid Glass Segmented
             item {
-                SketchSegmentedControl(
+                LiquidGlassSegmentedControl(
                     items = listOf("Weekly", "Monthly"),
                     selectedIndex = if (state.period == ReportPeriod.WEEKLY) 0 else 1,
                     onItemSelected = {

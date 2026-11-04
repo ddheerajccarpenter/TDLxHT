@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -485,10 +486,10 @@ fun ThreeJsSpatialCompanion(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Action Pills Row: [Pet] [Focus Core] [Celebrate] (48dp touch targets)
+            // Action Pills Row: [Pet] [Focus Core] [Celebrate] (Typographically protected, zero wrapping)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 1. Pet Action
@@ -509,16 +510,19 @@ fun ThreeJsSpatialCompanion(
                         Icon(
                             imageVector = Icons.Default.Favorite,
                             contentDescription = null,
-                            tint = if (isDark) PrimaryAccentLime else OklchIndigo,
-                            modifier = Modifier.size(14.dp)
+                            tint = InkPrimary,
+                            modifier = Modifier.size(13.dp)
                         )
                     }
                 ) {
                     Text(
                         text = "Pet",
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = SFProFontFamily,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = InkPrimary
                         )
@@ -535,24 +539,27 @@ fun ThreeJsSpatialCompanion(
                             onOpenFocusTimer()
                         }
                     },
-                    modifier = Modifier.weight(1.1f),
+                    modifier = Modifier.weight(1.15f),
                     shape = RoundedCornerShape(10.dp),
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Timer,
                             contentDescription = null,
-                            tint = if (isFocusModeActive) PrimaryAccentLime else InkSecondary,
-                            modifier = Modifier.size(14.dp)
+                            tint = if (isFocusModeActive) OklchIndigo else InkSecondary,
+                            modifier = Modifier.size(13.dp)
                         )
                     }
                 ) {
                     Text(
                         text = if (isFocusModeActive) "Focusing" else "Focus Core",
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = SFProFontFamily,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isFocusModeActive) PrimaryAccentLime else InkPrimary
+                            color = if (isFocusModeActive) OklchIndigo else InkPrimary
                         )
                     )
                 }
@@ -569,24 +576,27 @@ fun ThreeJsSpatialCompanion(
                             interactionToast = null
                         }
                     },
-                    modifier = Modifier.weight(1.1f),
+                    modifier = Modifier.weight(1.15f),
                     shape = RoundedCornerShape(10.dp),
                     icon = {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
-                            tint = PrimaryAccentLime,
-                            modifier = Modifier.size(14.dp)
+                            tint = OklchIndigo,
+                            modifier = Modifier.size(13.dp)
                         )
                     }
                 ) {
                     Text(
                         text = "Celebrate",
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = SFProFontFamily,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isDark) PrimaryAccentLime else InkPrimary
+                            color = InkPrimary
                         )
                     )
                 }

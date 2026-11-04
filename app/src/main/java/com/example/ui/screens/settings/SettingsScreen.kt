@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Vibration
@@ -77,9 +78,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.AppSettings
@@ -101,7 +104,6 @@ import com.example.ui.components.paperDotBackground
 import com.example.ui.screens.calendar.formatTimeDisplay
 import com.example.ui.theme.AccentRed
 import com.example.ui.components.AnimatedIcon
-import com.example.ui.theme.PrimaryAccentLime
 import com.example.ui.theme.CardBackground
 import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
@@ -213,7 +215,7 @@ fun SettingsScreen(
             AnimatedIcon(
               resId = R.raw.anim_settings,
               isSelected = true,
-              tint = PrimaryAccentLime,
+              tint = OklchIndigo,
               size = 20.dp,
               contentDescription = "Settings Icon"
             )
@@ -266,7 +268,9 @@ fun SettingsScreen(
                   fontSize = 12.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkSecondary
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
               )
               Text(
                 text = email,
@@ -275,7 +279,10 @@ fun SettingsScreen(
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
-                )
+                ),
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis
               )
             }
           }
@@ -306,13 +313,13 @@ fun SettingsScreen(
             ) {
               if (syncState is SyncStatus.Syncing) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                  CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = PrimaryAccentLime)
-                  Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PrimaryAccentLime, fontWeight = FontWeight.SemiBold))
+                  CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = OklchIndigo)
+                  Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = OklchIndigo, fontWeight = FontWeight.SemiBold))
                 }
               } else {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                  Icon(Icons.Default.CloudSync, contentDescription = null, tint = PrimaryAccentLime, modifier = Modifier.size(16.dp))
-                  Text("Sync Now", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = PrimaryAccentLime, fontWeight = FontWeight.SemiBold))
+                  Icon(Icons.Default.CloudSync, contentDescription = null, tint = OklchIndigo, modifier = Modifier.size(16.dp))
+                  Text("Sync Now", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = OklchIndigo, fontWeight = FontWeight.SemiBold))
                 }
               }
             }
@@ -479,7 +486,51 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 2)) {
-          Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+          Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
+            val systemNotificationsEnabled = remember(context) {
+              NotificationManagerCompat.from(context).areNotificationsEnabled()
+            }
+
+            if (!systemNotificationsEnabled) {
+              Box(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(OklchCoral.copy(alpha = 0.12f))
+                  .border(1.dp, OklchCoral.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
+                  .bounceClick {
+                    val intent = Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                      putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                    }
+                    context.startActivity(intent)
+                  }
+                  .padding(horizontal = 12.dp, vertical = 10.dp)
+              ) {
+                Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = null,
+                    tint = OklchCoral,
+                    modifier = Modifier.size(18.dp)
+                  )
+                  Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                      text = "System notifications disabled",
+                      style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                      text = "Tap to open Android Settings and enable alerts",
+                      style = TextStyle(fontSize = 11.sp, color = InkSecondary)
+                    )
+                  }
+                }
+              }
+              Spacer(modifier = Modifier.height(10.dp))
+            }
+
             // Push Notifications master
             SettingsToggleRow(
               title = "Push Notifications",

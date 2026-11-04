@@ -101,7 +101,6 @@ import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircleOutline
-import com.example.ui.theme.PrimaryAccentLime
 import com.example.ui.theme.PrimaryDarkCanvas
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
@@ -166,7 +165,7 @@ import com.example.ui.screens.settings.SettingsScreen
 import com.example.ui.screens.tasks.TaskDetailEditScreen
 import com.example.ui.screens.tasks.TaskListScreen
 import com.example.ui.screens.tools.ToolsScreen
-import com.example.ui.theme.AccentTerracotta
+import com.example.ui.theme.OklchIndigo
 import com.example.ui.theme.CardBackground
 import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
@@ -656,8 +655,7 @@ fun MainApp(
           visible = true,
           onDismissRequest = { navController.dismissOverlay() }
         ) {
-          val isDark = com.example.ui.theme.LocalAppColors.current.isDark
-          val optionIconAccent = if (isDark) PrimaryAccentLime else AccentTerracotta
+          val optionIconAccent = OklchIndigo
 
           Row(
             modifier = Modifier.fillMaxWidth(),
@@ -723,15 +721,21 @@ fun MainApp(
                 )
               }
               Spacer(modifier = Modifier.width(14.dp))
-              Text(
-                text = "New Task",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
+              Column {
+                Text(
+                  text = "New Task",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = InkPrimary
+                  )
                 )
-              )
+                Text(
+                  text = "Actionable to-do with due dates & subtasks",
+                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+                )
+              }
             }
           }
 
@@ -770,15 +774,21 @@ fun MainApp(
                 )
               }
               Spacer(modifier = Modifier.width(14.dp))
-              Text(
-                text = "New Habit",
-                style = TextStyle(
-                  fontFamily = SFProFontFamily,
-                  fontSize = 16.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
+              Column {
+                Text(
+                  text = "New Habit",
+                  style = TextStyle(
+                    fontFamily = SFProFontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = InkPrimary
+                  )
                 )
-              )
+                Text(
+                  text = "Track daily routines & maintain momentum",
+                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+                )
+              }
             }
           }
 
@@ -830,7 +840,7 @@ fun MainApp(
                   )
                 )
                 Text(
-                  text = "Auto-removes when done • Local record only",
+                  text = "Stored locally • Auto-clears when complete",
                   style = TextStyle(fontSize = 12.sp, color = InkSecondary)
                 )
               }
@@ -892,13 +902,14 @@ fun MainApp(
           Box(
             modifier = Modifier
               .size(56.dp)
-              .border(1.8.dp, AccentTerracotta, CircleShape),
+              .background(OklchIndigo.copy(alpha = 0.12f), CircleShape)
+              .border(1.8.dp, OklchIndigo.copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center
           ) {
             Icon(
               imageVector = Icons.Default.Notifications,
               contentDescription = null,
-              tint = AccentTerracotta,
+              tint = OklchIndigo,
               modifier = Modifier.size(28.dp)
             )
           }
