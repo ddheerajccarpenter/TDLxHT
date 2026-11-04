@@ -251,7 +251,7 @@ fun HomeScreen(
         .padding(horizontal = 16.dp),
       contentPadding = PaddingValues(
         top = 10.dp,
-        bottom = FloatingNavContentBottomPadding
+        bottom = FloatingNavContentBottomPadding + 48.dp
       )
     ) {
       // Standardized Top Header
@@ -275,10 +275,10 @@ fun HomeScreen(
                 LiquidGlassIconButton(
                   onClick = { showHomeMenu = true },
                   contentDescription = "Home options",
-                  size = 48.dp,
+                  size = 40.dp,
                   modifier = Modifier.testTag("home_options_button")
                 ) {
-                  Icon(Icons.Default.MoreVert, contentDescription = null, tint = InkPrimary)
+                  Icon(Icons.Default.MoreVert, contentDescription = null, tint = InkPrimary, modifier = Modifier.size(18.dp))
                 }
                 GlassMenu(
                   expanded = showHomeMenu,
@@ -322,14 +322,14 @@ fun HomeScreen(
                 LiquidGlassIconButton(
                   onClick = { onNavigateToSearch() },
                   contentDescription = "Search",
-                  size = 48.dp,
+                  size = 40.dp,
                   modifier = Modifier.testTag("home_search_button")
                 ) {
                   Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
                     tint = InkPrimary,
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(18.dp)
                   )
                 }
               }
@@ -343,14 +343,14 @@ fun HomeScreen(
                   }
                 },
                 contentDescription = "Settings",
-                size = 48.dp,
+                size = 40.dp,
                 modifier = Modifier.testTag("home_settings_button")
               ) {
                 Icon(
                   imageVector = Icons.Default.Settings,
                   contentDescription = null,
                   tint = InkPrimary,
-                  modifier = Modifier.size(19.dp)
+                  modifier = Modifier.size(18.dp)
                 )
               }
             }
@@ -783,7 +783,8 @@ fun HomeScreen(
                   val next = if (todayTasksViewMode == "GRID") "LIST" else "GRID"
                   AppPreferences.setTodayTasksViewMode(context, next)
                 },
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.height(34.dp)
               ) {
                 Text(
                   text = if (todayTasksViewMode == "GRID") "List" else "Grid",
@@ -798,21 +799,21 @@ fun HomeScreen(
               LiquidGlassButton(
                 onClick = onNavigateToAddTask,
                 shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.height(34.dp).testTag("add_task_header_btn"),
                 icon = {
                   Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = null,
                     tint = InkPrimary,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(14.dp)
                   )
-                },
-                modifier = Modifier.testTag("add_task_header_btn")
+                }
               ) {
                 Text(
-                  text = "Add Task",
+                  text = "Add",
                   style = TextStyle(
                     fontFamily = SFProFontFamily,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )
@@ -922,7 +923,8 @@ fun HomeScreen(
                   val next = if (todayHabitsViewMode == "GRID") "LIST" else "GRID"
                   AppPreferences.setTodayHabitsViewMode(context, next)
                 },
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.height(34.dp)
               ) {
                 Text(
                   text = if (todayHabitsViewMode == "GRID") "List" else "Grid",
@@ -937,21 +939,21 @@ fun HomeScreen(
               LiquidGlassButton(
                 onClick = onNavigateToAddHabit,
                 shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.height(34.dp).testTag("add_habit_header_btn"),
                 icon = {
                   Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = null,
                     tint = InkPrimary,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(14.dp)
                   )
-                },
-                modifier = Modifier.testTag("add_habit_header_btn")
+                }
               ) {
                 Text(
-                  text = "Add Habit",
+                  text = "Add",
                   style = TextStyle(
                     fontFamily = SFProFontFamily,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )

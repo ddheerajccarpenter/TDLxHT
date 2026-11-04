@@ -37,7 +37,7 @@ async function uploadApk(fileName, remotePath) {
 }
 
 async function main() {
-  await uploadApk('TDLxHT.2.5.20.apk', 'TDLxHT.2.5.20.apk');
+  await uploadApk('TDLxHT.2.5.21.apk', 'TDLxHT.2.5.21.apk');
   await uploadApk('TDlxHT.apk', 'TDlxHT.apk');
 }
 

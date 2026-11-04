@@ -1423,24 +1423,11 @@ fun SketchBottomNavigationBar(
   hazeState: dev.chrisbanes.haze.HazeState? = null,
   backdrop: com.kyant.backdrop.Backdrop? = null
 ) {
-  val isDark = LocalAppColors.current.isDark
-  val bottomTint = if (isDark) Color.Black.copy(alpha = 0.84f) else Color.White.copy(alpha = 0.90f)
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .background(bottomTint)
-      .then(
-        if (hazeState != null) {
-          Modifier.hazeEffect(state = hazeState) {
-            blurRadius = 32.dp
-            noiseFactor = 0f
-            tints = listOf(HazeTint(bottomTint))
-            fallbackTint = HazeTint(if (isDark) Color.Black else Color.White)
-          }
-        } else Modifier
-      )
       .windowInsetsPadding(WindowInsets.navigationBars)
-      .padding(horizontal = 16.dp, vertical = 6.dp),
+      .padding(horizontal = 20.dp, vertical = 8.dp),
     contentAlignment = Alignment.Center
   ) {
     LiquidGlassNavigationDock(

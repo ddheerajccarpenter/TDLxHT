@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -197,7 +198,7 @@ private fun UpstreamLiquidGlassSurface(
         .matchParentSize()
         .layerBackdrop(surfaceBackdrop)
     ) {
-      if (hazeState != null && shape is RoundedCornerShape) {
+      if (hazeState != null) {
         LiquidGlassBackdrop(
           hazeState = hazeState,
           shape = shape,
@@ -216,11 +217,11 @@ private fun UpstreamLiquidGlassSurface(
           shape = { shape },
           effects = {
             vibrancy()
-            blur(2f.dp.toPx())
-            lens(12f.dp.toPx(), 22f.dp.toPx(), chromaticAberration = true)
+            blur(8f.dp.toPx())
+            lens(22f.dp.toPx(), 26f.dp.toPx(), chromaticAberration = true)
           },
-          highlight = { Highlight.Default.copy(alpha = 0.30f) },
-          innerShadow = { InnerShadow(radius = 5.dp, alpha = 0.12f) },
+          highlight = { Highlight.Default.copy(alpha = 0.24f) },
+          innerShadow = { InnerShadow(radius = 7.dp, alpha = 0.13f) },
           onDrawSurface = {
             drawRect(
               if (isDark) Color.White.copy(alpha = 0.055f)
@@ -252,17 +253,38 @@ fun LiquidGlassCard(
   onClick: (() -> Unit)? = null,
   content: @Composable BoxScope.() -> Unit
 ) {
+  LiquidGlassSurface(
+    modifier = modifier,
+    shape = shape,
+    borderWidth = borderWidth,
+    hazeState = hazeState,
+    onClick = onClick,
+    content = content
+  )
+}
+
+/**
+ * Shared Backdrop-backed material for cards, controls, sheets and grouped rows.
+ * The glass is rendered behind its content so labels and icons remain crisp.
+ */
+@Composable
+fun LiquidGlassSurface(
+  modifier: Modifier = Modifier,
+  shape: Shape = RoundedCornerShape(20.dp),
+  borderWidth: Dp = 0.75.dp,
+  hazeState: HazeState? = null,
+  onClick: (() -> Unit)? = null,
+  content: @Composable BoxScope.() -> Unit
+) {
   val isDark = LocalAppColors.current.isDark
-  val ambientHazeState = hazeState ?: LocalHazeState.current
   val clickModifier = if (onClick != null) {
     Modifier.bounceClick(shine = true, onClick = onClick)
   } else Modifier
-
   UpstreamLiquidGlassSurface(
     modifier = modifier.then(clickModifier),
     shape = shape,
     isDark = isDark,
-    hazeState = ambientHazeState,
+    hazeState = hazeState ?: LocalHazeState.current,
     borderWidth = borderWidth,
     fallbackColor = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated,
     content = content
@@ -282,14 +304,11 @@ fun LiquidGlassCapsule(
   hazeState: HazeState? = null,
   content: @Composable BoxScope.() -> Unit
 ) {
-  val isDark = LocalAppColors.current.isDark
-  UpstreamLiquidGlassSurface(
+  LiquidGlassSurface(
     modifier = modifier,
     shape = shape,
-    isDark = isDark,
     hazeState = hazeState ?: LocalHazeState.current,
     borderWidth = borderWidth,
-    fallbackColor = if (isDark) LiquidGlassCapsuleTopDark else LightSurfaceElevated,
     content = content
   )
 }
@@ -421,27 +440,20 @@ fun LiquidGlassButton(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(12.dp),
+  enabled: Boolean = true,
   icon: (@Composable () -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
-  val context = LocalContext.current
-  val isDark = LocalAppColors.current.isDark
-  UpstreamLiquidGlassSurface(
-    modifier = modifier
-      .defaultMinSize(minHeight = 48.dp)
-      .bounceClick(shine = true) {
-        onClick()
-      },
+  LiquidGlassSurface(
+    modifier = modifier.defaultMinSize(minHeight = 34.dp),
     shape = shape,
-    isDark = isDark,
-    hazeState = LocalHazeState.current,
     borderWidth = 0.75.dp,
-    fallbackColor = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated
+    onClick = if (enabled) onClick else null
   ) {
-    Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+    Box(Modifier.wrapContentWidth().padding(horizontal = 12.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
       Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
       ) {
         if (icon != null) {
           icon()
@@ -462,24 +474,25 @@ fun LiquidGlassIconButton(
   contentDescription: String?,
   modifier: Modifier = Modifier,
   size: Dp = 48.dp,
+  enabled: Boolean = true,
   shape: Shape = CircleShape,
   icon: @Composable () -> Unit
 ) {
-  val context = LocalContext.current
-  val isDark = LocalAppColors.current.isDark
-  UpstreamLiquidGlassSurface(
-    modifier = modifier
-      .size(size.coerceAtLeast(48.dp))
-      .bounceClick(shine = true) {
-        onClick()
-      },
+  LiquidGlassSurface(
+    modifier = modifier.size(size.coerceAtLeast(48.dp)),
     shape = shape,
-    isDark = isDark,
-    hazeState = LocalHazeState.current,
     borderWidth = 0.75.dp,
-    fallbackColor = if (isDark) LiquidGlassButtonResting else LightSurfaceElevated
+    onClick = if (enabled) onClick else null
   ) {
-    icon()
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .semantics {
+          if (contentDescription != null) this.contentDescription = contentDescription
+          role = Role.Button
+        },
+      contentAlignment = Alignment.Center
+    ) { icon() }
   }
 }
 

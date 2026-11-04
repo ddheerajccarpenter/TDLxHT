@@ -39,6 +39,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -185,7 +186,7 @@ fun Modifier.paperDotBackground(): Modifier {
 val FloatingNavContentBottomPadding: Dp
   @Composable get() {
     val navInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    return 64.dp + 12.dp + navInsets + 24.dp
+    return 64.dp + 16.dp + navInsets + 36.dp
   }
 
 /**
@@ -502,10 +503,17 @@ fun Modifier.bounceClick(
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val density = LocalDensity.current
     val scale by animateFloatAsState(
-      targetValue = if (isPressed) effectiveScale else 1f,
+      targetValue = if (isPressed) effectiveScale else if (isHovered && !isReduced) 1.02f else 1f,
       animationSpec = PhysicalMotionSpecs.TactilePress,
       label = "springScale"
+    )
+    val translateY by animateFloatAsState(
+      targetValue = if (isHovered && !isPressed && !isReduced) -with(density) { 2.dp.toPx() } else 0f,
+      animationSpec = PhysicalMotionSpecs.TactilePress,
+      label = "hoverLift"
     )
     val alpha by animateFloatAsState(
       targetValue = if (isPressed) effectiveAlpha else 1f,
@@ -513,13 +521,17 @@ fun Modifier.bounceClick(
       label = "springAlpha"
     )
     val shineAmount by animateFloatAsState(
-      targetValue = if (shine && isPressed) 0.20f else 0f,
+      targetValue = if (shine && isPressed) 0.22f else if (shine && isHovered) 0.08f else 0f,
       animationSpec = if (isReduced) androidx.compose.animation.core.snap() else tween(120),
       label = "glassPressShine"
     )
 
     this
-      .scale(scale)
+      .graphicsLayer {
+        this.scaleX = scale
+        this.scaleY = scale
+        this.translationY = translateY
+      }
       .alpha(alpha)
       .drawWithContent {
         drawContent()
@@ -1251,7 +1263,7 @@ fun GlassSwitch(
 
   val trackBgColor by animateColorAsState(
     targetValue = if (checked) {
-      if (isDark) Color(0xFF777777) else Color(0xFF5F5F5F)
+      if (isDark) com.example.ui.theme.OklchIndigo else Color(0xFF4F46E5)
     } else {
       if (isDark) Color(0x28303038) else Color(0x1F71717A)
     },
