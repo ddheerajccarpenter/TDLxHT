@@ -89,14 +89,21 @@ Unlike cluttered corporate project managers or ephemeral web apps, TDlxHT pairs 
 
 TDlxHT is crafted to stand out from generic template designs:
 
-- **Artisan Sketch Aesthetic**: Clean 1.2dp bordered cards, pill controls, and subtle paper dot backgrounds deliver a tactile notebook feel.
-- **Dual Visual Modes**:
-  - **Light Mode**: Warm, gallery-minimalist Sand (`#F5F5F0`) and Terracotta accents inspired by curated sketchbooks.
-  - **Dark Mode**: Pitch-black canvas (`#0A0A0A`) with electric Cyber Lime accents engineered for OLED power efficiency and night focus.
+- **Artisan Sketch Aesthetic & Liquid Glass Material**: Clean bordered cards, pill controls, Coca Noir translucent floating glass dock with elevated active tab indicator, and side-edged glow segmented filter switcher.
+- **Tri-Color Palette Architecture**:
+  - **Blue Horizon (`#2FA4D7`)**: Crisp, vibrant primary accent.
+  - **Desert Cream (`#F5E9D8`)**: Calming, warm parchment substrate for light mode canvas.
+  - **Coca Noir (`#3E2C23`)**: Deep roasted translucent liquid glass navigation dock and ambient shadow tinting.
+  - **Light Mode Text (`#574e42`)**: Roasted cocoa tone delivering optimal readability and warmth.
+- **Typography Suite**:
+  - **Seramonde**: Signature app branding and headline styling.
+  - **Strong**: Refined, structural primary UI and content font.
+  - **Cream Cake**: Celebratory milestone badges, streaks, and focus metrics.
 - **Living Motion System**:
-  - **Tactile Springs**: Buttons and cards depress with spring dampening (`dampingRatio = 0.72f`) and return on release.
-  - **Staggered Cascades**: Lists and cards glide in sequentially rather than popping in abruptly.
-  - **Progress Fill**: Progress meters smoothly interpolate from zero to provide a visual sense of accomplishment.
+  - **Zero-Latency 120Hz Gesture Tracking**: `withFrameNanos` frame-synced drag engine for bottom nav and segmented switchers with jelly springs and fluid snap.
+  - **Tactile iOS Button Sheen**: Subtle dynamic specular flash on interaction (white in dark mode, dark in light mode) with spring depression and haptic tick.
+  - **Curved Glass Rim Dispersion**: Refined rainbow chromatic glints embedded directly into the 1–2px curved glass bevel edge.
+  - **Dual Visual Modes**: Sand & Desert Cream in light mode; pitch-black canvas (`#0A0A0A`) with electric accents in dark mode.
 - **Accessibility by Default**: The entire animation pipeline listens to system accessibility settings (`isReducedMotionEnabled`). When reduced motion is enabled, all screens transition instantly without animations.
 
 ---
@@ -115,7 +122,7 @@ TDlxHT is crafted to stand out from generic template designs:
 
 You can install the latest release directly onto any Android device running **Android 8.0 (API 24) or higher**:
 
-1. Download [**TDLxHT.2.5.10.apk (v2.5.10)**](https://tdlxht.vercel.app/download) directly from GitHub Releases or from the web portal at **[tdlxht.vercel.app](https://tdlxht.vercel.app)**.
+1. Download [**TDLxHT.2.5.23.apk (v2.5.23)**](https://tdlxht.vercel.app/download) directly from GitHub Releases or from the web portal at **[tdlxht.vercel.app](https://tdlxht.vercel.app)**.
 2. Open the downloaded `.apk` file on your Android device.
 3. If prompted, allow **"Install unknown apps"** for your browser or file manager.
 4. Tap **Install** and open **TDlxHT**!
