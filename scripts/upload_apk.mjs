@@ -37,7 +37,9 @@ async function uploadApk(fileName, remotePath) {
 }
 
 async function main() {
-  await uploadApk('TDLxHT.2.5.22.apk', 'TDLxHT.2.5.22.apk');
+  const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+  const versionedName = `TDLxHT.${pkg.version}.apk`;
+  await uploadApk(versionedName, versionedName);
   await uploadApk('TDlxHT.apk', 'TDlxHT.apk');
 }
 

@@ -1,30 +1,66 @@
+@import '@zakisheriff/liquid-glass/styles.css';
+
 /* ==========================================================================
-   TDLxHT Universal Ink Wash Theme System
-   Japanese Ink & Parchment Aesthetic:
-   Charcoal Slate:   #4A4A4A
-   Mist Silver:      #CBCBCB
-   Warm Ivory:       #FFFFE3
-   Slate Steel Wash: #6D8196
-   Zero purple, zero neon blue, zero neon green, zero AI-sloped colors.
-   Dark mode is strictly darker than light mode.
+   TDlxHT Custom Font Declarations: Seramonde, Strong & Cream Cake
+   ========================================================================== */
+@font-face {
+  font-family: 'Seramonde';
+  src: url('/fonts/seramonde.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Strong';
+  src: url('/fonts/strong.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cream Cake';
+  src: url('/fonts/cream-cake.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   TDlxHT Tri-Color System: Blue Horizon, Desert Cream & Coca Noir
+   ========================================================================== */
+:root {
+  --color-blue-horizon: #2FA4D7;
+  --color-desert-cream: #F5E9D8;
+  --color-coca-noir: #3E2C23;
+  --font-brand: 'Seramonde', serif;
+  --font-main: 'Strong', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-special: 'Cream Cake', cursive;
+}
+
+/* ==========================================================================
+   TDLxHT Universal Theme System
    ========================================================================== */
 
 /* ─── Light Mode: Warm Ivory Parchment with Charcoal Ink ───────────── */
 :root,
 [data-theme="light"] {
-  --color-canvas: #FAF9F5;
-  --color-canvas-soft: #F2EFE9;
-  --color-field: #EBE7DF;
-  --color-surface-card: rgba(255, 255, 255, 0.78);
-  --color-ink: #1C1D21;
-  --color-ink-soft: #5C5E66;
-  --color-text-muted: #7A7D82;
-  --color-text-faint: #CBCBCB;
-  --color-hairline: rgba(0, 0, 0, 0.09);
-  --color-hairline-soft: rgba(0, 0, 0, 0.05);
-  --color-primary: #1C1D21;
-  --color-on-primary: #FAF9F5;
-  --color-accent: #3E5168;
+  --color-canvas: #F5E9D8;
+  --color-canvas-soft: #EDE0CD;
+  --color-field: #E4D5BF;
+  --color-surface-card: rgba(255, 255, 255, 0.72);
+  --color-ink: #574e42;
+  --color-ink-soft: #7A7268;
+  --color-text-muted: #9E958A;
+  --color-text-faint: #CBC4B8;
+  --color-hairline: rgba(62, 44, 35, 0.12);
+  --color-hairline-soft: rgba(62, 44, 35, 0.06);
+  --color-primary: #2FA4D7;
+  --color-on-primary: #FFFFFF;
+  --color-accent: #2FA4D7;
+  --color-coca-noir-nav: rgba(62, 44, 35, 0.10);
+  --color-coca-noir-shadow: rgba(62, 44, 35, 0.22);
 
   /* Ink Wash Semantic Palette */
   --oklch-indigo: #4A6382;
@@ -50,11 +86,13 @@
   --btn-outline-border: var(--color-hairline);
   --btn-outline-text: var(--color-ink);
 
-  /* Typography */
-  --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Typography: Seramonde (Brand), Strong (Main), Cream Cake (Special) */
+  --font-brand: 'Seramonde', serif;
+  --font-display: 'Strong', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: 'Strong', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-special: 'Cream Cake', cursive;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", monospace;
-  --tracking-display: -0.025em;
+  --tracking-display: -0.015em;
 
   /* Geometry */
   --radius-none: 0px;
@@ -113,11 +151,13 @@
   --btn-outline-border: var(--color-hairline);
   --btn-outline-text: var(--color-ink);
 
-  /* Typography */
-  --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Typography: Seramonde (Brand), Strong (Main), Cream Cake (Special) */
+  --font-brand: 'Seramonde', serif;
+  --font-display: 'Strong', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: 'Strong', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-special: 'Cream Cake', cursive;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", monospace;
-  --tracking-display: -0.025em;
+  --tracking-display: -0.015em;
   --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
   --tracking-display: 0;
 
@@ -247,9 +287,10 @@ input, select {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-family: var(--font-brand);
   font-weight: 700;
   font-size: 1.45rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .header-brand-icon {

@@ -178,6 +178,38 @@ val MobbinSuccess = InkWashSlate
 val MobbinWarning = InkWashSlate
 val MobbinDanger = InkWashRustMuted
 
+// Canonical TDlxHT Tri-Color System
+val BlueHorizon = Color(0xFF2FA4D7)       // 1. Blue Horizon #2FA4D7: Primary Vibrant Accent
+val DesertCream = Color(0xFFF5E9D8)       // 2. Desert Cream #F5E9D8: Warm Canvas & Default Background
+val CocaNoir = Color(0xFF3E2C23)          // 3. Coca Noir #3E2C23: Nav Bar Liquid Glass, Shadow & Icon Tint
+val LightTextCocoa = Color(0xFF574E42)    // Light mode text color #574e42
+val LightTextMuted = Color(0xFF7A7268)
+
+// Coca Noir Liquid Glass Tints (Translucent, never solid)
+val CocaNoirNavGlassDark = Color(0x333E2C23)   // Translucent deep roasted cocoa tint in dark mode
+val CocaNoirNavGlassLight = Color(0x223E2C23)  // Translucent warm cocoa tint in light mode
+val CocaNoirShadowDark = Color(0x881E1510)     // Warm cocoa ambient drop shadow
+val CocaNoirShadowLight = Color(0x383E2C23)    // Soft cocoa drop shadow
+
+data class TriColorPalette(
+  val id: String,
+  val name: String,
+  val solid: Color,
+  val gradientStart: Color,
+  val gradientEnd: Color
+) {
+  val gradientBrush: androidx.compose.ui.graphics.Brush
+    get() = androidx.compose.ui.graphics.Brush.linearGradient(listOf(gradientStart, gradientEnd))
+}
+
+val CanonicalTriColorPalette = TriColorPalette(
+  id = "TDLXHT_CANONICAL",
+  name = "Horizon & Desert Noir",
+  solid = BlueHorizon,
+  gradientStart = BlueHorizon,
+  gradientEnd = Color(0xFF72C7E8)
+)
+
 data class AppColors(
   val paperBackground: Color,
   val paperDotColor: Color,
@@ -197,72 +229,81 @@ data class AppColors(
   val chipBorder: Color,
   val chipUnselected: Color,
   val isDark: Boolean,
-  val oklchPrimary: Color = InkWashSlate,
-  val oklchSuccess: Color = InkWashSlate,
-  val oklchWarning: Color = InkWashSlate,
-  val oklchDanger: Color = InkWashRustMuted,
-  val oklchFocus: Color = InkWashSlate,
-  val oklchPurple: Color = InkWashSlate,
-  val surfaceCard: Color = if (isDark) InkWashCharcoalSurface else InkWashIvoryCard,
-  val surfaceElevated: Color = if (isDark) InkWashCharcoalElevated else InkWashIvoryCard
+  val oklchPrimary: Color = BlueHorizon,
+  val oklchSuccess: Color = BlueHorizon,
+  val oklchWarning: Color = Color(0xFFF59E0B),
+  val oklchDanger: Color = Color(0xFFEF4444),
+  val oklchFocus: Color = BlueHorizon,
+  val oklchPurple: Color = BlueHorizon,
+  val surfaceCard: Color = if (isDark) Color(0x18FFFFFF) else Color(0xB8FFFFFF),
+  val surfaceElevated: Color = if (isDark) Color(0x28FFFFFF) else Color(0xEAFFFFFF),
+  val cocaNoirNavGlass: Color = if (isDark) CocaNoirNavGlassDark else CocaNoirNavGlassLight,
+  val cocaNoirShadow: Color = if (isDark) CocaNoirShadowDark else CocaNoirShadowLight,
+  val blueHorizonAccent: Color = BlueHorizon
 )
 
 val LightColors = AppColors(
-  paperBackground = InkWashIvoryPaper,
+  paperBackground = DesertCream,
   paperDotColor = Color.Transparent,
-  inkPrimary = LightInkPrimary,
-  inkSecondary = LightInkSecondary,
-  inkMuted = LightInkMuted,
-  cardBackground = InkWashIvoryCard,
-  cardBorder = LightHairline,
-  pillBackgroundDark = LightInkPrimary,
-  pillTextDark = Color(0xFFFAFAF7),
-  progressBarTrack = Color(0xFFE6E6E6),
-  progressBarFilled = Color(0xFF333333),
-  accentTerracotta = Color(0xFF333333),
-  accentOrange = Color(0xFF333333),
-  accentYellowHighlight = Color(0x18000000),
-  accentRed = InkWashRustMuted,
-  chipBorder = LightHairline,
-  chipUnselected = Color(0xFFF2F2F5),
+  inkPrimary = LightTextCocoa,
+  inkSecondary = LightTextMuted,
+  inkMuted = Color(0xFF9E958A),
+  cardBackground = Color(0xB8FFFFFF),
+  cardBorder = Color(0x223E2C23),
+  pillBackgroundDark = CocaNoir,
+  pillTextDark = DesertCream,
+  progressBarTrack = Color(0x1F3E2C23),
+  progressBarFilled = BlueHorizon,
+  accentTerracotta = CocaNoir,
+  accentOrange = BlueHorizon,
+  accentYellowHighlight = Color(0x182FA4D7),
+  accentRed = Color(0xFFDC2626),
+  chipBorder = Color(0x1A3E2C23),
+  chipUnselected = Color(0x0C3E2C23),
   isDark = false,
-  oklchPrimary = InkWashSlate,
-  oklchSuccess = Color(0xFF333333),
-  oklchWarning = Color(0xFF666666),
-  oklchDanger = Color(0xFF333333),
-  oklchFocus = InkWashSlate,
-  oklchPurple = InkWashSlate,
-  surfaceCard = InkWashIvoryCard,
-  surfaceElevated = InkWashIvoryElevated
+  oklchPrimary = BlueHorizon,
+  oklchSuccess = BlueHorizon,
+  oklchWarning = Color(0xFFF59E0B),
+  oklchDanger = Color(0xFFDC2626),
+  oklchFocus = BlueHorizon,
+  oklchPurple = BlueHorizon,
+  surfaceCard = Color(0xB8FFFFFF),
+  surfaceElevated = Color(0xEAFFFFFF),
+  cocaNoirNavGlass = CocaNoirNavGlassLight,
+  cocaNoirShadow = CocaNoirShadowLight,
+  blueHorizonAccent = BlueHorizon
 )
 
 val DarkColors = AppColors(
-  paperBackground = InkWashCharcoalDeep,
+  paperBackground = Color(0xFF0C0E12),
   paperDotColor = Color.Transparent,
-  inkPrimary = InkWashIvory,
-  inkSecondary = InkWashMist,
-  inkMuted = Color(0xFF5C6168),
-  cardBackground = InkWashCharcoalSurface,
-  cardBorder = InkWashCharcoalBorder,
-  pillBackgroundDark = InkWashIvory,
-  pillTextDark = InkWashCharcoalDeep,
+  inkPrimary = Color(0xFFF5F5F7),
+  inkSecondary = Color(0xFFB0B4BA),
+  inkMuted = Color(0xFF71767E),
+  cardBackground = Color(0x18FFFFFF),
+  cardBorder = Color(0x1FFFFFFF),
+  pillBackgroundDark = Color.White,
+  pillTextDark = Color(0xFF111114),
   progressBarTrack = Color(0x1AFFFFFF),
-  progressBarFilled = Color(0xFFD8D8D8),
-  accentTerracotta = Color(0xFFD8D8D8),
-  accentOrange = Color(0xFFD8D8D8),
-  accentYellowHighlight = Color(0x20FFFFFF),
-  accentRed = InkWashRustMuted,
-  chipBorder = InkWashCharcoalBorder,
+  progressBarFilled = BlueHorizon,
+  accentTerracotta = Color(0xFFE0E0E0),
+  accentOrange = BlueHorizon,
+  accentYellowHighlight = Color(0x222FA4D7),
+  accentRed = Color(0xFFEF4444),
+  chipBorder = Color(0x1FFFFFFF),
   chipUnselected = Color(0x14FFFFFF),
   isDark = true,
-  oklchPrimary = Color(0xFFE2E2E2),
-  oklchSuccess = Color(0xFFE2E2E2),
-  oklchWarning = Color(0xFFAAAAAA),
-  oklchDanger = InkWashRustMuted,
-  oklchFocus = Color(0xFFE2E2E2),
-  oklchPurple = Color(0xFFE2E2E2),
-  surfaceCard = InkWashCharcoalSurface,
-  surfaceElevated = InkWashCharcoalElevated
+  oklchPrimary = BlueHorizon,
+  oklchSuccess = BlueHorizon,
+  oklchWarning = Color(0xFFF59E0B),
+  oklchDanger = Color(0xFFEF4444),
+  oklchFocus = BlueHorizon,
+  oklchPurple = BlueHorizon,
+  surfaceCard = Color(0x18FFFFFF),
+  surfaceElevated = Color(0x28FFFFFF),
+  cocaNoirNavGlass = CocaNoirNavGlassDark,
+  cocaNoirShadow = CocaNoirShadowDark,
+  blueHorizonAccent = BlueHorizon
 )
 
 val LocalAppColors = staticCompositionLocalOf { DarkColors }

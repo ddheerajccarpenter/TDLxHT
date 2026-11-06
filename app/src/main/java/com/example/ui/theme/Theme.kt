@@ -82,7 +82,10 @@ fun MyApplicationTheme(
     oklchFocus = targetColors.oklchFocus,
     oklchPurple = targetColors.oklchPurple,
     surfaceCard = cardBackground,
-    surfaceElevated = targetColors.surfaceElevated
+    surfaceElevated = targetColors.surfaceElevated,
+    cocaNoirNavGlass = targetColors.cocaNoirNavGlass,
+    cocaNoirShadow = targetColors.cocaNoirShadow,
+    blueHorizonAccent = targetColors.blueHorizonAccent
   )
 
   val colorScheme = if (darkTheme) {

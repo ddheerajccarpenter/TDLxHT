@@ -66,6 +66,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -527,8 +528,9 @@ fun LiquidGlassIconButton(
 
 /**
  * 6. LiquidGlassNavigationDock
- * Streamlined, balanced Liquid Glass navigation dock.
- * Integrates 4 destinations + Center Quick Add action with a curved sliding optical lens.
+ * Streamlined, balanced Apple-style Liquid Glass navigation dock (Image 2).
+ * Integrates 4 destinations + Center Quick Add action with an elevated frosted glass pill indicator.
+ * Uses Coca Noir translucent glass material, Coca Noir tinted shadows, and zero-coroutine 120Hz gesture tracking.
  */
 @Composable
 fun LiquidGlassNavigationDock(
@@ -538,8 +540,7 @@ fun LiquidGlassNavigationDock(
   modifier: Modifier = Modifier,
   isQuickAddOpen: Boolean = false,
   onQuickAdd: (() -> Unit)? = null,
-  hazeState: HazeState? = null,
-  backdrop: Backdrop? = null
+  hazeState: HazeState? = null
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
@@ -565,6 +566,7 @@ fun LiquidGlassNavigationDock(
   val indicatorX = remember { Animatable(0f) }
   var isDragging by remember { mutableStateOf(false) }
   var isHoldingDock by remember { mutableStateOf(false) }
+  var dragTargetX by remember { mutableFloatStateOf(0f) }
   var lastHapticTab by remember { mutableIntStateOf(selectedTab) }
 
   // Sync indicator when not dragging
@@ -586,8 +588,24 @@ fun LiquidGlassNavigationDock(
     }
   }
 
+  // 120Hz smooth tracking loop with zero coroutine allocations per pointer move
+  LaunchedEffect(isDragging) {
+    if (!isDragging) return@LaunchedEffect
+    var lastNanos = withFrameNanos { it }
+    while (isDragging) {
+      var nextX = indicatorX.value
+      withFrameNanos { now ->
+        val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
+        lastNanos = now
+        val factor = 1f - kotlin.math.exp(-dt * 38f)
+        nextX = indicatorX.value + (dragTargetX - indicatorX.value) * factor
+      }
+      indicatorX.snapTo(nextX)
+    }
+  }
+
   val dockScale by animateFloatAsState(
-    targetValue = if (!reduceMotion && isHoldingDock) 1.02f else 1.0f,
+    targetValue = if (!reduceMotion && isHoldingDock) 1.015f else 1.0f,
     animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.75f, stiffness = 380f),
     label = "dockScale"
   )
@@ -598,11 +616,9 @@ fun LiquidGlassNavigationDock(
     label = "fabRotation"
   )
 
-  val dockBackdropModifier = if (hazeState != null) {
-    Modifier
-  } else {
-    Modifier.liquidGlassCapsule(shape = CircleShape, borderWidth = 0.75.dp, isDark = isDark)
-  }
+  val cocaNoirNavFill = if (isDark) com.example.ui.theme.CocaNoirNavGlassDark else Color.White.copy(alpha = 0.82f)
+  val cocaNoirShadowColor = if (isDark) com.example.ui.theme.CocaNoirShadowDark else com.example.ui.theme.CocaNoirShadowLight
+  val capsuleShape = RoundedCornerShape(percent = 50)
 
   Box(
     modifier = modifier
@@ -610,29 +626,44 @@ fun LiquidGlassNavigationDock(
       .graphicsLayer {
         scaleX = dockScale
         scaleY = dockScale
+        shadowElevation = 10.dp.toPx()
+        spotShadowColor = cocaNoirShadowColor
+        ambientShadowColor = cocaNoirShadowColor.copy(alpha = 0.18f)
+        shape = capsuleShape
+        clip = false
       }
-      .then(dockBackdropModifier)
       .padding(horizontal = 6.dp),
     contentAlignment = Alignment.Center
   ) {
+    // 1. Live Backdrop Glass Container with Coca Noir Translucency
     if (hazeState != null) {
       LiquidGlassBackdrop(
         hazeState = hazeState,
-        shape = RoundedCornerShape(percent = 50),
+        shape = capsuleShape,
         isDark = isDark,
+        fallbackColor = cocaNoirNavFill,
         modifier = Modifier.matchParentSize()
       )
       LiquidGlassHighlight(
-        shape = RoundedCornerShape(percent = 50),
+        shape = capsuleShape,
         isDark = isDark,
         modifier = Modifier.matchParentSize()
       )
       Box(
         modifier = Modifier
           .matchParentSize()
-          .liquidGlassRim(RoundedCornerShape(percent = 50), isDark, 0.75.dp)
+          .liquidGlassRim(capsuleShape, isDark, 0.75.dp)
+      )
+    } else {
+      Box(
+        modifier = Modifier
+          .matchParentSize()
+          .background(cocaNoirNavFill, capsuleShape)
+          .liquidGlassRim(capsuleShape, isDark, 0.75.dp)
       )
     }
+
+    // 2. Gesture Interception & Tab Track
     Box(
       modifier = Modifier
         .fillMaxWidth()
@@ -665,18 +696,16 @@ fun LiquidGlassNavigationDock(
                 if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
                   dragStarted = true
                   isDragging = true
+                  dragTargetX = change.position.x.coerceIn(minX, maxX)
                   change.consume()
                 }
               }
 
               if (dragStarted) {
                 change.consume()
-                val targetX = change.position.x.coerceIn(minX, maxX)
-                coroutineScope.launch {
-                  indicatorX.snapTo(targetX)
-                }
+                dragTargetX = change.position.x.coerceIn(minX, maxX)
 
-                val currentSlot = ((targetX / slotWidth) - 0.5f).roundToInt().coerceIn(0, totalSlots - 1)
+                val currentSlot = ((dragTargetX / slotWidth) - 0.5f).roundToInt().coerceIn(0, totalSlots - 1)
                 val currentTab = tabForSlotIndex(currentSlot)
                 if (currentTab != null && currentTab != lastHapticTab) {
                   lastHapticTab = currentTab
@@ -709,51 +738,34 @@ fun LiquidGlassNavigationDock(
         },
       contentAlignment = Alignment.CenterStart
     ) {
-      // 1. Sliding Circular Optical Glass Disc with Prismatic Caustic Rainbow Shine
+      // 3. Elevated Active Tab Pill Indicator (Image 2)
       if (slotWidth > 0f) {
-        val indicatorSizeDp = 48.dp
-        val indicatorSizePx = with(density) { indicatorSizeDp.toPx() }
-        val flareIntensity by animateFloatAsState(
-          targetValue = if (isHoldingDock || isDragging) 1.35f else 1.0f,
-          animationSpec = spring(dampingRatio = 0.65f, stiffness = 420f),
-          label = "flareIntensity"
-        )
-        val discBackground = if (isDark) Color(0x38191922) else Color(0x55FFFFFF)
+        val indicatorWidthDp = 50.dp
+        val indicatorHeightDp = 42.dp
+        val indicatorWidthPx = with(density) { indicatorWidthDp.toPx() }
+        val pillShape = RoundedCornerShape(20.dp)
 
         Box(
           modifier = Modifier
-            .size(indicatorSizeDp)
+            .size(indicatorWidthDp, indicatorHeightDp)
             .graphicsLayer {
-              translationX = indicatorX.value - (indicatorSizePx / 2f)
+              translationX = indicatorX.value - (indicatorWidthPx / 2f)
+              shadowElevation = 5.dp.toPx()
+              spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.55f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.20f)
+              ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.08f)
+              shape = pillShape
+              clip = true
             }
-            .clip(CircleShape)
-            .background(discBackground)
-            .drawWithCache {
-              val center = Offset(size.width / 2f, size.height / 2f)
-              val radius = (size.minDimension / 2f) - 1.25f.dp.toPx()
-              onDrawWithContent {
-                drawContent()
-                // Subtle inner disc shadow for physical glass depth
-                drawCircle(
-                  brush = Brush.radialGradient(
-                    0.70f to Color.Transparent,
-                    1.00f to Color.Black.copy(alpha = if (isDark) 0.35f else 0.12f),
-                    center = center,
-                    radius = radius
-                  ),
-                  radius = radius,
-                  center = center
-                )
-                // The Brilliant Prismatic Rainbow Caustic Shine Rim
-                drawPrismaticCausticRing(
-                  center = center,
-                  radius = radius,
-                  thickness = 2.75.dp.toPx(),
-                  intensity = flareIntensity,
-                  isDark = isDark
-                )
-              }
-            }
+            .background(
+              if (isDark) Color(0xFF22242D)
+              else Color.White.copy(alpha = 0.95f)
+            )
+            .border(
+              0.75.dp,
+              if (isDark) Color.White.copy(alpha = 0.16f) else Color.Black.copy(alpha = 0.06f),
+              pillShape
+            )
+            .liquidGlassRim(pillShape, isDark, 0.75.dp)
         )
       }
 
@@ -762,7 +774,7 @@ fun LiquidGlassNavigationDock(
         verticalAlignment = Alignment.CenterVertically
       ) {
         if (hasCenterFab) {
-          // Tab 0: Home
+          // Tab 0: Home / Calendar
           LiquidGlassNavItem(
             destination = destinations[0],
             isSelected = selectedTab == 0,
@@ -772,7 +784,7 @@ fun LiquidGlassNavigationDock(
             },
             modifier = Modifier.weight(1f)
           )
-          // Tab 1: Productivity
+          // Tab 1: Productivity / Tasks
           LiquidGlassNavItem(
             destination = destinations[1],
             isSelected = selectedTab == 1,
@@ -782,7 +794,7 @@ fun LiquidGlassNavigationDock(
             },
             modifier = Modifier.weight(1f)
           )
-          // Center Slot 2: Quick Add Action Button
+          // Center Slot 2: Elevated Quick Add Button Disc (Image 2)
           Box(
             modifier = Modifier
               .weight(1f)
@@ -801,28 +813,29 @@ fun LiquidGlassNavigationDock(
             Box(
               modifier = Modifier
                 .size(46.dp)
-                .clip(CircleShape)
-                .background(if (isDark) Color(0x38191922) else Color(0x55FFFFFF))
-                .drawWithCache {
-                  val center = Offset(size.width / 2f, size.height / 2f)
-                  val radius = (size.minDimension / 2f) - 1.25f.dp.toPx()
-                  onDrawWithContent {
-                    drawContent()
-                    drawPrismaticCausticRing(
-                      center = center,
-                      radius = radius,
-                      thickness = 2.0.dp.toPx(),
-                      intensity = if (isQuickAddOpen) 1.25f else 0.85f,
-                      isDark = isDark
-                    )
-                  }
-                },
+                .graphicsLayer {
+                  shadowElevation = 6.dp.toPx()
+                  spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.22f)
+                  ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.20f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.08f)
+                  shape = CircleShape
+                  clip = true
+                }
+                .background(
+                  if (isDark) Color(0xFF22242D)
+                  else Color.White.copy(alpha = 0.95f)
+                )
+                .border(
+                  0.75.dp,
+                  if (isDark) Color.White.copy(alpha = 0.16f) else Color.Black.copy(alpha = 0.06f),
+                  CircleShape
+                )
+                .liquidGlassRim(CircleShape, isDark, 0.75.dp),
               contentAlignment = Alignment.Center
             ) {
               Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = if (isQuickAddOpen) "Close create sheet" else "Quick Create",
-                tint = if (isDark) Color.White else Color(0xFF14161E),
+                tint = if (isDark) Color.White else com.example.ui.theme.CocaNoir,
                 modifier = Modifier
                   .size(24.dp)
                   .graphicsLayer(rotationZ = fabRotation)
@@ -869,7 +882,7 @@ fun LiquidGlassNavigationDock(
 
 /**
  * Isolated destination item for LiquidGlassNavigationDock with stable parameters.
- * Active destination features metallic 3D beveled appearance matching reference design.
+ * Active destination features crisp high-contrast icon matching Image 2.
  */
 @Composable
 fun LiquidGlassNavItem(
@@ -881,14 +894,16 @@ fun LiquidGlassNavItem(
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
   val reduceMotion = remember { isReducedMotionEnabled(context) }
-  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.48f) else Color.Black.copy(alpha = 0.45f)
+  val selectedColor = if (isDark) Color.White else com.example.ui.theme.CocaNoir
+  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.50f) else Color(0xFF6B6E76)
+
   val iconColor by animateColorAsState(
-    targetValue = if (isSelected) Color.White else unselectedColor,
+    targetValue = if (isSelected) selectedColor else unselectedColor,
     animationSpec = if (reduceMotion) snap() else tween(durationMillis = 180),
     label = "navIconColor"
   )
   val iconScale by animateFloatAsState(
-    targetValue = if (isSelected && !reduceMotion) 1.08f else 1.0f,
+    targetValue = if (isSelected && !reduceMotion) 1.05f else 1.0f,
     animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 420f),
     label = "navIconScale"
   )
@@ -909,45 +924,23 @@ fun LiquidGlassNavItem(
       ),
     contentAlignment = Alignment.Center
   ) {
-    if (isSelected) {
-      // 3D Metallic beveled icon with subtle drop shadow
-      Icon(
-        imageVector = destination.iconFilled,
-        contentDescription = destination.label,
-        tint = Color.Black.copy(alpha = 0.35f),
-        modifier = Modifier
-          .size(25.dp)
-          .offset(y = 1.dp)
-          .graphicsLayer {
-            scaleX = iconScale
-            scaleY = iconScale
-          }
-      )
-      Icon(
-        imageVector = destination.iconFilled,
-        contentDescription = destination.label,
-        tint = Color.White,
-        modifier = Modifier
-          .size(25.dp)
-          .graphicsLayer {
-            scaleX = iconScale
-            scaleY = iconScale
-          }
-      )
-    } else {
-      Icon(
-        imageVector = destination.iconOutlined,
-        contentDescription = destination.label,
-        tint = iconColor,
-        modifier = Modifier.size(24.dp)
-      )
-    }
+    Icon(
+      imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
+      contentDescription = destination.label,
+      tint = iconColor,
+      modifier = Modifier
+        .size(24.dp)
+        .graphicsLayer {
+          scaleX = iconScale
+          scaleY = iconScale
+        }
+    )
   }
 }
 
 /**
  * 7. LiquidGlassFloatingActionButton
- * Independent 54dp floating circular Liquid Glass button with Prismatic Caustic Shine.
+ * Independent 54dp floating circular Liquid Glass button (Image 2 style).
  */
 @Composable
 fun LiquidGlassFloatingActionButton(
@@ -966,22 +959,20 @@ fun LiquidGlassFloatingActionButton(
   Box(
     modifier = modifier
       .size(54.dp)
-      .clip(CircleShape)
-      .background(if (isDark) Color(0x38191922) else Color(0x55FFFFFF))
-      .drawWithCache {
-        val center = Offset(size.width / 2f, size.height / 2f)
-        val radius = (size.minDimension / 2f) - 1.25f.dp.toPx()
-        onDrawWithContent {
-          drawContent()
-          drawPrismaticCausticRing(
-            center = center,
-            radius = radius,
-            thickness = 2.5.dp.toPx(),
-            intensity = if (isOpen) 1.35f else 1.0f,
-            isDark = isDark
-          )
-        }
+      .graphicsLayer {
+        shadowElevation = 8.dp.toPx()
+        spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.22f)
+        ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.20f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.08f)
+        shape = CircleShape
+        clip = true
       }
+      .background(if (isDark) Color(0xFF22242D) else Color.White.copy(alpha = 0.95f))
+      .border(
+        0.75.dp,
+        if (isDark) Color.White.copy(alpha = 0.16f) else Color.Black.copy(alpha = 0.06f),
+        CircleShape
+      )
+      .liquidGlassRim(CircleShape, isDark, 0.75.dp)
       .bounceClick(shine = true) {
         VibrationHelper.click(context)
         com.example.util.SoundManager.playButtonClick(context)
@@ -993,7 +984,7 @@ fun LiquidGlassFloatingActionButton(
     Icon(
       imageVector = Icons.Default.Add,
       contentDescription = if (isOpen) "Close create sheet" else "Quick Create",
-      tint = com.example.ui.theme.InkPrimary,
+      tint = if (isDark) Color.White else com.example.ui.theme.CocaNoir,
       modifier = Modifier
         .size(26.dp)
         .graphicsLayer(rotationZ = fabRotation)

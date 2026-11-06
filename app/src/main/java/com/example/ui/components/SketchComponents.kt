@@ -520,11 +520,28 @@ fun Modifier.bounceClick(
       animationSpec = if (isReduced) androidx.compose.animation.core.snap() else PhysicalMotionSpecs.TactilePress,
       label = "springAlpha"
     )
+    val isDark = LocalAppColors.current.isDark
     val shineAmount by animateFloatAsState(
-      targetValue = if (shine && isPressed) 0.22f else if (shine && isHovered) 0.08f else 0f,
+      targetValue = if (shine && isPressed) 0.24f else if (shine && isHovered) 0.08f else 0f,
       animationSpec = if (isReduced) androidx.compose.animation.core.snap() else tween(120),
       label = "glassPressShine"
     )
+
+    val shineBrush = remember(isDark) {
+      if (isDark) {
+        Brush.linearGradient(
+          colors = listOf(Color.White.copy(alpha = 0.90f), Color.White.copy(alpha = 0.35f), Color.Transparent),
+          start = Offset(0f, 0f),
+          end = Offset(1000f, 1000f)
+        )
+      } else {
+        Brush.linearGradient(
+          colors = listOf(Color.Black.copy(alpha = 0.40f), Color.Black.copy(alpha = 0.15f), Color.Transparent),
+          start = Offset(0f, 0f),
+          end = Offset(1000f, 1000f)
+        )
+      }
+    }
 
     this
       .graphicsLayer {
@@ -537,11 +554,7 @@ fun Modifier.bounceClick(
         drawContent()
         if (shineAmount > 0.001f) {
           drawRect(
-            brush = Brush.linearGradient(
-              colors = listOf(Color.White, Color.White.copy(alpha = 0.3f), Color.Transparent),
-              start = Offset(0f, 0f),
-              end = Offset(size.width, size.height)
-            ),
+            brush = shineBrush,
             alpha = shineAmount
           )
         }

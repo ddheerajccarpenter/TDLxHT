@@ -447,7 +447,6 @@ fun MainApp(
   }
 
   val hazeState = rememberHazeState()
-  val appBackdrop = rememberLayerBackdrop()
 
   CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(
@@ -476,8 +475,7 @@ fun MainApp(
                     }
                   },
                   onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
-                  hazeState = hazeState,
-                  backdrop = appBackdrop
+                  hazeState = hazeState
                 )
               }
             ) { innerPadding ->
@@ -485,7 +483,6 @@ fun MainApp(
                 modifier = Modifier
                   .fillMaxSize()
                   .hazeSource(hazeState)
-                  .layerBackdrop(appBackdrop)
                   .background(PaperBackground)
                   .padding(top = innerPadding.calculateTopPadding())
                   .horizontalSwipeNavigation(
@@ -1437,7 +1434,6 @@ fun SketchBottomNavigationBar(
       onDestinationSelected = onDestinationSelected,
       onQuickAdd = onQuickAdd,
       hazeState = hazeState,
-      backdrop = backdrop,
       modifier = Modifier.fillMaxWidth()
     )
   }

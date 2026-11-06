@@ -106,10 +106,12 @@ fun LiquidGlassBackdrop(
     shape: Shape,
     isDark: Boolean,
     modifier: Modifier = Modifier,
+    tintColor: Color? = null,
+    fallbackColor: Color? = null
 ) {
     val surface = MaterialTheme.colorScheme.surface
-    val glassTint = if (isDark) surface.copy(alpha = 0.34f) else Color.White.copy(alpha = 0.45f)
-    val fallback = surface.copy(alpha = if (isDark) 0.80f else 0.86f)
+    val glassTint = tintColor ?: if (isDark) surface.copy(alpha = 0.34f) else Color.White.copy(alpha = 0.45f)
+    val fallback = fallbackColor ?: surface.copy(alpha = if (isDark) 0.80f else 0.86f)
     val density = LocalDensity.current
 
     val refractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -145,8 +147,9 @@ fun LiquidGlassBackdrop(
 }
 
 /**
- * Crisp neutral rim with directional specular highlights and corner rainbow spectral dispersion.
- * Corners refract chromatic spectral light through curved glass bevels.
+ * Crisp optical rim with directional specular highlights and authentic rainbow chromatic dispersion.
+ * Refracts spectral rainbow wavelengths directly along the 1–2px curved glass bevel edge.
+ * Completely embedded inside the glass boundary with zero outer halo rings.
  */
 fun Modifier.liquidGlassRim(
     shape: Shape,
@@ -167,16 +170,26 @@ fun Modifier.liquidGlassRim(
         ?: 0f
     val diameter = radius * 2f
     val strokeWidth = borderWidth.toPx()
-    val neutralRim = if (isDark) Color.White.copy(alpha = 0.28f) else Color.Black.copy(alpha = 0.14f)
-    val spectralAlpha = if (isDark) 0.14f else 0.08f
+    val neutralRim = if (isDark) Color.White.copy(alpha = 0.32f) else Color.Black.copy(alpha = 0.16f)
+
+    // Vibrant spectral dispersion colors matching Apple Liquid Glass optical refraction
+    val spectralAlpha = if (isDark) 0.45f else 0.30f
     val spectralColors = listOf(
-        Color(0xFFFF6A6A).copy(alpha = spectralAlpha),
-        Color(0xFFFFD166).copy(alpha = spectralAlpha),
-        Color(0xFF6EE7B7).copy(alpha = spectralAlpha),
-        Color(0xFF67D9FF).copy(alpha = spectralAlpha),
-        Color(0xFF9B8CFF).copy(alpha = spectralAlpha),
-        Color(0xFFFF6A6A).copy(alpha = spectralAlpha)
+        Color(0xFF00E5FF).copy(alpha = spectralAlpha), // Electric Cyan
+        Color(0xFF00FF88).copy(alpha = spectralAlpha), // Neon Lime
+        Color(0xFFFFDD00).copy(alpha = spectralAlpha), // Warm Gold
+        Color(0xFFFF5252).copy(alpha = spectralAlpha), // Coral Red
+        Color(0xFFD500F9).copy(alpha = spectralAlpha), // Vivid Violet
+        Color(0xFF00E5FF).copy(alpha = spectralAlpha)  // Return to Cyan
     )
+
+    // Subtle overhead chromatic bevel brush along the top rim
+    val topRainbowBrush = Brush.linearGradient(
+        colors = spectralColors,
+        start = Offset(0f, 0f),
+        end = Offset(size.width, 0f)
+    )
+
     val corners = if (radius > 0f) listOf(
         Triple(Offset.Zero, 180f, Offset(radius, radius)),
         Triple(Offset(size.width - diameter, 0f), 270f, Offset(size.width - radius, radius)),
@@ -189,7 +202,11 @@ fun Modifier.liquidGlassRim(
 
     onDrawWithContent {
         drawContent()
+        // 1. Base clean specular rim hairline
         drawPath(outlinePath, neutralRim, style = Stroke(width = strokeWidth))
+        // 2. Optical chromatic dispersion along the upper glass bevel
+        drawPath(outlinePath, topRainbowBrush, style = Stroke(width = strokeWidth * 0.9f))
+        // 3. Corner prismatic refraction arcs
         corners.forEachIndexed { index, (topLeft, startAngle, _) ->
             drawArc(
                 brush = cornerBrushes[index],
@@ -198,7 +215,7 @@ fun Modifier.liquidGlassRim(
                 useCenter = false,
                 topLeft = topLeft,
                 size = Size(diameter, diameter),
-                style = Stroke(width = strokeWidth * 1.5f)
+                style = Stroke(width = strokeWidth * 1.25f)
             )
         }
     }

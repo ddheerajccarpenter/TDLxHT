@@ -1,5 +1,6 @@
 package com.example.ui.screens.home
 
+import com.example.ui.glass.LiquidGlassPillSwitcher
 import com.example.ui.theme.SFProFontFamily
 import com.example.ui.components.AnimatedIcon
 import androidx.compose.animation.AnimatedContent
@@ -741,13 +742,15 @@ fun HomeScreen(
 
         if (sectionVisibility[DashboardSection.DAILY_PLANNER] != false) {
 
-      // Filter Segment: [All] [Tasks] [Habits] - Liquid Glass Segmented with Gliding Curved Lens
+      // Filter Segment: [All] [Tasks] [Habits] - Draggable Liquid Glass Pill Switcher (Image 1)
       item {
-        LiquidGlassSegmentedControl(
+        LiquidGlassPillSwitcher(
           items = listOf("All", "Tasks", "Habits"),
           selectedIndex = selectedTab,
-          onItemSelected = { selectedTab = it },
-          modifier = Modifier.fillMaxWidth()
+          onSelect = { selectedTab = it },
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -1469,7 +1472,7 @@ fun HabitGridCard(
           ) {
             Text(
               text = "${streakDays}d streak",
-              style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PillTextDark)
+              style = TextStyle(fontFamily = com.example.ui.theme.SpecialFontFamily, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PillTextDark)
             )
           }
         } else {
@@ -1636,7 +1639,7 @@ fun HabitItemCard(
             ) {
               Text(
                 text = "${streakDays}d streak",
-                style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
+                style = TextStyle(fontFamily = com.example.ui.theme.SpecialFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
               )
             }
           }

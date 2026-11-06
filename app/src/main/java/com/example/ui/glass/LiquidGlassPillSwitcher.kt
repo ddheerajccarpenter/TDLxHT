@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
@@ -132,36 +134,45 @@ fun LiquidGlassPillSwitcher(
             }
         }
 
-        // Pill shape & styling
-        val primary = MaterialTheme.colorScheme.primary
+        // Track styling with Coca Noir side-edge glow
+        val trackShape = RoundedCornerShape(percent = 50)
+        val trackBg = if (isDark) Color.White.copy(alpha = 0.075f) else Color.Black.copy(alpha = 0.055f)
+        val sideGlowColor = if (isDark) com.example.ui.theme.CocaNoir.copy(alpha = 0.35f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.18f)
+        val sideGlowBrush = Brush.horizontalGradient(
+            0.0f to sideGlowColor,
+            0.14f to Color.Transparent,
+            0.86f to Color.Transparent,
+            1.0f to sideGlowColor
+        )
+
+        // Track container
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(trackShape)
+                .background(trackBg)
+                .background(sideGlowBrush)
+                .border(
+                    0.75.dp,
+                    if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f),
+                    trackShape
+                )
+        )
+
+        // Pill shape & styling (Image 1: elevated white/frosted glass pill)
         val pillShape = RoundedCornerShape(percent = 50)
-        val pillBrush = remember(isDark, primary) {
-            Brush.verticalGradient(
-                colors = if (isDark) {
-                    listOf(Color.White.copy(alpha = 0.22f), Color.White.copy(alpha = 0.10f))
-                } else {
-                    listOf(primary.copy(alpha = 0.22f), primary.copy(alpha = 0.13f))
-                },
-            )
-        }
-        val pillBorder = remember(isDark, primary) {
-            Brush.verticalGradient(
-                colors = if (isDark) {
-                    listOf(Color.White.copy(alpha = 0.40f), Color.White.copy(alpha = 0.08f))
-                } else {
-                    listOf(Color.White.copy(alpha = 0.90f), primary.copy(alpha = 0.16f))
-                },
-            )
-        }
-        val liftGlowColor = if (isDark) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.28f)
+        val pillFill = if (isDark) Color(0xFF23252E) else Color.White.copy(alpha = 0.96f)
+        val pillBorderColor = if (isDark) Color.White.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.06f)
+        val liftGlowColor = if (isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.20f)
         val pillWidthDp = with(density) { pillWidthPx.toDp() }
-        val shadowSpot = Color.Black.copy(alpha = 0.35f)
-        val shadowAmbient = Color.Black.copy(alpha = 0.12f)
+        val shadowSpot = if (isDark) Color.Black.copy(alpha = 0.50f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.18f)
+        val shadowAmbient = if (isDark) Color.Black.copy(alpha = 0.20f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.08f)
 
         Box(
             modifier = Modifier
                 .width(pillWidthDp)
                 .fillMaxHeight()
+                .padding(vertical = 3.dp, horizontal = 2.dp)
                 .graphicsLayer {
                     val l = leftEdge.value
                     val r = rightEdge.value
@@ -171,7 +182,7 @@ fun LiquidGlassPillSwitcher(
                     val liftScale = 1f + LIFT_SCALE * liftValue
                     scaleX = stretch * liftScale
                     scaleY = liftScale
-                    shadowElevation = 14.dp.toPx() * liftValue
+                    shadowElevation = (4.dp.toPx() + 8.dp.toPx() * liftValue)
                     spotShadowColor = shadowSpot
                     ambientShadowColor = shadowAmbient
                     shape = pillShape
@@ -181,8 +192,9 @@ fun LiquidGlassPillSwitcher(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(pillBrush)
-                    .border(1.dp, pillBorder, pillShape),
+                    .background(pillFill)
+                    .border(0.75.dp, pillBorderColor, pillShape)
+                    .liquidGlassRim(pillShape, isDark, 0.75.dp),
             )
             Box(
                 modifier = Modifier
@@ -308,12 +320,12 @@ private fun SwitcherItem(
 ) {
     val isDark = isSystemInDarkTheme()
     val contentColor = if (selected) {
-        if (isDark) Color.White else Color(0xFF111113)
+        if (isDark) Color.White else com.example.ui.theme.CocaNoir
     } else {
-        if (isDark) Color.White.copy(alpha = 0.60f) else Color(0xFF111113).copy(alpha = 0.55f)
+        if (isDark) Color.White.copy(alpha = 0.55f) else Color(0xFF71717A)
     }
     val pressScale by animateFloatAsState(
-        targetValue = if (pressed) 0.90f else 1f,
+        targetValue = if (pressed) 0.92f else 1f,
         animationSpec = spring(dampingRatio = 0.55f, stiffness = 700f),
         label = "switcher-item-press-scale",
     )
@@ -339,8 +351,8 @@ private fun SwitcherItem(
         Text(
             text = label,
             style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 13.sp,
+                fontFamily = com.example.ui.theme.StrongFontFamily,
+                fontSize = 13.5.sp,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                 color = contentColor
             ),

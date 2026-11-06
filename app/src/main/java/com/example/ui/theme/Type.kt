@@ -17,20 +17,35 @@ val SFProFontFamily = FontFamily(
   Font(R.font.sf_pro_bold, FontWeight.Bold)
 )
 
-// The Punk Grandmother Display Typeface (Used for App Brand Name & Front Page Display)
-val PunkGrandmotherFontFamily = FontFamily(
-  Font(R.font.the_punk_grandmother, FontWeight.Normal)
+// Seramonde Display Typeface (Used for App Brand Name & Hero Titles)
+val SeramondeFontFamily = FontFamily(
+  Font(R.font.seramonde, FontWeight.Normal)
 )
 
-val PunkGrandmotherSimpleFontFamily = FontFamily(
-  Font(R.font.the_punk_grandmother_simple, FontWeight.Normal)
+// Strong Typeface (Used as default basic & main typography across the application)
+val StrongFontFamily = FontFamily(
+  Font(R.font.strong, FontWeight.Normal)
 )
 
-val AppleSystemFontFamily = SFProFontFamily
+// Cream Cake Calligraphy Typeface (Used for streaks, celebrations & special moments)
+val CreamCakeFontFamily = FontFamily(
+  Font(R.font.cream_cake, FontWeight.Normal),
+  Font(R.font.cream_cake_bold, FontWeight.Bold)
+)
+
+// Semantic aliases
+val BrandFontFamily = SeramondeFontFamily
+val MainFontFamily = StrongFontFamily
+val SpecialFontFamily = CreamCakeFontFamily
+
+// Backward compatibility
+val PunkGrandmotherFontFamily = SeramondeFontFamily
+val PunkGrandmotherSimpleFontFamily = SeramondeFontFamily
+val AppleSystemFontFamily = StrongFontFamily
 
 val Typography = Typography(
   displayLarge = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = SeramondeFontFamily,
     fontWeight = FontWeight.Bold,
     fontSize = 34.sp,
     lineHeight = 41.sp,
@@ -38,7 +53,7 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   displayMedium = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = SeramondeFontFamily,
     fontWeight = FontWeight.Bold,
     fontSize = 28.sp,
     lineHeight = 34.sp,
@@ -46,14 +61,14 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   displaySmall = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = SeramondeFontFamily,
     fontWeight = FontWeight.Bold,
     fontSize = 24.sp,
     lineHeight = 30.sp,
     color = Color.Unspecified
   ),
   headlineLarge = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Bold,
     fontSize = 28.sp,
     lineHeight = 34.sp,
@@ -61,7 +76,7 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   headlineMedium = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Bold,
     fontSize = 20.sp,
     lineHeight = 26.sp,
@@ -69,14 +84,14 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   headlineSmall = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.SemiBold,
     fontSize = 18.sp,
     lineHeight = 24.sp,
     color = Color.Unspecified
   ),
   titleLarge = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.SemiBold,
     fontSize = 18.sp,
     lineHeight = 24.sp,
@@ -84,7 +99,7 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   titleMedium = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Medium,
     fontSize = 16.sp,
     lineHeight = 22.sp,
@@ -92,14 +107,14 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   titleSmall = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Medium,
     fontSize = 14.sp,
     lineHeight = 20.sp,
     color = Color.Unspecified
   ),
   bodyLarge = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Normal,
     fontSize = 15.sp,
     lineHeight = 21.sp,
@@ -107,21 +122,21 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   bodyMedium = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Normal,
     fontSize = 14.sp,
     lineHeight = 19.sp,
     color = Color.Unspecified
   ),
   bodySmall = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Normal,
     fontSize = 12.sp,
     lineHeight = 16.sp,
     color = Color.Unspecified
   ),
   labelLarge = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.SemiBold,
     fontSize = 13.sp,
     lineHeight = 17.sp,
@@ -129,7 +144,7 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   labelMedium = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Medium,
     fontSize = 12.sp,
     lineHeight = 16.sp,
@@ -137,7 +152,7 @@ val Typography = Typography(
     color = Color.Unspecified
   ),
   labelSmall = TextStyle(
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontWeight = FontWeight.Medium,
     fontSize = 11.sp,
     lineHeight = 14.sp,
