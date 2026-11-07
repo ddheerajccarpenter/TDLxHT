@@ -11,6 +11,8 @@ workflows:
       - name: Set Android SDK location
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+          touch "$CM_BUILD_DIR/secrets.defaults.properties"
+          touch "$CM_BUILD_DIR/.env"
       - name: Grant execute permission for gradlew
         script: |
           chmod +x gradlew
@@ -41,6 +43,8 @@ workflows:
       - name: Set Android SDK location
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+          touch "$CM_BUILD_DIR/secrets.defaults.properties"
+          touch "$CM_BUILD_DIR/.env"
       - name: Grant execute permission for gradlew
         script: |
           chmod +x gradlew

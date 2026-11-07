@@ -43,8 +43,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 60
-    versionName = "2.5.23"
+    versionCode = 61
+    versionName = "2.5.24"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -98,6 +98,11 @@ android {
 }
 
 // Configure the Secrets Gradle Plugin with safe fallback so removing .env does not break build
+val secretsDefaultFile = rootProject.file("secrets.defaults.properties")
+if (!secretsDefaultFile.exists()) {
+  secretsDefaultFile.writeText("# Safe defaults file\n")
+}
+
 secrets {
   defaultPropertiesFileName = "secrets.defaults.properties"
   propertiesFileName = ".env"

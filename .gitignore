@@ -3,7 +3,6 @@
 .env*
 *.env
 local.properties
-secrets.defaults.properties
 *.jks
 *.keystore
 .gradle/
