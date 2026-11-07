@@ -407,3 +407,4 @@ export function initCalculatorSuite() {
   renderChips('ALL');
   renderWorkbench(currentCalcKey);
 }
+
