@@ -3,7 +3,6 @@
  * High-performance, clean, modular client-side app
  */
 
-import '@zakisheriff/liquid-glass/styles.css';
 import { initThemeToggle } from './theme.js';
 import { initBottomNav } from './bottom-nav.js';
 import { initCalculatorSuite } from './calculators.js';
@@ -11,6 +10,15 @@ import { initFocusWidget } from './focus-widget.js';
 import { initVersionSync } from './version-sync.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Proactively terminate any legacy zombie service workers in background
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const reg of registrations) {
+        reg.unregister();
+      }
+    });
+  }
+
   // Check for Supabase Auth redirect hashes
   if (
     window.location.hash &&
