@@ -43,8 +43,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 63
-    versionName = "2.5.26"
+    versionCode = 64
+    versionName = "2.5.27"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -97,10 +97,16 @@ android {
   }
 }
 
-// Configure the Secrets Gradle Plugin with safe fallback so removing .env does not break build
-val secretsDefaultFile = rootProject.file("secrets.defaults.properties")
-if (!secretsDefaultFile.exists()) {
-  secretsDefaultFile.writeText("# Safe defaults file\n")
+// Configure the Secrets Gradle Plugin with safe fallback so removing .env or secrets file does not break CI
+listOf(
+  rootProject.file("secrets.defaults.properties"),
+  rootProject.file(".env"),
+  file("secrets.defaults.properties"),
+  file(".env")
+).forEach { f ->
+  if (!f.exists()) {
+    f.writeText("# Safe defaults file\n")
+  }
 }
 
 secrets {

@@ -12,6 +12,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var i = 0; i < regs.length; i++) { regs[i].unregister(); }
+      });
+    }
+  </script>
 </head>
 <body>
 
@@ -25,7 +32,7 @@
         <span>TDlxHT</span>
       </a>
       <div class="header-version-note">
-        <span>Auth Gateway · v<span class="apk-version-label">2.5.26</span></span>
+        <span>Auth Gateway · v<span class="apk-version-label">2.5.27</span></span>
       </div>
     </header>
   </div>

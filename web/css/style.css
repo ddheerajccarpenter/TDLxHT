@@ -85,15 +85,16 @@ button {
   background: none;
 }
 
-/* Glass Primitives */
+/* Glass Primitives (iOS 26 Liquid Glass Specification) */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-bevel), var(--glass-shadow);
   border-radius: var(--radius-card);
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease;
+  contain: paint;
 }
 
 .glass-pill {
@@ -874,10 +875,12 @@ button {
   padding: 5px;
   border-radius: var(--radius-pill);
   background: var(--glass-bg);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-bevel), 0 20px 48px -10px rgba(0, 0, 0, 0.35);
+  transform: translateZ(0);
+  contain: layout style;
 }
 
 .dock-tab {
@@ -914,8 +917,9 @@ button {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   pointer-events: none;
   z-index: 1;
-  transform: translateX(calc(var(--lg-index, 0) * 50px));
-  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(calc(var(--lg-index, 0) * 50px)) translateZ(0);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 [data-theme="dark"] .lg-track__lens {
