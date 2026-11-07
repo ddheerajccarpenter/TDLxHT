@@ -1,0 +1,68 @@
+workflows:
+  native-android:
+    name: Native Android Workflow
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      java: 21
+      vars:
+        PACKAGE_NAME: "com.aistudio.habittask.wvnk"
+    scripts:
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Grant execute permission for gradlew
+        script: |
+          chmod +x gradlew
+      - name: Build Android app
+        script: |
+          ./gradlew assembleDebug
+    artifacts:
+      - app/build/outputs/**/*.apk
+      - app/build/outputs/**/*.aab
+
+  native-android-release:
+    name: Native Android Release & Publish
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      java: 21
+      # To enable code signing and Google Play publishing in Codemagic:
+      # 1. Add your keystore in Codemagic UI: Team settings > Code signing identities > Android keystores
+      # 2. Reference the keystore below:
+      # android_signing:
+      #   - keystore_reference
+      # 3. Add Google Play credentials under Environment variables group:
+      # groups:
+      #   - google_play
+      vars:
+        PACKAGE_NAME: "com.aistudio.habittask.wvnk"
+    scripts:
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+      - name: Grant execute permission for gradlew
+        script: |
+          chmod +x gradlew
+      - name: Build Android release
+        script: |
+          # Map Codemagic signing environment variables if configured
+          export KEYSTORE_PATH="${CM_KEYSTORE_PATH:-$KEYSTORE_PATH}"
+          export STORE_PASSWORD="${CM_KEYSTORE_PASSWORD:-$STORE_PASSWORD}"
+          export KEY_ALIAS="${CM_KEY_ALIAS:-$KEY_ALIAS}"
+          export KEY_PASSWORD="${CM_KEY_PASSWORD:-$KEY_PASSWORD}"
+
+          if [ -n "$CM_KEYSTORE_PATH" ] || [ -f "tdlxht-release.jks" ]; then
+            ./gradlew bundleRelease assembleRelease
+          else
+            echo "Release keystore not yet configured, building debug APK..."
+            ./gradlew assembleDebug
+          fi
+    artifacts:
+      - app/build/outputs/**/*.aab
+      - app/build/outputs/**/*.apk
+    # publishing:
+    #   google_play:
+    #     credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+    #     track: internal
+    #     submit_as_draft: true
