@@ -1,18 +1,20 @@
 /**
  * TDLxHT Liquid Glass Floating Bottom Dock Component
- * Drives optical sliding lens across tabs and smooth scroll spy
+ * Single Unified Navigation Bar with optical sliding lens and precision scroll spy
  */
 
 export function initBottomNav() {
   const dock = document.querySelector('.bottom-dock');
   if (!dock) return;
 
-  const tabs = dock.querySelectorAll('.dock-tab');
+  // Select navigation tabs only (excluding utility buttons like theme switch)
+  const navTabs = dock.querySelectorAll('a.dock-tab');
   const sectionIds = ['dashboard', 'features', 'calculators', 'download'];
 
   function setIndex(index) {
+    if (index < 0 || index >= navTabs.length) return;
     dock.style.setProperty('--lg-index', index);
-    tabs.forEach((tab, i) => {
+    navTabs.forEach((tab, i) => {
       const isActive = i === index;
       tab.classList.toggle('active', isActive);
       if (isActive) {
@@ -23,8 +25,8 @@ export function initBottomNav() {
     });
   }
 
-  // Click handler
-  tabs.forEach((tab, index) => {
+  // Click handler for navigation tabs
+  navTabs.forEach((tab, index) => {
     tab.addEventListener('click', (e) => {
       const href = tab.getAttribute('href');
       if (href && href.startsWith('#')) {
@@ -33,47 +35,73 @@ export function initBottomNav() {
           e.preventDefault();
           setIndex(index);
           target.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          // On non-root routes (e.g. /auth), navigate back to root with anchor
+          window.location.href = '/' + href;
         }
       }
     });
   });
 
-  // IntersectionObserver Scroll Spy
+  // IntersectionObserver Scroll Spy (only active on pages with these sections)
   const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
-  if (!sections.length) return;
+  if (sections.length > 0) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let bestEntry = null;
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio) {
+              bestEntry = entry;
+            }
+          }
+        });
 
-  let isUserScrolling = false;
-  let scrollTimeout = null;
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      // Find the most visible section
-      let bestEntry = null;
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          if (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio) {
-            bestEntry = entry;
+        if (bestEntry) {
+          const id = bestEntry.target.id;
+          const index = sectionIds.indexOf(id);
+          if (index !== -1) {
+            setIndex(index);
           }
         }
-      });
-
-      if (bestEntry) {
-        const id = bestEntry.target.id;
-        const index = sectionIds.indexOf(id);
-        if (index !== -1) {
-          setIndex(index);
-        }
+      },
+      {
+        root: null,
+        rootMargin: '-20% 0px -40% 0px',
+        threshold: [0.1, 0.3, 0.6, 0.9]
       }
-    },
-    {
-      root: null,
-      rootMargin: '-20% 0px -40% 0px',
-      threshold: [0.1, 0.3, 0.6, 0.9]
+    );
+
+    sections.forEach((sec) => observer.observe(sec));
+
+    // Scroll-to-bottom fallback to ensure #download tab activates on short viewports
+    window.addEventListener(
+      'scroll',
+      () => {
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const totalHeight = document.documentElement.scrollHeight;
+        if (scrollPosition >= totalHeight - 65) {
+          const downloadIndex = sectionIds.indexOf('download');
+          if (downloadIndex !== -1) {
+            setIndex(downloadIndex);
+          }
+        }
+      },
+      { passive: true }
+    );
+  }
+
+  // Route-aware initial active tab
+  if (window.location.pathname.startsWith('/auth')) {
+    const portalTab = dock.querySelector('[data-tab="portal"]');
+    if (portalTab) {
+      const portalIndex = Array.from(navTabs).indexOf(portalTab);
+      if (portalIndex !== -1) {
+        setIndex(portalIndex);
+        return;
+      }
     }
-  );
+  }
 
-  sections.forEach((sec) => observer.observe(sec));
-
-  // Initialize first active tab
   setIndex(0);
 }

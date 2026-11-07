@@ -64,7 +64,7 @@ import com.example.data.model.Task
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchFilterChip
 import com.example.ui.components.SketchSearchBar
@@ -212,14 +212,12 @@ fun SearchScreen(
       // MULTI-SELECT ACTIVE BANNER & ACTIONS
       if (isMultiSelectMode) {
         item {
-          SketchCard(
+          LiquidGlassCard(
             modifier = Modifier
               .fillMaxWidth()
               .padding(vertical = 4.dp),
-            backgroundColor = AccentTerracotta.copy(alpha = 0.08f),
-            borderColor = AccentTerracotta,
-            borderWidth = 1.dp,
-            cornerRadius = 14.dp
+            cornerRadius = 14.dp,
+            borderWidth = 0.75.dp
           ) {
             Row(
               modifier = Modifier
@@ -521,7 +519,7 @@ fun SearchTaskCard(
     label = "searchTaskAlpha"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier
       .fillMaxWidth()
       .bounceClick(
@@ -531,10 +529,8 @@ fun SearchTaskCard(
         },
       )
       .testTag("search_task_${task.id}"),
-    backgroundColor = if (isSelected) AccentTerracotta.copy(alpha = 0.14f) else CardBackground,
-    borderColor = if (isSelected) AccentTerracotta else CardBorder,
-    borderWidth = if (isSelected) 1.dp else 0.75.dp,
-    cornerRadius = 14.dp
+    cornerRadius = 14.dp,
+    borderWidth = if (isSelected) 1.dp else 0.75.dp
   ) {
     Row(
       modifier = Modifier
@@ -644,7 +640,7 @@ fun SearchHabitCard(
     label = "searchHabitTextCol"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier
       .fillMaxWidth()
       .bounceClick(

@@ -20,50 +20,20 @@
 </head>
 <body>
 
-  <!-- Floating Liquid Glass Header -->
-  <div class="header-wrapper">
-    <header class="header-bar glass-panel glass-pill" aria-label="Main Navigation">
+  <main class="page-container">
+
+    <!-- Editorial Brand Header (Clean, unsticky single-header layout) -->
+    <header class="site-brand-header">
       <a href="/" class="header-brand" aria-label="TDLxHT Home">
         <div class="header-brand-icon">
-          <img src="/app-icon.png" alt="TDLxHT Logo" width="32" height="32">
+          <img src="/app-icon.png" alt="TDLxHT Logo" width="36" height="36">
         </div>
         <span>TDLxHT</span>
       </a>
-
-      <nav class="header-nav-links" aria-label="Quick links">
-        <a href="#features" class="nav-link">Features</a>
-        <a href="#calculators" class="nav-link">Calculators</a>
-        <a href="#download" class="nav-link">Download</a>
-        <a href="/auth" class="nav-link">Portal</a>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="nav-link" target="_blank" rel="noopener">GitHub</a>
-      </nav>
-
-      <div class="header-actions">
-        <!-- Liquid Glass Theme Switch (Sun / Moon) -->
-        <div class="glass-switch-wrapper" title="Toggle Theme" aria-label="Toggle Theme">
-          <span class="glass-switch-icon" aria-hidden="true">☀️</span>
-          <label class="glass-switch" for="theme-switch-header">
-            <input type="checkbox" id="theme-switch-header" class="theme-switch-input" aria-label="Toggle dark/light theme">
-            <span class="glass-switch-track">
-              <span class="glass-switch-thumb"></span>
-            </span>
-          </label>
-          <span class="glass-switch-icon" aria-hidden="true">🌙</span>
-        </div>
-
-        <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.25/TDLxHT.2.5.25.apk" data-apk-download="true" class="btn-glass btn-glass-primary">
-          <span>Download APK</span>
-        </a>
+      <div class="header-version-note">
+        <span>Offline Native Android · v<span class="apk-version-label">2.5.26</span></span>
       </div>
     </header>
-  </div>
-
-  <main class="page-container">
-
-    <!-- 01 / HERO SECTION -->
-    <div class="section-meta-strip">
-      <span class="badge-pill">✨ NATIVE ANDROID · v<span class="apk-version-label">2.5.25</span></span>
-    </div>
 
     <section id="dashboard" class="hero-layout">
       <!-- Left Column: Copy & Actions -->
@@ -77,7 +47,7 @@
           Manage daily tasks, build lifelong habits and use 14 practical calculators without requiring an internet connection or subscriptions.
         </p>
         <div class="hero-actions">
-          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.25/TDLxHT.2.5.25.apk" data-apk-download="true" class="btn-glass btn-glass-primary">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.26/TDLxHT.2.5.26.apk" data-apk-download="true" class="btn-glass btn-glass-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Download APK</span>
           </a>
@@ -93,8 +63,7 @@
         <div class="focus-hub-header">
           <span class="hub-title">Today's Focus</span>
           <div class="hub-status-live">
-            <span class="live-indicator" aria-hidden="true"></span>
-            <span>LIVE INTERACTIVE</span>
+            <span>Interactive Demo</span>
           </div>
         </div>
 
@@ -163,11 +132,6 @@
       </div>
     </section>
 
-    <!-- 02 / CORE WORKSPACES -->
-    <div class="section-meta-strip">
-      <span class="badge-pill">⚡ CORE ARCHITECTURE</span>
-    </div>
-
     <section id="features">
       <h2 class="section-title">The tools you actually use.</h2>
       <p class="section-desc">Straightforward by design. Clean navigation, readable content and zero telemetry.</p>
@@ -175,31 +139,32 @@
       <div class="features-grid">
         <!-- Feature 1: Tasks -->
         <div class="feature-glass-card glass-panel">
-          <div class="feature-icon-box">✓</div>
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
           <h3 class="feature-title">Task Management</h3>
           <p class="feature-text">Capture tasks, priorities, categories, and due dates with instant SQLite persistence. Zero cloud latency.</p>
         </div>
 
         <!-- Feature 2: Habits -->
         <div class="feature-glass-card glass-panel">
-          <div class="feature-icon-box">⟳</div>
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </div>
           <h3 class="feature-title">Habit Tracking</h3>
           <p class="feature-text">Build resilient daily habits with dual-streak tracking, frequency scheduling, and historical completion charts.</p>
         </div>
 
         <!-- Feature 3: Calculators -->
         <div class="feature-glass-card glass-panel">
-          <div class="feature-icon-box">🧮</div>
+          <div class="feature-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+          </div>
           <h3 class="feature-title">14 Native Tools</h3>
           <p class="feature-text">From Loan EMI and GST to CGPA and Fuel Cost: instant offline calculators ready on your device when you need them.</p>
         </div>
       </div>
     </section>
-
-    <!-- 03 / CALCULATOR SUITE -->
-    <div class="section-meta-strip">
-      <span class="badge-pill">🧮 14 BUILT-IN CALCULATORS</span>
-    </div>
 
     <section id="calculators">
       <h2 class="section-title">Useful calculations, without the clutter.</h2>
@@ -248,18 +213,13 @@
       </div>
     </section>
 
-    <!-- 04 / DOWNLOAD HUB -->
-    <div class="section-meta-strip">
-      <span class="badge-pill">📦 PRODUCTION RELEASE</span>
-    </div>
-
     <section id="download">
       <div class="download-hub-card glass-panel">
         <div class="download-hub-left">
           <h2 class="download-heading">Get TDLxHT for Android</h2>
           <p class="download-sub">Offline-first, privacy-focused productivity for Android phones and tablets.</p>
           <div class="download-meta-strip">
-            <span>Version <span class="apk-version-label">2.5.25</span></span>
+            <span>Version <span class="apk-version-label">2.5.26</span></span>
             <span>·</span>
             <span>16.0 MB</span>
             <span>·</span>
@@ -268,17 +228,17 @@
 
           <div class="sha-badge">
             <span style="font-weight: 700;">SHA-256</span>
-            <span class="sha-text" id="sha-hash-text" title="fef4436d014472bcacb5e696e2a659ed195c3fd0e520e7fcd59972cb3a9a231d">fef4436d014472bcacb5e696e2a659ed195c3fd0e520e7fcd59972cb3a9a231d</span>
+            <span class="sha-text" id="sha-hash-text" title="eb08abbb588e84404b8ee688fcccee3f1a1120357f39748d1871fdd36a4eb513">eb08abbb588e84404b8ee688fcccee3f1a1120357f39748d1871fdd36a4eb513</span>
             <button class="sha-copy-btn" id="copy-sha-btn" type="button" aria-label="Copy SHA-256 checksum">Copy</button>
           </div>
         </div>
 
         <div class="download-hub-actions">
-          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.25/TDLxHT.2.5.25.apk" data-apk-download="true" class="btn-glass btn-glass-primary" style="padding: 14px 28px; font-size: 1.05rem;">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.26/TDLxHT.2.5.26.apk" data-apk-download="true" class="btn-glass btn-glass-primary" style="padding: 14px 28px; font-size: 1.05rem;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Download APK (v<span class="apk-version-label">2.5.25</span>)</span>
+            <span>Download APK (v<span class="apk-version-label">2.5.26</span>)</span>
           </a>
-          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases" target="_blank" rel="noopener" class="btn-glass btn-glass-secondary" style="text-align: center; justify-content: center;">
+          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases" target="_blank" rel="noopener" class="btn-glass btn-glass-secondary" style="text-align: center; justify-content: center;">
             GitHub Releases
           </a>
         </div>
@@ -299,11 +259,11 @@
 
   </main>
 
-  <!-- Fixed Floating Liquid Glass Bottom Dock -->
+  <!-- Fixed Floating Liquid Glass Bottom Dock (Single Navigation Bar) -->
   <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
     <nav class="bottom-dock" style="--lg-index: 0;">
-      <a href="#dashboard" class="dock-tab active" data-tab="dashboard" aria-selected="true" aria-label="Dashboard">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <a href="#dashboard" class="dock-tab active" data-tab="dashboard" aria-selected="true" aria-label="Dashboard" title="Dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1"/>
           <rect x="14" y="3" width="7" height="7" rx="1"/>
           <rect x="3" y="14" width="7" height="7" rx="1"/>
@@ -311,14 +271,14 @@
         </svg>
       </a>
 
-      <a href="#features" class="dock-tab" data-tab="features" aria-label="Features">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <a href="#features" class="dock-tab" data-tab="features" aria-label="Features" title="Features">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </a>
 
-      <a href="#calculators" class="dock-tab" data-tab="calculators" aria-label="Calculators">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <a href="#calculators" class="dock-tab" data-tab="calculators" aria-label="Calculators" title="Calculators">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <rect x="4" y="2" width="16" height="20" rx="2"/>
           <line x1="8" y1="6" x2="16" y2="6"/>
           <line x1="8" y1="10" x2="10" y2="10"/>
@@ -330,16 +290,31 @@
         </svg>
       </a>
 
-      <a href="#download" class="dock-tab" data-tab="download" aria-label="Download">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <a href="#download" class="dock-tab" data-tab="download" aria-label="Download" title="Download">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
       </a>
 
-      <!-- Optical Refraction Glass Lens -->
+      <a href="/auth" class="dock-tab" data-tab="portal" aria-label="Portal" title="Account Portal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </a>
+
+      <!-- Optical Refraction Glass Lens Indicator -->
       <div class="lg-track__lens" aria-hidden="true"></div>
+
+      <!-- Dock Divider -->
+      <div class="dock-divider" aria-hidden="true"></div>
+
+      <!-- Theme Switcher -->
+      <button type="button" class="dock-tab dock-theme-btn" data-action="toggle-theme" aria-label="Toggle theme" title="Toggle Theme">
+        <span class="theme-icon-indicator" aria-hidden="true">🌓</span>
+      </button>
     </nav>
   </aside>
 

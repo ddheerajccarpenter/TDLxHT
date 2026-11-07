@@ -156,7 +156,7 @@ import com.example.data.model.Habit
 import com.example.data.model.Task
 import com.example.ui.components.AnimatedDialogContent
 import com.example.ui.components.CircularProgressGauge
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSheet
@@ -913,12 +913,12 @@ fun MainApp(
       viewModel.updateSettings(settings.copy(hasPromptedPermissions = true))
     }) {
       AnimatedDialogContent {
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         cornerRadius = 20.dp,
-        borderWidth = 2.dp
+        borderWidth = 0.75.dp
       ) {
         Column(
           modifier = Modifier
@@ -1058,12 +1058,12 @@ fun MainApp(
       availableUpdate = null
     }) {
       AnimatedDialogContent {
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
           cornerRadius = 20.dp,
-          borderWidth = 1.5.dp
+          borderWidth = 0.75.dp
         ) {
           Column(
             modifier = Modifier
@@ -1464,12 +1464,12 @@ fun FocusTimerDialog(
   val seconds = remainingSeconds % 60
   val formattedTime = String.format(java.util.Locale.US, "%02d:%02d", minutes, seconds)
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = Modifier
       .fillMaxWidth()
       .padding(16.dp),
     cornerRadius = 24.dp,
-    borderWidth = 1.5.dp
+    borderWidth = 0.75.dp
   ) {
     Column(
       modifier = Modifier

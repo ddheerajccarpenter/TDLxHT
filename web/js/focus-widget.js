@@ -73,6 +73,45 @@ export function initFocusWidget() {
     timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
+  function showCompletionToast(message) {
+    let toast = document.querySelector('.glass-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'glass-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 4000);
+  }
+
+  function playCompletionChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (_) {
+      // Graceful fallback if audio context is blocked
+    }
+  }
+
   function startTimer() {
     if (isRunning) return;
     isRunning = true;
@@ -85,7 +124,8 @@ export function initFocusWidget() {
         renderTimer();
       } else {
         pauseTimer();
-        alert('Focus session complete!');
+        showCompletionToast('Focus session complete! Mindful break started.');
+        playCompletionChime();
         remainingSeconds = 25 * 60;
         renderTimer();
       }

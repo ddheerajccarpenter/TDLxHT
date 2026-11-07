@@ -103,7 +103,6 @@ import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.FloatingNavContentBottomPadding
-import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassMenu

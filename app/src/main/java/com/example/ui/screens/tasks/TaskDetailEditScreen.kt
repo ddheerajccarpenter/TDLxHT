@@ -64,7 +64,7 @@ import com.example.ui.screens.calendar.formatTimeDisplay
 import com.example.data.model.TaskPriority
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSwitch
@@ -307,12 +307,12 @@ fun TaskDetailEditScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Short-term Task Toggle
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier
             .fillMaxWidth()
             .bounceClick { isShortTerm = !isShortTerm },
           cornerRadius = 14.dp,
-          borderWidth = 1.dp
+          borderWidth = 0.75.dp
         ) {
           Row(
             modifier = Modifier
@@ -608,8 +608,10 @@ fun TaskDetailEditScreen(
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SketchCard(
-          modifier = Modifier.fillMaxWidth()
+        LiquidGlassCard(
+          modifier = Modifier.fillMaxWidth(),
+          cornerRadius = 16.dp,
+          borderWidth = 0.75.dp
         ) {
           Column(
             modifier = Modifier

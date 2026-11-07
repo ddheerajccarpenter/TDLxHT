@@ -7,48 +7,45 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
 
-  /* Light Theme (Crystal Glass) */
-  --bg-base: #f4f6fa;
-  --bg-ambient: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 85% 65%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
-                #f4f6fa;
+  /* Light Theme (Crystal Glass & Alabaster Stone) */
+  --bg-base: #f5f6f9;
+  --bg-ambient: #f5f6f9;
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
   
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-hover: rgba(255, 255, 255, 0.88);
-  --glass-border: rgba(255, 255, 255, 0.85);
-  --glass-border-subtle: rgba(0, 0, 0, 0.06);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-bg-hover: rgba(255, 255, 255, 0.90);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-subtle: rgba(0, 0, 0, 0.05);
   --glass-bevel: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
-  --glass-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-  --glass-blur: 24px;
+  --glass-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.02);
+  --glass-blur: 28px;
 
   --accent-color: #2563eb;
-  --accent-glow: rgba(37, 99, 235, 0.25);
+  --accent-glow: transparent;
   --radius-card: 24px;
   --radius-pill: 9999px;
   --container-max: 1140px;
 }
 
 [data-theme="dark"] {
-  --bg-base: #090a0f;
-  --bg-ambient: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.16) 0%, transparent 50%),
-                radial-gradient(circle at 80% 75%, rgba(56, 189, 248, 0.12) 0%, transparent 55%),
-                #090a0f;
+  /* Dark Theme (Pure Obsidian & Smoked Glass) */
+  --bg-base: #0c0d12;
+  --bg-ambient: #0c0d12;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
 
-  --glass-bg: rgba(255, 255, 255, 0.06);
-  --glass-bg-hover: rgba(255, 255, 255, 0.10);
-  --glass-border: rgba(255, 255, 255, 0.14);
-  --glass-border-subtle: rgba(255, 255, 255, 0.07);
-  --glass-bevel: inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.35);
-  --glass-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.6), 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.055);
+  --glass-bg-hover: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.11);
+  --glass-border-subtle: rgba(255, 255, 255, 0.06);
+  --glass-bevel: inset 0 1px 1px 0 rgba(255, 255, 255, 0.20), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.35);
+  --glass-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65), 0 4px 16px -2px rgba(0, 0, 0, 0.4);
 
-  --accent-color: #38bdf8;
-  --accent-glow: rgba(56, 189, 248, 0.3);
+  --accent-color: #60a5fa;
+  --accent-glow: transparent;
 }
 
 /* Base Reset & Core Typography */
@@ -111,22 +108,12 @@ button {
   padding: 0 24px;
 }
 
-/* Header Frame (Floating Glass Header) */
-.header-wrapper {
-  position: sticky;
-  top: 16px;
-  z-index: 100;
-  padding: 0 16px;
-  max-width: var(--container-max);
-  margin: 0 auto 32px auto;
-}
-
-.header-bar {
+/* Editorial Top Brand Header (Unsticky, integrated into content) */
+.site-brand-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
-  height: 60px;
+  padding: 32px 0 16px 0;
 }
 
 .header-brand {
@@ -134,42 +121,33 @@ button {
   align-items: center;
   gap: 12px;
   font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
-}
-
-.header-brand-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.header-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.nav-link {
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  transition: color 0.2s ease;
-}
-
-.nav-link:hover {
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
 }
 
-.header-actions {
+.header-brand-icon {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--glass-border);
+}
+
+.header-brand-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-version-note {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 /* Glass Switch */
@@ -245,12 +223,13 @@ button {
 .btn-glass-primary {
   background: var(--text-primary);
   color: var(--bg-base);
-  box-shadow: 0 4px 16px var(--accent-glow);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
 }
 
 .btn-glass-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.08);
+  transform: translateY(-1.5px);
+  filter: brightness(1.06);
 }
 
 .btn-glass-secondary {
@@ -337,24 +316,9 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--accent-color);
-}
-
-.live-indicator {
-  width: 7px;
-  height: 7px;
-  background: var(--accent-color);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent-color);
-  animation: pulse-glow 2s infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 /* Progress Gauge Ring */
@@ -890,7 +854,7 @@ button {
   gap: 12px;
 }
 
-/* Floating Bottom Dock (iOS 26 Liquid Glass Tab Bar) */
+/* Floating Bottom Dock (Single Navigation Bar & iOS 26 Liquid Glass Architecture) */
 .bottom-dock-outer {
   position: fixed;
   bottom: 24px;
@@ -900,6 +864,7 @@ button {
   justify-content: center;
   z-index: 1000;
   pointer-events: none;
+  padding: 0 16px;
 }
 
 .bottom-dock {
@@ -907,13 +872,13 @@ button {
   display: flex;
   align-items: center;
   position: relative;
-  padding: 6px;
+  padding: 5px;
   border-radius: var(--radius-pill);
   background: var(--glass-bg);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-bevel), 0 16px 40px -8px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--glass-bevel), 0 20px 48px -10px rgba(0, 0, 0, 0.35);
 }
 
 .dock-tab {
@@ -922,15 +887,16 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 44px;
+  width: 50px;
+  height: 42px;
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  transition: color 0.24s ease;
+  transition: color 0.22s ease, transform 0.18s ease;
 }
 
 .dock-tab:hover {
   color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .dock-tab.active {
@@ -940,22 +906,82 @@ button {
 /* Sliding Glass Lens */
 .lg-track__lens {
   position: absolute;
-  top: 6px;
-  bottom: 6px;
-  width: 54px;
+  top: 5px;
+  bottom: 5px;
+  width: 50px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   pointer-events: none;
   z-index: 1;
-  transform: translateX(calc(var(--lg-index, 0) * 54px));
-  transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(calc(var(--lg-index, 0) * 50px));
+  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="dark"] .lg-track__lens {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dock Divider */
+.dock-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--glass-border);
+  margin: 0 4px;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+/* Dock Theme Button */
+.dock-theme-btn {
+  width: 44px;
+  height: 42px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.theme-icon-indicator {
+  font-size: 1.15rem;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+  user-select: none;
+}
+
+.dock-theme-btn:hover .theme-icon-indicator {
+  transform: rotate(20deg) scale(1.1);
+}
+
+/* Glass Toast Notification */
+.glass-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-bevel), 0 16px 36px rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.94rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* Footer Strip */
@@ -986,8 +1012,5 @@ button {
   .download-hub-card {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .header-nav-links {
-    display: none;
   }
 }

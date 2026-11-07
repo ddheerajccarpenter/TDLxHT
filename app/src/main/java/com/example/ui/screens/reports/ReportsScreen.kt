@@ -79,7 +79,6 @@ import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.BentoHeroCard
 import com.example.ui.components.CircularProgressGauge
-import com.example.ui.components.SketchCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.LiquidGlassCard
@@ -413,7 +412,11 @@ private fun StatsSection(stats: ReportStats) {
         Text("DETAILED METRICS", style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = InkSecondary))
 
         // Tasks card
-        SketchCard(Modifier.fillMaxWidth().staggeredEntrance(index = 0)) {
+        LiquidGlassCard(
+            modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 0),
+            cornerRadius = 16.dp,
+            borderWidth = 0.75.dp
+        ) {
             Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 if (stats.tasksTotal > 0) {
                     StatRow("Tasks Completed", "${stats.tasksCompleted} / ${stats.tasksTotal}", stats.taskCompletionRate)
@@ -435,7 +438,11 @@ private fun StatsSection(stats: ReportStats) {
         }
 
         // Habits card
-        SketchCard(Modifier.fillMaxWidth().staggeredEntrance(index = 1)) {
+        LiquidGlassCard(
+            modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 1),
+            cornerRadius = 16.dp,
+            borderWidth = 0.75.dp
+        ) {
             Column(Modifier.fillMaxWidth().padding(16.dp)) {
                 StatRow("Habit Targets Met", "${stats.habitsCompleted} / ${stats.habitsTotal} days", stats.habitCompletionRate)
                 if (stats.sessionsTotal > stats.habitsTotal) {
@@ -450,7 +457,11 @@ private fun StatsSection(stats: ReportStats) {
 
         // Category distribution
         if (stats.categoryDistribution.isNotEmpty()) {
-            SketchCard(Modifier.fillMaxWidth().staggeredEntrance(index = 2)) {
+            LiquidGlassCard(
+                modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 2),
+                cornerRadius = 16.dp,
+                borderWidth = 0.75.dp
+            ) {
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     Text("Category Distribution", style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary))
                     Spacer(Modifier.height(10.dp))

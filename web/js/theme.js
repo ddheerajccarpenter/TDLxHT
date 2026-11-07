@@ -18,6 +18,11 @@ export function setTheme(theme) {
     input.checked = isDark;
   });
 
+  // Sync dock icon indicators
+  document.querySelectorAll('.theme-icon-indicator').forEach((el) => {
+    el.textContent = isDark ? '🌙' : '☀️';
+  });
+
   // Dispatch custom event for reactive glass components
   window.dispatchEvent(new CustomEvent('tdlxht-theme-change', { detail: { theme, isDark } }));
 }

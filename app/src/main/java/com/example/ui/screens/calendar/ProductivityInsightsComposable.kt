@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Habit
 import com.example.data.model.HabitCompletionRecord
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.theme.AccentRed
 import com.example.ui.theme.CardBorder
 import com.example.ui.theme.InkMuted
@@ -52,10 +52,10 @@ fun HabitHistoryGrid(
   val completedCount = historyDays.count { it.status == HabitDayStatus.COMPLETED }
   val missedCount = historyDays.count { it.status == HabitDayStatus.MISSED }
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier.fillMaxWidth(),
     cornerRadius = 14.dp,
-    borderWidth = 1.5.dp
+    borderWidth = 0.75.dp
   ) {
     Column(
       modifier = Modifier

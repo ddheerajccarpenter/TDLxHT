@@ -56,7 +56,7 @@ import com.example.data.model.HabitCategory
 import com.example.data.model.HabitFrequency
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSwitch
@@ -347,10 +347,10 @@ fun HabitDetailEditScreen(
 
       // DAILY TARGET (Matching screenshot 7: Stepper [-] [1] [+])
       item {
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier.fillMaxWidth(),
           cornerRadius = 14.dp,
-          borderWidth = 1.5.dp
+          borderWidth = 0.75.dp
         ) {
           Row(
             modifier = Modifier
@@ -461,10 +461,10 @@ fun HabitDetailEditScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         val sessionCount = maxOf(1, targetValue.toInt())
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier.fillMaxWidth(),
           cornerRadius = 14.dp,
-          borderWidth = 1.5.dp
+          borderWidth = 0.75.dp
         ) {
           if (sessionCount <= 1) {
             Row(
@@ -710,10 +710,10 @@ fun HabitDetailEditScreen(
       // Historical Stats Card (if editing)
       if (streakInfo != null) {
         item {
-          SketchCard(
+          LiquidGlassCard(
             modifier = Modifier.fillMaxWidth(),
             cornerRadius = 14.dp,
-            borderWidth = 1.5.dp
+            borderWidth = 0.75.dp
           ) {
             Column(
               modifier = Modifier

@@ -57,7 +57,7 @@ import com.example.HabitTaskApplication
 import com.example.data.repository.HabitRepository
 import com.example.data.repository.TaskRepository
 import com.example.data.service.SupabaseClient
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.bounceClick
 import com.example.ui.components.paperDotBackground
 import com.example.ui.theme.CardBorder
@@ -419,10 +419,10 @@ fun DiagnosticsScreen(
       ) {
         items(categories.size) { idx ->
           val cat = categories[idx]
-          SketchCard(
+          LiquidGlassCard(
             modifier = Modifier.fillMaxWidth(),
             cornerRadius = 16.dp,
-            borderWidth = 1.2.dp
+            borderWidth = 0.75.dp
           ) {
             Column(
               modifier = Modifier

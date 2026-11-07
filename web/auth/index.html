@@ -15,36 +15,20 @@
 </head>
 <body>
 
-  <!-- Top Header (Wireframe: Compact, Quiet Architectural Frame) -->
-  <header class="page-container" style="padding-top: 0;">
-    <div class="header-frame">
+  <!-- Editorial Brand Header (Clean, unsticky single-header layout) -->
+  <div class="page-container">
+    <header class="site-brand-header">
       <a href="/" class="header-brand" aria-label="TDlxHT Home">
         <div class="header-brand-icon">
-          <img src="/app-icon.png" alt="TDlxHT Logo" width="28" height="28">
+          <img src="/app-icon.png" alt="TDLxHT Logo" width="36" height="36">
         </div>
-        <span>TDlxHT</span>
+        <span>TDLxHT</span>
       </a>
-
-      <div class="header-actions">
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="header-link" target="_blank" rel="noopener">GitHub</a>
-        <a href="/" class="header-link">Home</a>
-        <div class="header-separator"></div>
-        <div class="glass-switch-wrapper" aria-label="Theme mode toggle">
-          <span class="glass-switch-icon" aria-hidden="true">☀️</span>
-          <label class="glass-switch" for="theme-switch-header">
-            <input type="checkbox" id="theme-switch-header" class="theme-switch-input" aria-label="Toggle dark/light theme">
-            <span class="glass-switch-track lg-glass">
-              <span class="glass-switch-thumb lg-glass"></span>
-            </span>
-          </label>
-          <span class="glass-switch-icon" aria-hidden="true">🌙</span>
-        </div>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.13/TDLxHT.2.5.13.apk" data-apk-download="true" class="btn btn-primary btn-sm">
-          Download APK
-        </a>
+      <div class="header-version-note">
+        <span>Account Portal · v<span class="apk-version-label">2.5.26</span></span>
       </div>
-    </div>
-  </header>
+    </header>
+  </div>
 
   <main class="auth-page-wrapper">
     <div class="auth-card">
@@ -188,62 +172,67 @@
     });
   </script>
 
-  <!-- Fixed Bottom Navigation — Liquid Glass Tab Bar (Icons Only) -->
+  <!-- Fixed Floating Liquid Glass Bottom Dock (Single Navigation Bar) -->
   <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
-    <nav class="bottom-dock lg-track lg-track--tabbar lg-track--icons-only" style="--lg-count:4;--lg-index:0;">
-      <div class="lg-track__glass lg-glass"></div>
-
-      <a href="/#dashboard" class="dock-tab lg-track__item" data-tab="dashboard" aria-label="Dashboard">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </div>
+    <nav class="bottom-dock" style="--lg-index: 4;">
+      <a href="/#dashboard" class="dock-tab" data-tab="dashboard" aria-label="Dashboard" title="Dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
       </a>
 
-      <a href="/#features" class="dock-tab lg-track__item" data-tab="features" aria-label="Features">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
+      <a href="/#features" class="dock-tab" data-tab="features" aria-label="Features" title="Features">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
       </a>
 
-      <a href="/#calculators" class="dock-tab lg-track__item" data-tab="calculators" aria-label="Calculators">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2"/>
-            <line x1="8" y1="6" x2="16" y2="6"/>
-            <line x1="8" y1="10" x2="10" y2="10"/>
-            <line x1="14" y1="10" x2="16" y2="10"/>
-            <line x1="8" y1="14" x2="10" y2="14"/>
-            <line x1="14" y1="14" x2="16" y2="14"/>
-            <line x1="8" y1="18" x2="10" y2="18"/>
-            <line x1="14" y1="18" x2="16" y2="18"/>
-          </svg>
-        </div>
+      <a href="/#calculators" class="dock-tab" data-tab="calculators" aria-label="Calculators" title="Calculators">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <line x1="8" y1="6" x2="16" y2="6"/>
+          <line x1="8" y1="10" x2="10" y2="10"/>
+          <line x1="14" y1="10" x2="16" y2="10"/>
+          <line x1="8" y1="14" x2="10" y2="14"/>
+          <line x1="14" y1="14" x2="16" y2="14"/>
+          <line x1="8" y1="18" x2="10" y2="18"/>
+          <line x1="14" y1="18" x2="16" y2="18"/>
+        </svg>
       </a>
 
-      <a href="/#download" class="dock-tab lg-track__item" data-tab="download" aria-label="Download">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </div>
+      <a href="/#download" class="dock-tab" data-tab="download" aria-label="Download" title="Download">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
       </a>
 
-      <div class="lg-track__lens lg-glass" data-lg-refract></div>
-      <div class="lg-track__select"></div>
+      <a href="/auth" class="dock-tab active" data-tab="portal" aria-selected="true" aria-label="Portal" title="Account Portal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </a>
+
+      <!-- Optical Refraction Glass Lens Indicator -->
+      <div class="lg-track__lens" aria-hidden="true"></div>
+
+      <!-- Dock Divider -->
+      <div class="dock-divider" aria-hidden="true"></div>
+
+      <!-- Theme Switcher -->
+      <button type="button" class="dock-tab dock-theme-btn" data-action="toggle-theme" aria-label="Toggle theme" title="Toggle Theme">
+        <span class="theme-icon-indicator" aria-hidden="true">🌓</span>
+      </button>
     </nav>
   </aside>
 
-  <!-- Liquid Glass Enhancement -->
-  <script type="module" src="/js/liquid-glass.js"></script>
+  <!-- Application Logic -->
+  <script type="module" src="/js/theme.js"></script>
   <script type="module" src="/js/auth.js"></script>
 </body>
 </html>

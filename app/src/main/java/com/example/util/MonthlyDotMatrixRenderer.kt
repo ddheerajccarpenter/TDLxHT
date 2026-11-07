@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.example.data.model.HabitCompletionRecord
 import com.example.data.model.Task
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.theme.InnerCornerRadius
 import com.example.ui.theme.InnerCornerShape
 import com.example.ui.theme.OuterCornerRadius
@@ -374,9 +374,10 @@ fun MonthlyDotMatrixComposable(
         Color(0xFF5E6E82)
     )
 
-    SketchCard(
+    LiquidGlassCard(
         modifier = modifier.fillMaxWidth(),
-        cornerRadius = OuterCornerRadius
+        cornerRadius = OuterCornerRadius,
+        borderWidth = 0.75.dp
     ) {
         Column(
             modifier = Modifier

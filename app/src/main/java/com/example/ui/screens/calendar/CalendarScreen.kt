@@ -75,7 +75,7 @@ import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.LiquidGlassSegmentedControl
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.SketchSegmentedControl
 import com.example.ui.theme.SFProFontFamily
 import com.example.ui.components.bounceClick
@@ -563,8 +563,10 @@ fun MonthViewCard(
   val isStartSunday = startOfWeek.equals("SUNDAY", ignoreCase = true)
   val dayHeaders = if (isStartSunday) listOf("S", "M", "T", "W", "T", "F", "S") else listOf("M", "T", "W", "T", "F", "S", "S")
 
-  SketchCard(
-    modifier = Modifier.fillMaxWidth()
+  LiquidGlassCard(
+    modifier = Modifier.fillMaxWidth(),
+    cornerRadius = 16.dp,
+    borderWidth = 0.75.dp
   ) {
     Column(
       modifier = Modifier
@@ -810,8 +812,10 @@ fun WeekViewCard(
   val today = LocalDate.now()
   val nowTime = LocalTime.now()
 
-  SketchCard(
-    modifier = Modifier.fillMaxWidth()
+  LiquidGlassCard(
+    modifier = Modifier.fillMaxWidth(),
+    cornerRadius = 16.dp,
+    borderWidth = 0.75.dp
   ) {
     Column(
       modifier = Modifier
@@ -940,8 +944,10 @@ fun DayViewSelector(
 ) {
   val today = LocalDate.now()
 
-  SketchCard(
-    modifier = Modifier.fillMaxWidth()
+  LiquidGlassCard(
+    modifier = Modifier.fillMaxWidth(),
+    cornerRadius = 16.dp,
+    borderWidth = 0.75.dp
   ) {
     Row(
       modifier = Modifier

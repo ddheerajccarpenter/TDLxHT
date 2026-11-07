@@ -91,7 +91,7 @@ import com.example.ui.components.BentoHeroCard
 import com.example.ui.components.GroupedDivider
 import com.example.ui.components.GroupedInsetCard
 import com.example.ui.components.InteractionLevel
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.fluidLensedGlass
@@ -1143,7 +1143,7 @@ fun SettingsScreen(
 
       // 7. ABOUT TDLXHT (Single Authoritative Card - ZERO collisions)
       item {
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier
             .fillMaxWidth()
             .staggeredEntrance(index = 6),
@@ -1224,10 +1224,11 @@ fun SettingsScreen(
     // Daily Summary Time Dialog
     if (showSummaryTimeDialog) {
       Dialog(onDismissRequest = { showSummaryTimeDialog = false }) {
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+          cornerRadius = 20.dp
         ) {
           Column(
             modifier = Modifier
@@ -1323,7 +1324,7 @@ fun SettingsScreen(
     // Sign Out Dialog
     if (showLogoutDialog) {
       Dialog(onDismissRequest = { showLogoutDialog = false }) {
-        SketchCard(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        LiquidGlassCard(modifier = Modifier.fillMaxWidth().padding(8.dp), cornerRadius = 20.dp) {
           Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Sign Out?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
             Spacer(Modifier.height(10.dp))
@@ -1361,7 +1362,7 @@ fun SettingsScreen(
     // Delete Account Dialog
     if (showDeleteAccountDialog) {
       Dialog(onDismissRequest = { showDeleteAccountDialog = false }) {
-        SketchCard(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        LiquidGlassCard(modifier = Modifier.fillMaxWidth().padding(8.dp), cornerRadius = 20.dp) {
           Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Delete Account?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AccentRed))
             Spacer(Modifier.height(10.dp))
