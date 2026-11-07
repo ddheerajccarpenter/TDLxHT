@@ -253,15 +253,19 @@ private fun UpstreamLiquidGlassSurface(
 @Composable
 fun LiquidGlassCard(
   modifier: Modifier = Modifier,
-  shape: Shape = RoundedCornerShape(24.dp),
+  shape: Shape = RoundedCornerShape(20.dp),
+  cornerRadius: Dp? = null,
+  backgroundColor: Color? = null,
+  borderColor: Color? = null,
   borderWidth: Dp = 0.75.dp,
   hazeState: HazeState? = null,
   onClick: (() -> Unit)? = null,
   content: @Composable BoxScope.() -> Unit
 ) {
+  val resolvedShape = if (cornerRadius != null) RoundedCornerShape(cornerRadius) else shape
   LiquidGlassSurface(
     modifier = modifier,
-    shape = shape,
+    shape = resolvedShape,
     borderWidth = borderWidth,
     hazeState = hazeState,
     onClick = onClick,

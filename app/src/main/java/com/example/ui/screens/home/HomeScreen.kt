@@ -363,7 +363,7 @@ fun HomeScreen(
       if (isDashboardEditMode) {
         // 1. Layout Editor Header Card
         item {
-          SketchCard(
+          LiquidGlassCard(
             modifier = Modifier.fillMaxWidth(),
             cornerRadius = OuterCornerRadius
           ) {
@@ -408,7 +408,7 @@ fun HomeScreen(
             label = "dragCardScale"
           )
 
-          SketchCard(
+          LiquidGlassCard(
             modifier = Modifier
               .fillMaxWidth()
               .graphicsLayer {
@@ -1199,7 +1199,7 @@ fun TaskItemCard(
     label = "taskAlpha"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier
       .fillMaxWidth()
       .alpha(cardAlpha)
@@ -1351,7 +1351,7 @@ fun TaskGridCard(
     label = "gridTaskAlpha"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier
       .fillMaxWidth()
       .alpha(cardAlpha)
@@ -1446,7 +1446,7 @@ fun HabitGridCard(
     label = "gridHabitAlpha"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier
       .fillMaxWidth()
       .alpha(cardAlpha)
@@ -1600,7 +1600,7 @@ fun HabitItemCard(
     label = "homeHabitStreakPop"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = modifier
       .fillMaxWidth()
       .alpha(cardAlpha)

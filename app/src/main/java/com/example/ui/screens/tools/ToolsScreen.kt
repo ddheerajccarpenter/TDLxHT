@@ -90,7 +90,7 @@ import com.example.data.tools.ToolRegistry
 import com.example.data.tools.ToolResult
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.fluidLensedGlass
@@ -897,7 +897,7 @@ fun ToolRunnerModal(
         // Result Card (Tactile highlight with solid contrast)
         val isDarkTheme = com.example.ui.theme.LocalAppColors.current.isDark
         val resultCardBg = if (isDarkTheme) InkWashCharcoalSurface else InkWashIvoryCard
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier.fillMaxWidth(),
           backgroundColor = resultCardBg,
           borderColor = AccentTerracotta.copy(alpha = 0.40f),

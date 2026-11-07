@@ -999,21 +999,11 @@ fun SketchCard(
   onClick: (() -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
-  val shape = RoundedCornerShape(cornerRadius)
-
-  Box(
-    modifier = modifier
-      .defaultMinSize(minHeight = 48.dp)
-      .fluidLensedGlass(
-        shape = shape,
-        elevation = elevation,
-        borderWidth = borderWidth,
-        isElevated = false,
-        isInteractive = onClick != null,
-        customBackgroundColor = backgroundColor,
-        customBorderColor = borderColor,
-        onClick = onClick
-      )
+  LiquidGlassCard(
+    modifier = modifier,
+    cornerRadius = cornerRadius,
+    borderWidth = borderWidth,
+    onClick = onClick
   ) {
     content()
   }
@@ -1035,20 +1025,11 @@ fun GlassCard(
   onClick: (() -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
-  val shape = RoundedCornerShape(cornerRadius)
-
-  Box(
-    modifier = modifier
-      .fluidLensedGlass(
-        shape = shape,
-        elevation = elevation,
-        borderWidth = borderWidth,
-        isElevated = false,
-        isInteractive = onClick != null,
-        customBackgroundColor = backgroundColor,
-        customBorderColor = borderColor,
-        onClick = onClick
-      )
+  LiquidGlassCard(
+    modifier = modifier,
+    cornerRadius = cornerRadius,
+    borderWidth = borderWidth,
+    onClick = onClick
   ) {
     content()
   }

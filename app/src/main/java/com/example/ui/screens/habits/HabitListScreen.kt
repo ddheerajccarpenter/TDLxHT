@@ -71,7 +71,7 @@ import com.example.ui.components.StreakFlameBadge
 import com.example.ui.theme.OklchEmerald
 import com.example.ui.theme.OklchEmeraldSoft
 import com.example.ui.components.DeleteConfirmationDialog
-import com.example.ui.components.SketchCard
+import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.FloatingNavContentBottomPadding
 import com.example.ui.components.SketchFilterChip
@@ -207,7 +207,7 @@ fun HabitListScreen(
 
       // MULTI-SELECT ACTIVE BANNER & ACTIONS
       if (isMultiSelectMode) {
-        SketchCard(
+        LiquidGlassCard(
           modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
@@ -383,7 +383,7 @@ fun HabitListScreen(
 
             Box(modifier = Modifier.animateItem().staggeredEntrance(index = habitIndex)) {
               if (isMultiSelectMode) {
-                SketchCard(
+                LiquidGlassCard(
                   modifier = Modifier
                     .fillMaxWidth()
                     .bounceClick {
@@ -544,7 +544,7 @@ fun HabitCardItemWithActions(
     label = "habitAlpha"
   )
 
-  SketchCard(
+  LiquidGlassCard(
     modifier = Modifier
       .fillMaxWidth()
       .alpha(cardAlpha)

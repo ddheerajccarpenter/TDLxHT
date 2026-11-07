@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TDLxHT — Native Offline Productivity for Android</title>
   <meta name="description" content="Offline-first task management, habit tracking, and 14 built-in calculators for Android. 100% private with no ads or subscriptions.">
-  <meta name="theme-color" content="#252525">
+  <meta name="theme-color" content="#090a0f">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/app-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,56 +20,49 @@
 </head>
 <body>
 
-  <!-- SVG Displacement Filter for real glass refraction -->
-  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
-    <defs>
-      <filter id="lg-distort" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-    </defs>
-  </svg>
-
-  <!-- 3D Spatial Canvas Viewport (Three.js WebGL Experience) -->
-  <div id="tdlxht-3d-viewport" class="spatial-3d-viewport" aria-hidden="true"></div>
-
-  <!-- Top Header (Glass Frame) -->
-  <header class="page-container" style="padding-top: 0;">
-    <div class="header-frame">
+  <!-- Floating Liquid Glass Header -->
+  <div class="header-wrapper">
+    <header class="header-bar glass-panel glass-pill" aria-label="Main Navigation">
       <a href="/" class="header-brand" aria-label="TDLxHT Home">
         <div class="header-brand-icon">
-          <img src="/app-icon.png" alt="TDLxHT Logo" width="28" height="28">
+          <img src="/app-icon.png" alt="TDLxHT Logo" width="32" height="32">
         </div>
         <span>TDLxHT</span>
       </a>
 
+      <nav class="header-nav-links" aria-label="Quick links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#calculators" class="nav-link">Calculators</a>
+        <a href="#download" class="nav-link">Download</a>
+        <a href="/auth" class="nav-link">Portal</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+
       <div class="header-actions">
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT" class="header-link" target="_blank" rel="noopener">GitHub</a>
-        <a href="/auth" class="header-link">Portal</a>
-        <div class="header-separator"></div>
         <!-- Liquid Glass Theme Switch (Sun / Moon) -->
         <div class="glass-switch-wrapper" title="Toggle Theme" aria-label="Toggle Theme">
           <span class="glass-switch-icon" aria-hidden="true">☀️</span>
           <label class="glass-switch" for="theme-switch-header">
             <input type="checkbox" id="theme-switch-header" class="theme-switch-input" aria-label="Toggle dark/light theme">
-            <span class="glass-switch-track lg-glass">
-              <span class="glass-switch-thumb lg-glass"></span>
+            <span class="glass-switch-track">
+              <span class="glass-switch-thumb"></span>
             </span>
           </label>
           <span class="glass-switch-icon" aria-hidden="true">🌙</span>
         </div>
-        <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.24/TDLxHT.2.5.24.apk" data-apk-download="true" class="btn btn-header-glass">
-          Download APK
+
+        <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.25/TDLxHT.2.5.25.apk" data-apk-download="true" class="btn-glass btn-glass-primary">
+          <span>Download APK</span>
         </a>
       </div>
-    </div>
-  </header>
+    </header>
+  </div>
 
   <main class="page-container">
 
-    <!-- 01 / LANDING PAGE (Hero & Dashboard) -->
+    <!-- 01 / HERO SECTION -->
     <div class="section-meta-strip">
-      <span class="badge-pill">✨ NATIVE ANDROID · v2.5.24</span>
+      <span class="badge-pill">✨ NATIVE ANDROID · v<span class="apk-version-label">2.5.25</span></span>
     </div>
 
     <section id="dashboard" class="hero-layout">
@@ -78,427 +71,214 @@
         <h1 class="hero-heading">
           Tasks, habits and<br>
           calculators.<br>
-          One offline-first app.
+          One offline app.
         </h1>
         <p class="hero-subtitle">
-          Manage daily tasks, build habits and use practical calculators without needing a constant internet connection.
+          Manage daily tasks, build lifelong habits and use 14 practical calculators without requiring an internet connection or subscriptions.
         </p>
-        <div class="hero-actions-row">
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.24/TDLxHT.2.5.24.apk" data-apk-download="true" class="btn btn-primary-glass">
+        <div class="hero-actions">
+          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.25/TDLxHT.2.5.25.apk" data-apk-download="true" class="btn-glass btn-glass-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Download APK</span>
-            <span class="btn-glass-sheen" aria-hidden="true"></span>
           </a>
-          <a href="#features" class="btn btn-secondary-glass">
-            <span>View features</span>
-            <span class="btn-arrow" aria-hidden="true">↓</span>
+          <a href="#features" class="btn-glass btn-glass-secondary">
+            <span>Explore features</span>
+            <span aria-hidden="true">→</span>
           </a>
         </div>
       </div>
 
-      <!-- Right Column: Interactive Apple-Style Liquid Glass Showcase -->
-      <div class="product-preview-card lg-glass" id="product-preview-card">
-        <div class="preview-header">
-          <span class="preview-badge-pill">LIQUID GLASS OS</span>
-          <div class="preview-header-meta">
-            <span class="live-dot" aria-hidden="true"></span>
-            <span>INTERACTIVE PREVIEW</span>
+      <!-- Right Column: Interactive Glass Focus Hub Widget -->
+      <div class="focus-hub-card glass-panel" id="focus-hub-widget">
+        <div class="focus-hub-header">
+          <span class="hub-title">Today's Focus</span>
+          <div class="hub-status-live">
+            <span class="live-indicator" aria-hidden="true"></span>
+            <span>LIVE INTERACTIVE</span>
           </div>
         </div>
 
-        <div class="interactive-glass-stage">
-          <!-- Smartphone Silhouette & Device Frame -->
-          <div class="phone-device-frame">
-            <!-- Notch & Status Bar -->
-            <div class="phone-status-bar">
-              <span class="status-time" id="preview-clock">9:41</span>
-              <div class="phone-island">
-                <span class="island-camera"></span>
-                <span class="island-sensor"></span>
-              </div>
-              <div class="status-icons">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
-                <span class="status-battery"><span class="battery-fill"></span></span>
-              </div>
+        <!-- Dynamic Circular Progress Ring -->
+        <div class="progress-card-strip">
+          <div class="progress-ring-box">
+            <svg class="progress-ring-svg" width="58" height="58" viewBox="0 0 64 64">
+              <circle class="ring-track" cx="32" cy="32" r="26" stroke-width="5.5"/>
+              <circle class="ring-fill" id="preview-progress-ring" cx="32" cy="32" r="26" stroke-width="5.5" stroke-dasharray="163.36" stroke-dashoffset="81.68"/>
+            </svg>
+            <span class="progress-ring-label" id="preview-progress-percent">50%</span>
+          </div>
+          <div class="progress-details">
+            <span class="progress-heading" id="preview-progress-title">2 of 4 tasks completed</span>
+            <span class="progress-sub">Tap any task below to toggle</span>
+          </div>
+        </div>
+
+        <!-- Interactive Task Checklist -->
+        <div class="task-items-list" role="list">
+          <div class="preview-task-item checked" data-task-id="1" role="checkbox" aria-checked="true" tabindex="0">
+            <span class="preview-task-check">✓</span>
+            <div class="task-copy">
+              <span class="task-name">Offline SQLite Task Sync</span>
+              <span class="task-meta">Instant on-device Room persistence</span>
             </div>
-
-            <!-- In-App Header -->
-            <div class="phone-app-header">
-              <div class="phone-header-left">
-                <span class="phone-app-greeting">Today's Focus</span>
-                <span class="phone-app-date" id="preview-date-label">Tuesday, Nov 3</span>
-              </div>
-              <div class="stage-top-bar" style="margin: 0; gap: 8px;">
-                <!-- GlassSwitch with Sun and Moon -->
-                <div class="glass-switch-wrapper" aria-label="Demo theme toggle">
-                  <span class="glass-switch-icon" aria-hidden="true">☀️</span>
-                  <label class="glass-switch" for="theme-switch-demo">
-                    <input type="checkbox" id="theme-switch-demo" class="theme-switch-input" aria-label="Demo theme switch">
-                    <span class="glass-switch-track lg-glass">
-                      <span class="glass-switch-thumb lg-glass"></span>
-                    </span>
-                  </label>
-                  <span class="glass-switch-icon" aria-hidden="true">🌙</span>
-                </div>
-                <!-- GlassMenu -->
-                <div class="glass-menu-wrapper" id="hero-sort-menu">
-                  <button class="glass-menu-trigger lg-button lg-glass" aria-label="Filter tasks" aria-haspopup="true" aria-expanded="false" id="hero-sort-trigger">
-                    <svg class="glass-menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <line x1="3" y1="6" x2="21" y2="6"/>
-                      <line x1="3" y1="12" x2="15" y2="12"/>
-                      <line x1="3" y1="18" x2="9" y2="18"/>
-                    </svg>
-                  </button>
-                  <div class="glass-menu-popover lg-glass" id="hero-sort-popover" role="menu" aria-label="Filter tasks" hidden>
-                    <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="true" data-sort="All">
-                      <span class="glass-menu-check" aria-hidden="true">✓</span>
-                      <span class="glass-menu-label">All Tasks</span>
-                    </button>
-                    <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Active">
-                      <span class="glass-menu-check" aria-hidden="true">✓</span>
-                      <span class="glass-menu-label">Active</span>
-                    </button>
-                    <button class="glass-menu-item" role="menuitemcheckbox" aria-checked="false" data-sort="Completed">
-                      <span class="glass-menu-check" aria-hidden="true">✓</span>
-                      <span class="glass-menu-label">Completed</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+          </div>
+          <div class="preview-task-item checked" data-task-id="2" role="checkbox" aria-checked="true" tabindex="0">
+            <span class="preview-task-check">✓</span>
+            <div class="task-copy">
+              <span class="task-name">Dual-Streak Habit Engine</span>
+              <span class="task-meta">Daily routines & momentum tracker</span>
             </div>
-
-            <!-- Hero Progress Gauge Card (Glass) -->
-            <div class="phone-progress-card">
-              <div class="progress-ring-container">
-                <svg class="progress-ring-svg" width="58" height="58" viewBox="0 0 64 64">
-                  <circle class="ring-bg" cx="32" cy="32" r="26" stroke-width="6"/>
-                  <circle class="ring-val" id="preview-progress-ring" cx="32" cy="32" r="26" stroke-width="6" stroke-dasharray="163.36" stroke-dashoffset="81.68"/>
-                </svg>
-                <span class="progress-ring-label" id="preview-progress-percent">50%</span>
-              </div>
-              <div class="progress-info">
-                <span class="progress-title" id="preview-progress-title">2 of 4 tasks completed</span>
-                <span class="progress-desc">Tap any task below to toggle</span>
-              </div>
+          </div>
+          <div class="preview-task-item" data-task-id="3" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="preview-task-check"></span>
+            <div class="task-copy">
+              <span class="task-name">25m Deep Focus Block</span>
+              <span class="task-meta">Distraction-free timer</span>
             </div>
-
-            <!-- Task List -->
-            <div class="phone-tasks-container">
-              <div class="preview-task-item checked" data-task-id="1" role="checkbox" aria-checked="true" tabindex="0">
-                <span class="preview-task-check">✓</span>
-                <div class="task-copy">
-                  <span class="task-name">Task Management</span>
-                  <span class="task-meta">Due 2:00 PM · High Priority</span>
-                </div>
-              </div>
-              <div class="preview-task-item checked" data-task-id="2" role="checkbox" aria-checked="true" tabindex="0">
-                <span class="preview-task-check">✓</span>
-                <div class="task-copy">
-                  <span class="task-name">Habit Tracking</span>
-                  <span class="task-meta">Daily Routine · Streak +1</span>
-                </div>
-              </div>
-              <div class="preview-task-item" data-task-id="3" role="checkbox" aria-checked="false" tabindex="0">
-                <span class="preview-task-check"></span>
-                <div class="task-copy">
-                  <span class="task-name">Focus Sessions</span>
-                  <span class="task-meta">25 min pomodoro block</span>
-                </div>
-              </div>
-              <div class="preview-task-item" data-task-id="4" role="checkbox" aria-checked="false" tabindex="0">
-                <span class="preview-task-check"></span>
-                <div class="task-copy">
-                  <span class="task-name">14 Offline Calculators</span>
-                  <span class="task-meta">Instant on-device execution</span>
-                </div>
-              </div>
+          </div>
+          <div class="preview-task-item" data-task-id="4" role="checkbox" aria-checked="false" tabindex="0">
+            <span class="preview-task-check"></span>
+            <div class="task-copy">
+              <span class="task-name">14 Native Calculators</span>
+              <span class="task-meta">Finance, academic & conversion tools</span>
             </div>
+          </div>
+        </div>
 
-            <!-- Bento Quick Stats Row -->
-            <div class="phone-bento-row">
-              <div class="phone-bento-tile">
-                <div class="bento-tile-header">
-                  <span class="bento-icon">🔥</span>
-                  <span class="bento-tag">14 Days</span>
-                </div>
-                <span class="bento-label">14 Days</span>
-                <span class="bento-sub">Habit Consistency</span>
-              </div>
-
-              <div class="phone-bento-tile">
-                <div class="bento-tile-header">
-                  <span class="bento-icon">⏱</span>
-                  <button class="bento-timer-btn" id="preview-timer-btn" type="button" aria-label="Toggle focus session">
-                    <span id="preview-timer-state">▶ Start</span>
-                  </button>
-                </div>
-                <span class="bento-label" id="preview-timer-display">25:00</span>
-                <span class="bento-sub">Focus Session</span>
-              </div>
-            </div>
-
+        <!-- Working Pomodoro Focus Timer -->
+        <div class="focus-timer-strip">
+          <div class="timer-left">
+            <span class="timer-icon" aria-hidden="true">⏱</span>
+            <span class="timer-digits" id="preview-timer-display">25:00</span>
+          </div>
+          <div class="timer-actions">
+            <button class="btn-timer-action" id="preview-timer-btn" type="button" aria-label="Toggle focus session">
+              <span>▶ Start</span>
+            </button>
+            <button class="btn-timer-secondary" id="preview-timer-reset" type="button" aria-label="Reset timer">
+              <span>Reset</span>
+            </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Four Concise Product Facts Strip -->
-    <div class="product-facts-strip">
-      <div class="product-fact-cell">
-        <h3 class="fact-title">Offline-first</h3>
-        <p class="fact-desc">Works without a connection</p>
-      </div>
-      <div class="product-fact-cell">
-        <h3 class="fact-title">14 built-in calculators</h3>
-        <p class="fact-desc">Finance, academic and daily tools</p>
-      </div>
-      <div class="product-fact-cell">
-        <h3 class="fact-title">Android 7+</h3>
-        <p class="fact-desc">Compatibility details shown clearly</p>
-      </div>
-      <div class="product-fact-cell">
-        <h3 class="fact-title">No ads or subscription</h3>
-        <p class="fact-desc">Private, on-device use</p>
-      </div>
-    </div>
-
-    <!-- 02 / CORE FEATURES -->
+    <!-- 02 / CORE WORKSPACES -->
     <div class="section-meta-strip">
-      <span class="badge-pill">⚡ CORE WORKSPACES</span>
+      <span class="badge-pill">⚡ CORE ARCHITECTURE</span>
     </div>
 
     <section id="features">
       <h2 class="section-title">The tools you actually use.</h2>
-      <p class="section-desc">Three clear starting points. Keep the presentation simple; let the real product do the work.</p>
+      <p class="section-desc">Straightforward by design. Clean navigation, readable content and zero telemetry.</p>
 
       <div class="features-grid">
-        <!-- Feature 1: Task Management -->
-        <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="feature-icon-box">✓</div>
-            <h3 class="feature-title">Task management</h3>
-          </div>
-          <p class="feature-text">Capture tasks, priorities and due dates with instant SQLite persistence.</p>
-          <div class="feature-divider"></div>
-          <a href="#dashboard" class="feature-action-link">
-            <span>Explore feature</span>
-            <span>→</span>
-          </a>
+        <!-- Feature 1: Tasks -->
+        <div class="feature-glass-card glass-panel">
+          <div class="feature-icon-box">✓</div>
+          <h3 class="feature-title">Task Management</h3>
+          <p class="feature-text">Capture tasks, priorities, categories, and due dates with instant SQLite persistence. Zero cloud latency.</p>
         </div>
 
-        <!-- Feature 2: Habit Tracking -->
-        <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="feature-icon-box">⟳</div>
-            <h3 class="feature-title">Habit tracking</h3>
-          </div>
-          <p class="feature-text">Build repeatable routines and review your streaks with dual-streak tracking.</p>
-          <div class="feature-divider"></div>
-          <a href="#dashboard" class="feature-action-link">
-            <span>Explore feature</span>
-            <span>→</span>
-          </a>
+        <!-- Feature 2: Habits -->
+        <div class="feature-glass-card glass-panel">
+          <div class="feature-icon-box">⟳</div>
+          <h3 class="feature-title">Habit Tracking</h3>
+          <p class="feature-text">Build resilient daily habits with dual-streak tracking, frequency scheduling, and historical completion charts.</p>
         </div>
 
-        <!-- Feature 3: Focus Sessions -->
-        <div class="feature-card">
-          <div class="feature-card-header">
-            <div class="feature-icon-box">⏱</div>
-            <h3 class="feature-title">Focus sessions</h3>
-          </div>
-          <p class="feature-text">Keep focused work visible without extra distractions or unnecessary telemetry.</p>
-          <div class="feature-divider"></div>
-          <a href="#principles" class="feature-action-link">
-            <span>Explore feature</span>
-            <span>→</span>
-          </a>
+        <!-- Feature 3: Calculators -->
+        <div class="feature-glass-card glass-panel">
+          <div class="feature-icon-box">🧮</div>
+          <h3 class="feature-title">14 Native Tools</h3>
+          <p class="feature-text">From Loan EMI and GST to CGPA and Fuel Cost: instant offline calculators ready on your device when you need them.</p>
         </div>
       </div>
     </section>
 
-    <!-- 03 / CALCULATOR LIBRARY -->
+    <!-- 03 / CALCULATOR SUITE -->
     <div class="section-meta-strip">
       <span class="badge-pill">🧮 14 BUILT-IN CALCULATORS</span>
     </div>
 
     <section id="calculators">
       <h2 class="section-title">Useful calculations, without the clutter.</h2>
-      <p class="section-desc">Search or choose a category. Open a calculator only when you need it.</p>
+      <p class="section-desc">Search or filter by category. Instant mathematical feedback on every keystroke.</p>
 
-      <!-- Working Search Input -->
-      <div class="calc-search-box">
-        <span class="calc-search-icon">⌕</span>
-        <input type="search" id="calc-search-input" class="calc-search-input" placeholder="Search calculators..." aria-label="Search calculators">
-      </div>
-
-      <!-- Categories Grid (6 Cards Matching Wireframe) -->
-      <div class="calc-categories-grid" id="calc-categories-container">
-        <!-- 1. Finance -->
-        <div class="calc-category-card active" data-cat="finance" data-tool="Loan EMI">
-          <div class="calc-cat-left">
-            <div class="calc-icon-box">$</div>
-            <div>
-              <span class="calc-cat-name">Finance</span>
-              <span class="calc-cat-tools">Loan EMI · GST · Tip Split</span>
-            </div>
-          </div>
-          <span class="calc-arrow">→</span>
-        </div>
-
-        <!-- 2. Academic -->
-        <div class="calc-category-card" data-cat="academic" data-tool="CGPA to %">
-          <div class="calc-cat-left">
-            <div class="calc-icon-box">🎓</div>
-            <div>
-              <span class="calc-cat-name">Academic</span>
-              <span class="calc-cat-tools">CGPA · Attendance</span>
-            </div>
-          </div>
-          <span class="calc-arrow">→</span>
-        </div>
-
-        <!-- 3. Conversion -->
-        <div class="calc-category-card" data-cat="conversion" data-tool="Unit Conversion">
-          <div class="calc-cat-left">
-            <div class="calc-icon-box">⇄</div>
-            <div>
-              <span class="calc-cat-name">Conversion</span>
-              <span class="calc-cat-tools">Length · Weight · Temperature</span>
-            </div>
-          </div>
-          <span class="calc-arrow">→</span>
-        </div>
-
-        <!-- 4. Everyday -->
-        <div class="calc-category-card" data-cat="everyday" data-tool="Age Calculator">
-          <div class="calc-cat-left">
-            <div class="calc-icon-box">📅</div>
-            <div>
-              <span class="calc-cat-name">Everyday</span>
-              <span class="calc-cat-tools">Age · Fuel cost · Date</span>
-            </div>
-          </div>
-          <span class="calc-arrow">→</span>
-        </div>
-
-        <!-- 5. Budgeting -->
-        <div class="calc-category-card" data-cat="budgeting" data-tool="GST Tax">
-          <div class="calc-cat-left">
-            <div class="calc-icon-box">📊</div>
-            <div>
-              <span class="calc-cat-name">Budgeting</span>
-              <span class="calc-cat-tools">Common personal calculations</span>
-            </div>
-          </div>
-          <span class="calc-arrow">→</span>
-        </div>
-
-        <!-- 6. More Tools -->
-        <div class="calc-category-card" data-cat="more" data-tool="Tip Splitter">
-          <div class="calc-cat-left">
-            <div class="calc-icon-box">⚙</div>
-            <div>
-              <span class="calc-cat-name">More tools</span>
-              <span class="calc-cat-tools">Browse all available calculators</span>
-            </div>
-          </div>
-          <span class="calc-arrow">→</span>
-        </div>
-      </div>
-
-      <!-- Working Interactive Calculator Runner Mount -->
-      <div class="calc-runner-panel" id="calc-runner">
-        <div class="calc-runner-header">
-          <span class="calc-runner-title" id="calc-runner-title">Loan EMI Calculator</span>
-          <span id="calc-category-tag" class="section-eyebrow-tag" style="margin: 0;">FINANCE</span>
-          <!-- Reset Inputs Button -->
-          <button class="btn btn-outline btn-sm lg-button lg-glass" id="calc-reset-btn" aria-label="Reset calculator inputs" style="padding: 4px 12px; font-size: 0.8rem;">
-            <span>Reset</span>
-          </button>
-        </div>
-
-        <div class="calc-runner-grid">
-          <!-- Input Form -->
-          <div id="calc-form-container">
-            <div class="calc-input-group">
-              <label class="calc-input-label" for="calc-field-1" id="calc-label-1">Principal Amount ($)</label>
-              <input type="number" id="calc-field-1" class="calc-field" value="100000" min="1000" step="1000">
-            </div>
-            <div class="calc-input-group">
-              <label class="calc-input-label" for="calc-field-2" id="calc-label-2">Annual Interest Rate (%)</label>
-              <input type="number" id="calc-field-2" class="calc-field" value="8.5" min="0.1" step="0.1">
-            </div>
-            <div class="calc-input-group">
-              <label class="calc-input-label" for="calc-field-3" id="calc-label-3">Tenure (Years)</label>
-              <input type="number" id="calc-field-3" class="calc-field" value="5" min="1" max="30">
-            </div>
+      <div class="calc-workbench-card glass-panel" id="calc-runner">
+        <!-- Category & Search Bar -->
+        <div class="calc-filter-bar">
+          <div class="calc-categories-segmented" role="tablist" aria-label="Calculator categories">
+            <button class="calc-category-btn active" data-calc-category="ALL" role="tab" aria-selected="true">All Tools</button>
+            <button class="calc-category-btn" data-calc-category="FINANCE" role="tab" aria-selected="false">Finance</button>
+            <button class="calc-category-btn" data-calc-category="ACADEMIC" role="tab" aria-selected="false">Academic</button>
+            <button class="calc-category-btn" data-calc-category="BUDGETING" role="tab" aria-selected="false">Budgeting</button>
+            <button class="calc-category-btn" data-calc-category="EVERYDAY" role="tab" aria-selected="false">Everyday</button>
+            <button class="calc-category-btn" data-calc-category="CONVERSION" role="tab" aria-selected="false">Conversion</button>
           </div>
 
-          <!-- Output Box -->
-          <div class="calc-output-box">
+          <div class="calc-search-box">
+            <span class="calc-search-icon" aria-hidden="true">⌕</span>
+            <input type="search" id="calc-search-input" class="calc-search-input" placeholder="Search calculators..." aria-label="Search calculators">
+          </div>
+        </div>
+
+        <!-- Tool Chips Selector -->
+        <div class="calc-chips-scroll" id="calc-chips-container"></div>
+
+        <!-- Interactive Workbench Form & Output -->
+        <div class="calc-runner-layout">
+          <div>
+            <div class="calc-runner-header">
+              <span class="calc-runner-title" id="calc-runner-title">Loan EMI</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="calc-tag" id="calc-category-tag">FINANCE</span>
+                <button class="btn-timer-secondary" id="calc-reset-btn" type="button" aria-label="Reset inputs">Reset</button>
+              </div>
+            </div>
+            <div id="calc-form-container"></div>
+          </div>
+
+          <div class="calc-output-card">
             <span class="calc-output-label" id="calc-result-label">Monthly EMI</span>
-            <span class="calc-output-val" id="calc-result-value">$2,051.65</span>
-            <span id="calc-result-sub" style="font-size: 0.85rem; margin-top: 8px;">Total Interest: $23,099.16</span>
+            <span class="calc-output-val" id="calc-result-value">$0.00</span>
+            <span class="calc-output-sub" id="calc-result-sub">Calculating...</span>
           </div>
         </div>
       </div>
-
-      <button id="view-all-calc-btn" class="calc-view-all-link" aria-expanded="false" style="background: none; border: none; cursor: pointer; text-decoration: underline; font: inherit;">View all 14 calculators ↓</button>
-
-      <!-- Expandable 14-Tool Catalog Grid -->
-      <div id="calc-catalog-modal" class="calc-catalog-modal">
-        <div class="calc-catalog-header">
-          <span class="calc-catalog-title">All 14 Native Tools</span>
-          <span class="section-eyebrow-tag" style="margin: 0;">OFFLINE READY</span>
-        </div>
-        <div class="calc-catalog-grid" id="calc-catalog-grid"></div>
-      </div>
     </section>
 
-    <!-- 04 / PRODUCT PRINCIPLES -->
-    <div class="section-meta-strip">
-      <span class="badge-pill">🛡️ OFFLINE & PRIVACY FIRST</span>
-    </div>
-
-    <section id="principles">
-      <h2 class="section-title">Useful by default. Private by design.</h2>
-      <div class="principles-card">
-        <div class="principle-col">
-          <h3 class="principle-heading">Offline-first</h3>
-          <p class="principle-desc">Core task, habit and calculator workflows should not depend on a cloud connection to remain useful.</p>
-        </div>
-        <div class="principle-col">
-          <h3 class="principle-heading">Straightforward by design</h3>
-          <p class="principle-desc">Clear navigation, readable content and no made-up metrics or unnecessary motion.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 05 / DOWNLOAD -->
+    <!-- 04 / DOWNLOAD HUB -->
     <div class="section-meta-strip">
       <span class="badge-pill">📦 PRODUCTION RELEASE</span>
     </div>
 
     <section id="download">
-      <div class="download-card">
-        <div class="download-info-left">
-          <h2 class="download-title">Get TDLxHT for Android</h2>
-          <p class="download-subtitle">Check version, file size and compatibility before downloading.</p>
-          <span class="download-meta-specs">Version <span class="apk-version-label">2.5.24</span> · 16.0 MB · Android 7–15</span>
-          <div class="sha-verify-badge" id="sha-verify-badge">
-            <span class="sha-label" style="font-weight: 700; color: var(--color-ink);">SHA-256</span>
-            <code class="sha-hash-text" id="sha-hash-text" title="783b6d3bd616a424cc997f8e7fc7a2926803dfea89453242af10bb10e3bed8db">783b6d3bd616a424cc997f8e7fc7a2926803dfea89453242af10bb10e3bed8db</code>
+      <div class="download-hub-card glass-panel">
+        <div class="download-hub-left">
+          <h2 class="download-heading">Get TDLxHT for Android</h2>
+          <p class="download-sub">Offline-first, privacy-focused productivity for Android phones and tablets.</p>
+          <div class="download-meta-strip">
+            <span>Version <span class="apk-version-label">2.5.25</span></span>
+            <span>·</span>
+            <span>16.0 MB</span>
+            <span>·</span>
+            <span>Android 7–15</span>
+          </div>
+
+          <div class="sha-badge">
+            <span style="font-weight: 700;">SHA-256</span>
+            <span class="sha-text" id="sha-hash-text" title="fef4436d014472bcacb5e696e2a659ed195c3fd0e520e7fcd59972cb3a9a231d">fef4436d014472bcacb5e696e2a659ed195c3fd0e520e7fcd59972cb3a9a231d</span>
             <button class="sha-copy-btn" id="copy-sha-btn" type="button" aria-label="Copy SHA-256 checksum">Copy</button>
           </div>
         </div>
 
-        <div class="download-actions-right">
-          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.24/TDLxHT.2.5.24.apk" data-apk-download="true" class="btn btn-primary-glass" style="min-width: 220px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Download APK (v2.5.24)</span>
-            <span class="btn-glass-sheen" aria-hidden="true"></span>
+        <div class="download-hub-actions">
+          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/download/v2.5.25/TDLxHT.2.5.25.apk" data-apk-download="true" class="btn-glass btn-glass-primary" style="padding: 14px 28px; font-size: 1.05rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Download APK (v<span class="apk-version-label">2.5.25</span>)</span>
           </a>
-          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases/tag/v2.5.24" target="_blank" rel="noopener" class="download-github-link">
+          <a href="https://github.com/ddheerajccarpenter/TDlxHT/releases" target="_blank" rel="noopener" class="btn-glass btn-glass-secondary" style="text-align: center; justify-content: center;">
             GitHub Releases
           </a>
         </div>
@@ -507,76 +287,63 @@
 
     <!-- Footer -->
     <footer class="footer-strip">
-      <div class="header-brand" style="font-size: 1.1rem;">TDLxHT</div>
-      <nav class="footer-nav" aria-label="Footer Navigation">
+      <div class="header-brand" style="font-size: 1rem;">TDLxHT</div>
+      <nav class="footer-nav" aria-label="Footer links">
         <a href="#features">Features</a>
         <a href="#calculators">Calculators</a>
         <a href="/auth">Portal</a>
+        <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener">GitHub</a>
       </nav>
-      <div class="footer-credit">Liquid Glass · Dark mode ready</div>
+      <div>Liquid Glass · Offline by design</div>
     </footer>
 
   </main>
 
-  <!-- Fixed Bottom Navigation — Liquid Glass Tab Bar (Icons Only) -->
+  <!-- Fixed Floating Liquid Glass Bottom Dock -->
   <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
-    <nav class="bottom-dock lg-track lg-track--tabbar lg-track--icons-only" style="--lg-count:4;--lg-index:0;">
-      <div class="lg-track__glass lg-glass"></div>
-
-      <a href="#dashboard" class="dock-tab lg-track__item active" data-tab="dashboard" aria-selected="true" aria-label="Dashboard">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </div>
+    <nav class="bottom-dock" style="--lg-index: 0;">
+      <a href="#dashboard" class="dock-tab active" data-tab="dashboard" aria-selected="true" aria-label="Dashboard">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
       </a>
 
-      <a href="#features" class="dock-tab lg-track__item" data-tab="features" aria-label="Features">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
+      <a href="#features" class="dock-tab" data-tab="features" aria-label="Features">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
       </a>
 
-      <a href="#calculators" class="dock-tab lg-track__item" data-tab="calculators" aria-label="Calculators">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2"/>
-            <line x1="8" y1="6" x2="16" y2="6"/>
-            <line x1="8" y1="10" x2="10" y2="10"/>
-            <line x1="14" y1="10" x2="16" y2="10"/>
-            <line x1="8" y1="14" x2="10" y2="14"/>
-            <line x1="14" y1="14" x2="16" y2="14"/>
-            <line x1="8" y1="18" x2="10" y2="18"/>
-            <line x1="14" y1="18" x2="16" y2="18"/>
-          </svg>
-        </div>
+      <a href="#calculators" class="dock-tab" data-tab="calculators" aria-label="Calculators">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <line x1="8" y1="6" x2="16" y2="6"/>
+          <line x1="8" y1="10" x2="10" y2="10"/>
+          <line x1="14" y1="10" x2="16" y2="10"/>
+          <line x1="8" y1="14" x2="10" y2="14"/>
+          <line x1="14" y1="14" x2="16" y2="14"/>
+          <line x1="8" y1="18" x2="10" y2="18"/>
+          <line x1="14" y1="18" x2="16" y2="18"/>
+        </svg>
       </a>
 
-      <a href="#download" class="dock-tab lg-track__item" data-tab="download" aria-label="Download">
-        <div class="dock-tab-icon lg-nav__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </div>
+      <a href="#download" class="dock-tab" data-tab="download" aria-label="Download">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
       </a>
 
-      <div class="lg-track__lens lg-glass" data-lg-refract></div>
-      <div class="lg-track__select"></div>
+      <!-- Optical Refraction Glass Lens -->
+      <div class="lg-track__lens" aria-hidden="true"></div>
     </nav>
   </aside>
 
   <!-- Application Logic -->
   <script type="module" src="/js/app.js"></script>
-  <!-- Liquid Glass Enhancement -->
-  <script type="module" src="/js/liquid-glass.js"></script>
-  <!-- ProgressRingCheck Interactive Task Morphing -->
-  <script type="module" src="/js/progress-ring-check.js"></script>
 </body>
 </html>

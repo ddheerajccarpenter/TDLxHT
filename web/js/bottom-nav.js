@@ -1,115 +1,79 @@
 /**
- * TDlxHT Wireframe Bottom Navigation Component
- * 4 Destinations: Dashboard, Features, Calculators, Download
- * Centralized Scroll Spy with IntersectionObserver & rAF
+ * TDLxHT Liquid Glass Floating Bottom Dock Component
+ * Drives optical sliding lens across tabs and smooth scroll spy
  */
 
 export function initBottomNav() {
-  const dock = document.querySelector('.bottom-dock') || document.querySelector('.bottom-dock-nav');
+  const dock = document.querySelector('.bottom-dock');
   if (!dock) return;
 
-  const items = dock.querySelectorAll('.dock-tab, .dock-item');
+  const tabs = dock.querySelectorAll('.dock-tab');
   const sectionIds = ['dashboard', 'features', 'calculators', 'download'];
-  const path = window.location.pathname;
 
-  function setActive(tabId) {
-    items.forEach(item => {
-      const id = item.getAttribute('data-tab') || item.getAttribute('data-nav');
-      const isTarget = id === tabId;
-      item.classList.toggle('active', isTarget);
-      if (isTarget) {
-        item.setAttribute('aria-current', 'page');
+  function setIndex(index) {
+    dock.style.setProperty('--lg-index', index);
+    tabs.forEach((tab, i) => {
+      const isActive = i === index;
+      tab.classList.toggle('active', isActive);
+      if (isActive) {
+        tab.setAttribute('aria-selected', 'true');
       } else {
-        item.removeAttribute('aria-current');
+        tab.removeAttribute('aria-selected');
       }
     });
   }
 
-  // If on Auth Portal, unselect or keep clear
-  if (path.startsWith('/auth')) {
-    items.forEach(item => {
-      item.classList.remove('active');
-      item.removeAttribute('aria-current');
-    });
-    return;
-  }
-
-  // Real IntersectionObserver & Scroll Spy
-  const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
-  if (!sections.length) return;
-
-  setActive('dashboard');
-
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        updateActiveSection();
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
-
-  function updateActiveSection() {
-    const scrollY = window.pageYOffset;
-    const scrollPos = scrollY + 160;
-
-    // Top of page
-    if (scrollY < 120) {
-      setActive('dashboard');
-      return;
-    }
-
-    // Bottom of page
-    if ((window.innerHeight + scrollY) >= (document.documentElement.scrollHeight - 120)) {
-      setActive('download');
-      return;
-    }
-
-    for (let i = sections.length - 1; i >= 0; i--) {
-      const sec = sections[i];
-      if (sec.offsetTop <= scrollPos) {
-        setActive(sec.id);
-        break;
-      }
-    }
-  }
-
-  // Smooth click scroll
-  items.forEach(item => {
-    item.addEventListener('click', (e) => {
-      const href = item.getAttribute('href');
-      if (href && (href.startsWith('#') || href.startsWith('/#'))) {
-        const targetId = href.replace('/#', '').replace('#', '');
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) {
+  // Click handler
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', (e) => {
+      const href = tab.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        const target = document.querySelector(href);
+        if (target) {
           e.preventDefault();
-          const headerOffset = 60;
-          const elementPosition = targetEl.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-          });
-
-          if (history.pushState) {
-            history.pushState(null, '', `#${targetId}`);
-          }
-          setActive(targetId);
+          setIndex(index);
+          target.scrollIntoView({ behavior: 'smooth' });
         }
       }
     });
   });
 
-  // Check initial hash
-  if (window.location.hash) {
-    const initialNav = window.location.hash.replace('#', '');
-    if (sectionIds.includes(initialNav)) {
-      setActive(initialNav);
+  // IntersectionObserver Scroll Spy
+  const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
+  if (!sections.length) return;
+
+  let isUserScrolling = false;
+  let scrollTimeout = null;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      // Find the most visible section
+      let bestEntry = null;
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          if (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio) {
+            bestEntry = entry;
+          }
+        }
+      });
+
+      if (bestEntry) {
+        const id = bestEntry.target.id;
+        const index = sectionIds.indexOf(id);
+        if (index !== -1) {
+          setIndex(index);
+        }
+      }
+    },
+    {
+      root: null,
+      rootMargin: '-20% 0px -40% 0px',
+      threshold: [0.1, 0.3, 0.6, 0.9]
     }
-  } else {
-    updateActiveSection();
-  }
+  );
+
+  sections.forEach((sec) => observer.observe(sec));
+
+  // Initialize first active tab
+  setIndex(0);
 }
