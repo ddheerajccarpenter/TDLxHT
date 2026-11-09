@@ -416,7 +416,7 @@ fun ThreeJsSpatialCompanion(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(140.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(if (isDark) Color(0x0C000000) else Color(0x06FFFFFF))
                     .border(0.75.dp, CardBorder.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),

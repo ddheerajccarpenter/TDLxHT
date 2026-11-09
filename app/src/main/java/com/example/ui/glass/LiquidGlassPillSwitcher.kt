@@ -224,7 +224,7 @@ fun LiquidGlassPillSwitcher(
                     size.height / 2f * liftScale,
                 )
                 lensShader.setFloatUniform("uZoom", 0.08f + 0.18f * liftValue)
-                lensShader.setFloatUniform("uChroma", liftValue * 0.8f)
+                lensShader.setFloatUniform("uChroma", 0.0f)
                 renderEffect = RenderEffect
                     .createRuntimeShaderEffect(lensShader, "content")
                     .asComposeRenderEffect()

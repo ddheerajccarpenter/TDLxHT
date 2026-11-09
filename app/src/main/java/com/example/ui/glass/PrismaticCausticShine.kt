@@ -51,14 +51,6 @@ const val PRISMATIC_CAUSTIC_SHADER = """
     uniform float uIntensity;
     uniform float uTime;
 
-    // Pure continuous rainbow spectral function
-    half3 spectralRainbow(float t) {
-        float r = 0.5 + 0.5 * cos(6.28318 * (t + 0.00));
-        float g = 0.5 + 0.5 * cos(6.28318 * (t + 0.33));
-        float b = 0.5 + 0.5 * cos(6.28318 * (t + 0.67));
-        return pow(half3(r, g, b), half3(1.3)) * 1.35;
-    }
-
     half4 main(float2 fragCoord) {
         float2 p = fragCoord - uCenter;
         float dist = length(p);
@@ -83,10 +75,6 @@ const val PRISMATIC_CAUSTIC_SHADER = """
         float bottomBounce = pow(max(0.0, -dotNL), 3.0) * 0.38;
         float baseGlow = 0.30 + 0.70 * (topCrest + bottomBounce);
 
-        // Rainbow spectral phase modulated by angle
-        float t = fract(normAngle + 0.32);
-        half3 rainbow = spectralRainbow(t);
-
         // Radial bell-curve profile for the caustic line
         float ringCore = exp(-pow(d / (halfThick * 0.55), 2.0));
         float ringBloom = exp(-pow(d / (halfThick * 1.15), 2.0)) * 0.45;
@@ -95,7 +83,7 @@ const val PRISMATIC_CAUSTIC_SHADER = """
         // Hot white specular hairline peak on top-left
         float specularPeak = exp(-pow(d / (halfThick * 0.28), 2.0)) * topCrest * 2.4;
 
-        half3 finalColor = (rainbow * baseGlow * uIntensity) + half3(specularPeak);
+        half3 finalColor = half3(baseGlow * uIntensity * 0.65 + specularPeak);
         float finalAlpha = clamp(profile * uIntensity, 0.0, 1.0);
 
         return half4(finalColor * finalAlpha, finalAlpha);
@@ -103,19 +91,14 @@ const val PRISMATIC_CAUSTIC_SHADER = """
 """
 
 /**
- * Multi-stop spectral palette matching the reference image chromatic rainbow caustic.
- * Electric Cyan -> Neon Lime -> Golden Yellow -> Neon Orange -> Red Coral -> Vivid Magenta -> Electric Cyan.
+ * Clean monochromatic specular caustic palette.
  */
 val PrismaticCausticColors = listOf(
-    Color(0xFF00E5FF), // Electric Cyan
-    Color(0xFF00FF88), // Neon Lime
-    Color(0xFFFFDD00), // Golden Yellow
-    Color(0xFFFF7700), // Fiery Orange
-    Color(0xFFFF0055), // Red Coral
-    Color(0xFFD500F9), // Vivid Magenta
-    Color(0xFF7C4DFF), // Deep Violet
-    Color(0xFF00B0FF), // Sky Blue
-    Color(0xFF00E5FF)  // Wrap back to Cyan
+    Color.White.copy(alpha = 0.85f),
+    Color.White.copy(alpha = 0.50f),
+    Color.White.copy(alpha = 0.20f),
+    Color.White.copy(alpha = 0.50f),
+    Color.White.copy(alpha = 0.85f)
 )
 
 /**
@@ -178,8 +161,8 @@ fun DrawScope.drawPrismaticCausticRing(
     val bounceAlpha = (0.35f * intensity).coerceIn(0f, 1f)
     val bounceBrush = Brush.sweepGradient(
         0.05f to Color.Transparent,
-        0.12f to Color(0xFF00E5FF).copy(alpha = bounceAlpha),
-        0.20f to Color(0xFFD500F9).copy(alpha = bounceAlpha * 0.75f),
+        0.12f to Color.White.copy(alpha = bounceAlpha * 0.50f),
+        0.20f to Color.White.copy(alpha = bounceAlpha * 0.30f),
         0.26f to Color.Transparent,
         center = center
     )

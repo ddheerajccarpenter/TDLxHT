@@ -4,8 +4,7 @@ package com.example.ui.glass
  * Optical Lens Shader (AGSL, Android 13+ / API 33).
  * Applied to content rows (navigation icons, segmented labels) to produce physical glass lens magnification:
  * - Anisotropic magnification (horizontal uZoom, vertical 0.45x) increasing smoothly from rim to center.
- * - Dynamic RGB chromatic dispersion along the lens rim (physical spectral fringing).
- * - Rest state uses gentle lens magnification; drag/transition state opens full dynamic dispersion.
+ * - Clean monochromatic transmission with zero chromatic dispersion or rainbow fringing.
  */
 const val PILL_LENS_SHADER = """
     uniform shader content;
@@ -30,16 +29,8 @@ const val PILL_LENS_SHADER = """
         float m = smoothstep(0.0, 1.0, t);
         float zx = 1.0 + uZoom * m;
         float zy = 1.0 + uZoom * 0.45 * m;
-        float rimMask = t * (1.0 - t) * 4.0;
-        float ca = uChroma * rimMask * 0.09;
         float2 baseUv = uCenter + float2(p.x / zx, p.y / zy);
-        half4 c;
-        c.r = content.eval(uCenter + float2(p.x / (zx * (1.0 + ca)), p.y / zy)).r;
-        half4 g = content.eval(baseUv);
-        c.g = g.g;
-        c.b = content.eval(uCenter + float2(p.x / (zx * (1.0 - ca)), p.y / zy)).b;
-        c.a = g.a;
-        return c;
+        return content.eval(baseUv);
     }
 """
 

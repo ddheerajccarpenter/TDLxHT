@@ -43,8 +43,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 64
-    versionName = "2.5.27"
+    versionCode = 67
+    versionName = "2.5.30"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -180,7 +180,7 @@ dependencies {
 tasks.register("syncReleaseApk") {
   group = "build"
   description = "Deletes older APKs and copies the release APK as TDLxHT.<version>.apk and TDlxHT.apk to root, web, and dist directories."
-  dependsOn("assembleRelease")
+  dependsOn("assembleRelease", "bundleRelease")
   notCompatibleWithConfigurationCache("Performs file tree scan and multi-directory synchronization")
   doLast {
     val ver = android.defaultConfig.versionName ?: "2.3.3"
@@ -218,6 +218,23 @@ tasks.register("syncReleaseApk") {
         }
       }
       val apkSha256 = digest.digest().joinToString("") { "%02x".format(it) }
+
+      // Synchronize signed Google Play Store Android App Bundle (.aab)
+      val releaseAab = file("${layout.buildDirectory.get()}/outputs/bundle/release/app-release.aab")
+      val targetAabName = "TDLxHT.$ver.aab"
+      val genericAabName = "TDlxHT.aab"
+      if (releaseAab.exists()) {
+        val allowedAabNames = setOf(targetAabName, genericAabName)
+        rootDir.listFiles { f -> f.isFile && f.name.endsWith(".aab") && f.name !in allowedAabNames }?.forEach { it.delete() }
+        file("$rootDir/dist").listFiles { f -> f.isFile && f.name.endsWith(".aab") && f.name !in allowedAabNames }?.forEach { it.delete() }
+        releaseAab.copyTo(File(rootDir, targetAabName), overwrite = true)
+        releaseAab.copyTo(File(rootDir, genericAabName), overwrite = true)
+        if (distDir.exists()) {
+          releaseAab.copyTo(File(distDir, targetAabName), overwrite = true)
+          releaseAab.copyTo(File(distDir, genericAabName), overwrite = true)
+        }
+        println("SUCCESS: Enforced $targetAabName & $genericAabName for Google Play Store.")
+      }
 
       // Automatically generate version.json for dynamic web auto-fetching pointing to high-speed CDN with GitHub Release fallback
       val versionJsonContent = """

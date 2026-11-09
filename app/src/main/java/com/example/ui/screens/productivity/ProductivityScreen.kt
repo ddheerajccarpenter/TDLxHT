@@ -142,7 +142,7 @@ fun ProductivityScreen(
           .padding(horizontal = 16.dp)
       )
 
-      Spacer(modifier = Modifier.height(76.dp))
+      Spacer(modifier = Modifier.height(124.dp))
     }
   }
 }

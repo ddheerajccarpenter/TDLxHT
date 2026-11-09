@@ -1002,7 +1002,10 @@ fun SketchCard(
   LiquidGlassCard(
     modifier = modifier,
     cornerRadius = cornerRadius,
+    backgroundColor = backgroundColor,
+    borderColor = borderColor,
     borderWidth = borderWidth,
+    elevation = elevation,
     onClick = onClick
   ) {
     content()
@@ -1028,7 +1031,10 @@ fun GlassCard(
   LiquidGlassCard(
     modifier = modifier,
     cornerRadius = cornerRadius,
+    backgroundColor = backgroundColor,
+    borderColor = borderColor,
     borderWidth = borderWidth,
+    elevation = elevation,
     onClick = onClick
   ) {
     content()

@@ -192,7 +192,8 @@ fun TaskListScreen(
         Row(
           modifier = Modifier
             .weight(1f)
-            .horizontalScroll(rememberScrollState()),
+            .horizontalScroll(rememberScrollState())
+            .padding(end = 6.dp),
           horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
           TaskFilter.entries.forEach { filter ->

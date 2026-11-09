@@ -165,6 +165,7 @@ import com.example.ui.components.glassSheen
 import com.example.ui.components.bounceClick
 import com.example.ui.components.elasticStretchPress
 import com.example.ui.components.LiquidGlassNavigationDock
+import com.example.ui.components.FloatingLiquidGlassActionButton
 import com.example.ui.components.LiquidGlassFloatingActionButton
 import com.example.ui.screens.auth.AuthenticationScreen
 import com.example.ui.screens.calendar.CalendarScreen
@@ -1420,21 +1421,30 @@ fun SketchBottomNavigationBar(
   hazeState: dev.chrisbanes.haze.HazeState? = null,
   backdrop: com.kyant.backdrop.Backdrop? = null
 ) {
-  Box(
+  Column(
     modifier = Modifier
       .fillMaxWidth()
       .windowInsetsPadding(WindowInsets.navigationBars)
-      .padding(horizontal = 20.dp, vertical = 8.dp),
-    contentAlignment = Alignment.Center
+      .padding(bottom = 8.dp),
+    horizontalAlignment = Alignment.CenterHorizontally
   ) {
+    // 1. Standalone Floating Quick Add Button (separated & floating above the nav bar with drop shadow)
+    FloatingLiquidGlassActionButton(
+      isOpen = isQuickAddOpen,
+      onClick = onQuickAdd
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // 2. Main 4-Destination Floating Navigation Dock (matching sub navbar height 48.dp & 16.dp insets)
     LiquidGlassNavigationDock(
-      destinations = destinations,
-      selectedTab = selectedTab,
-      isQuickAddOpen = isQuickAddOpen,
+      destinations = destinations.take(4),
+      selectedTab = selectedTab.coerceIn(0, 3),
       onDestinationSelected = onDestinationSelected,
-      onQuickAdd = onQuickAdd,
       hazeState = hazeState,
-      modifier = Modifier.fillMaxWidth()
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
     )
   }
 }

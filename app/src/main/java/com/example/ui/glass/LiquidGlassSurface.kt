@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -26,12 +25,13 @@ import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.min
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
-import kotlin.math.min
 
 /**
  * CompositionLocal providing ambient HazeState for Liquid Glass surfaces throughout the tree.
@@ -81,10 +81,7 @@ const val LIQUID_GLASS_SHADER = """
         }
 
         float2 disp = -n * bend * uDisp;
-        half3 col;
-        col.r = content.eval(fragCoord + disp * 1.10).r;
-        col.g = content.eval(fragCoord + disp).g;
-        col.b = content.eval(fragCoord + disp * 0.90).b;
+        half3 col = content.eval(fragCoord + disp).rgb;
 
         float topBias = 0.55 + 0.45 * clamp(-p.y / halfSize.y, -1.0, 1.0);
         float rim = bend * uFresnel * topBias;
@@ -107,12 +104,21 @@ fun LiquidGlassBackdrop(
     isDark: Boolean,
     modifier: Modifier = Modifier,
     tintColor: Color? = null,
+    extraTints: List<Color> = emptyList(),
     fallbackColor: Color? = null
 ) {
-    val surface = MaterialTheme.colorScheme.surface
-    val glassTint = tintColor ?: if (isDark) surface.copy(alpha = 0.34f) else Color.White.copy(alpha = 0.45f)
-    val fallback = fallbackColor ?: surface.copy(alpha = if (isDark) 0.80f else 0.86f)
+    val glassTint = tintColor ?: if (isDark) {
+        Color(0xFF0B0C10).copy(alpha = 0.34f)
+    } else {
+        Color.White.copy(alpha = 0.45f)
+    }
+    val fallback = fallbackColor ?: if (isDark) {
+        Color(0xFF0B0C10).copy(alpha = 0.80f)
+    } else {
+        Color.White.copy(alpha = 0.86f)
+    }
     val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
 
     val refractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val shader = remember { RuntimeShader(LIQUID_GLASS_SHADER) }
@@ -120,8 +126,18 @@ fun LiquidGlassBackdrop(
         val dispPx = with(density) { 9.dp.toPx() }
         val fresnel = if (isDark) 0.22f else 0.10f
         Modifier.graphicsLayer {
+            val outline = shape.createOutline(
+                androidx.compose.ui.geometry.Size(size.width, size.height),
+                layoutDirection,
+                density
+            )
+            val radiusPx = when (outline) {
+                is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
+                is Outline.Rectangle -> 0f
+                is Outline.Generic -> 0f
+            }.coerceIn(0f, min(size.width, size.height) * 0.5f)
             shader.setFloatUniform("uSize", size.width, size.height)
-            shader.setFloatUniform("uRadius", size.height * 0.5f)
+            shader.setFloatUniform("uRadius", radiusPx)
             shader.setFloatUniform("uBand", bandPx)
             shader.setFloatUniform("uDisp", dispPx)
             shader.setFloatUniform("uFresnel", fresnel)
@@ -140,21 +156,24 @@ fun LiquidGlassBackdrop(
             .hazeEffect(state = hazeState) {
                 blurRadius = 20.dp
                 noiseFactor = if (isDark) 0.04f else 0f
-                tints = listOf(HazeTint(glassTint))
+                tints = buildList {
+                    add(HazeTint(glassTint))
+                    extraTints.forEach { add(HazeTint(it)) }
+                }
                 fallbackTint = HazeTint(fallback)
             },
     )
 }
 
 /**
- * Crisp optical rim with directional specular highlights and authentic rainbow chromatic dispersion.
- * Refracts spectral rainbow wavelengths directly along the 1–2px curved glass bevel edge.
+ * Crisp optical rim with directional specular highlights.
+ * Refined directional specular hairline highlight along the 0.75–1.0px glass bevel edge.
  * Completely embedded inside the glass boundary with zero outer halo rings.
  */
 fun Modifier.liquidGlassRim(
     shape: Shape,
     isDark: Boolean,
-    borderWidth: Dp = 1.dp,
+    borderWidth: Dp = 0.75.dp,
 ): Modifier = clip(shape).drawWithCache {
     val outline = shape.createOutline(size, layoutDirection, this)
     val outlinePath = Path().apply {
@@ -164,69 +183,41 @@ fun Modifier.liquidGlassRim(
             is Outline.Generic -> addPath(outline.path)
         }
     }
-    val roundedOutline = outline as? Outline.Rounded
-    val radius = roundedOutline?.roundRect?.topLeftCornerRadius?.x
-        ?.coerceIn(0f, min(size.width, size.height) / 2f)
-        ?: 0f
-    val diameter = radius * 2f
     val strokeWidth = borderWidth.toPx()
-    val neutralRim = if (isDark) Color.White.copy(alpha = 0.32f) else Color.Black.copy(alpha = 0.16f)
 
-    // Vibrant spectral dispersion colors matching Apple Liquid Glass optical refraction
-    val spectralAlpha = if (isDark) 0.45f else 0.30f
-    val spectralColors = listOf(
-        Color(0xFF00E5FF).copy(alpha = spectralAlpha), // Electric Cyan
-        Color(0xFF00FF88).copy(alpha = spectralAlpha), // Neon Lime
-        Color(0xFFFFDD00).copy(alpha = spectralAlpha), // Warm Gold
-        Color(0xFFFF5252).copy(alpha = spectralAlpha), // Coral Red
-        Color(0xFFD500F9).copy(alpha = spectralAlpha), // Vivid Violet
-        Color(0xFF00E5FF).copy(alpha = spectralAlpha)  // Return to Cyan
+    // Authentic monochromatic directional specular rim:
+    // Bright crisp specular apex on the upper glass rim falling off gracefully to the base.
+    val specularRimBrush = Brush.verticalGradient(
+        colors = if (isDark) {
+            listOf(
+                Color.White.copy(alpha = 0.36f),
+                Color.White.copy(alpha = 0.14f),
+                Color.White.copy(alpha = 0.08f)
+            )
+        } else {
+            listOf(
+                Color.White.copy(alpha = 0.65f),
+                Color.Black.copy(alpha = 0.12f),
+                Color.Black.copy(alpha = 0.16f)
+            )
+        },
+        startY = 0f,
+        endY = size.height
     )
-
-    // Subtle overhead chromatic bevel brush along the top rim
-    val topRainbowBrush = Brush.linearGradient(
-        colors = spectralColors,
-        start = Offset(0f, 0f),
-        end = Offset(size.width, 0f)
-    )
-
-    val corners = if (radius > 0f) listOf(
-        Triple(Offset.Zero, 180f, Offset(radius, radius)),
-        Triple(Offset(size.width - diameter, 0f), 270f, Offset(size.width - radius, radius)),
-        Triple(Offset(size.width - diameter, size.height - diameter), 0f, Offset(size.width - radius, size.height - radius)),
-        Triple(Offset(0f, size.height - diameter), 90f, Offset(radius, size.height - radius))
-    ) else emptyList()
-    val cornerBrushes = corners.map { (_, _, center) ->
-        Brush.sweepGradient(colors = spectralColors, center = center)
-    }
 
     onDrawWithContent {
         drawContent()
-        // 1. Base clean specular rim hairline
-        drawPath(outlinePath, neutralRim, style = Stroke(width = strokeWidth))
-        // 2. Optical chromatic dispersion along the upper glass bevel
-        drawPath(outlinePath, topRainbowBrush, style = Stroke(width = strokeWidth * 0.9f))
-        // 3. Corner prismatic refraction arcs
-        corners.forEachIndexed { index, (topLeft, startAngle, _) ->
-            drawArc(
-                brush = cornerBrushes[index],
-                startAngle = startAngle,
-                sweepAngle = 90f,
-                useCenter = false,
-                topLeft = topLeft,
-                size = Size(diameter, diameter),
-                style = Stroke(width = strokeWidth * 1.25f)
-            )
-        }
+        drawPath(outlinePath, specularRimBrush, style = Stroke(width = strokeWidth))
     }
 }
 
-/** Crisp specular highlight and ambient surface sheen. */
+/** Crisp specular highlight and ambient surface sheen. Owns the single glass rim. */
 @Composable
 fun LiquidGlassHighlight(
     shape: Shape,
     isDark: Boolean,
     modifier: Modifier = Modifier,
+    borderWidth: Dp = 0.75.dp,
 ) {
     val sheenBrush = Brush.verticalGradient(
         0f to Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
@@ -237,7 +228,7 @@ fun LiquidGlassHighlight(
         modifier = modifier
             .clip(shape)
             .background(sheenBrush)
-            .liquidGlassRim(shape, isDark),
+            .liquidGlassRim(shape, isDark, borderWidth),
     )
 }
 

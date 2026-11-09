@@ -57,6 +57,7 @@ import com.example.data.model.HabitFrequency
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSwitch
@@ -163,7 +164,7 @@ fun HabitDetailEditScreen(
       modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp),
-      contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)
+      contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
     ) {
       // Top Navigation Bar: AppHeader
       item {
@@ -297,50 +298,13 @@ fun HabitDetailEditScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          frequencies.forEach { (freq, label) ->
-            val isSelected = freq == frequency
-            val bg by androidx.compose.animation.animateColorAsState(
-              targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
-              animationSpec = androidx.compose.animation.core.tween(180, easing = androidx.compose.animation.core.FastOutSlowInEasing),
-              label = "habitFreqBg"
-            )
-            val textCol by androidx.compose.animation.animateColorAsState(
-              targetValue = if (isSelected) PillTextDark else InkSecondary,
-              animationSpec = androidx.compose.animation.core.tween(180, easing = androidx.compose.animation.core.FastOutSlowInEasing),
-              label = "habitFreqText"
-            )
-            val borderCol by androidx.compose.animation.animateColorAsState(
-              targetValue = if (isSelected) PillBackgroundDark else CardBorder,
-              animationSpec = androidx.compose.animation.core.tween(180, easing = androidx.compose.animation.core.FastOutSlowInEasing),
-              label = "habitFreqBorder"
-            )
-
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .height(48.dp)
-                .border(1.2.dp, borderCol, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .background(bg)
-                .bounceClick(scaleDown = 0.94f) { frequency = freq }
-                .testTag("freq_$label"),
-              contentAlignment = Alignment.Center
-            ) {
-              Text(
-                text = label,
-                style = TextStyle(
-                  fontSize = 12.sp,
-                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                  color = textCol
-                )
-              )
-            }
-          }
-        }
+        val selectedFreqIndex = frequencies.indexOfFirst { it.first == frequency }.coerceAtLeast(0)
+        LiquidGlassSegmentedControl(
+          items = frequencies.map { it.second },
+          selectedIndex = selectedFreqIndex,
+          onItemSelected = { index -> frequency = frequencies[index].first },
+          modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
       }

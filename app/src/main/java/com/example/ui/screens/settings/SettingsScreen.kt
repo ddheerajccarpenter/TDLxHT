@@ -92,6 +92,8 @@ import com.example.ui.components.GroupedDivider
 import com.example.ui.components.GroupedInsetCard
 import com.example.ui.components.InteractionLevel
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.LiquidGlassIconButton
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.fluidLensedGlass
@@ -211,13 +213,19 @@ fun SettingsScreen(
           title = "Settings",
           onBack = onBack,
           rightContent = {
-            AnimatedIcon(
-              resId = R.raw.anim_settings,
-              isSelected = true,
-              tint = OklchIndigo,
-              size = 20.dp,
-              contentDescription = "Settings Icon"
-            )
+            LiquidGlassIconButton(
+              onClick = {},
+              contentDescription = "Settings",
+              size = 40.dp
+            ) {
+              AnimatedIcon(
+                resId = R.raw.anim_settings,
+                isSelected = true,
+                tint = OklchIndigo,
+                size = 20.dp,
+                contentDescription = "Settings Icon"
+              )
+            }
           }
         )
         Spacer(modifier = Modifier.height(14.dp))
@@ -362,60 +370,23 @@ fun SettingsScreen(
               text = "Theme Mode",
               style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             val prefTheme by com.example.util.AppPreferences.themeMode.collectAsStateWithLifecycle()
             val effectiveTheme = if (prefTheme.isNotBlank()) prefTheme else settings.themeMode
+            val themeModes = listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark")
+            val selectedThemeIndex = themeModes.indexOfFirst { it.first.equals(effectiveTheme, ignoreCase = true) }.coerceAtLeast(0)
 
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-              listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (mode, label) ->
-                val isSelected = effectiveTheme.equals(mode, ignoreCase = true)
-
-                Box(
-                  modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .then(
-                      if (isSelected) {
-                        Modifier.fluidLensedGlass(
-                          shape = RoundedCornerShape(10.dp),
-                          elevation = 2.dp,
-                          borderWidth = 0.85.dp,
-                          isElevated = true,
-                          isInteractive = true,
-                          onClick = {
-                            com.example.util.AppPreferences.setThemeMode(context, mode)
-                            viewModel.updateSettings(settings.copy(themeMode = mode))
-                          }
-                        )
-                      } else {
-                        Modifier
-                          .border(0.75.dp, CardBorder.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
-                          .clip(RoundedCornerShape(10.dp))
-                          .bounceClick(level = InteractionLevel.MICRO) {
-                            com.example.util.AppPreferences.setThemeMode(context, mode)
-                            viewModel.updateSettings(settings.copy(themeMode = mode))
-                          }
-                      }
-                    )
-                    .testTag("theme_btn_$mode"),
-                  contentAlignment = Alignment.Center
-                ) {
-                  Text(
-                    text = label,
-                    style = TextStyle(
-                      fontFamily = SFProFontFamily,
-                      fontSize = 12.sp,
-                      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color = if (isSelected) InkPrimary else InkSecondary
-                    )
-                  )
-                }
-              }
-            }
+            LiquidGlassSegmentedControl(
+              items = themeModes.map { it.second },
+              selectedIndex = selectedThemeIndex,
+              onItemSelected = { index ->
+                val mode = themeModes[index].first
+                com.example.util.AppPreferences.setThemeMode(context, mode)
+                viewModel.updateSettings(settings.copy(themeMode = mode))
+              },
+              modifier = Modifier.fillMaxWidth()
+            )
           }
 
           GroupedDivider()
@@ -433,41 +404,18 @@ fun SettingsScreen(
               style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-              listOf(false to "12h", true to "24h").forEach { (is24, label) ->
-                val isSelected = settings.timeFormat24Hour == is24
-                Box(
-                  modifier = Modifier
-                    .then(
-                      if (isSelected) {
-                        Modifier.fluidLensedGlass(
-                          shape = RoundedCornerShape(8.dp),
-                          elevation = 2.dp,
-                          borderWidth = 0.85.dp,
-                          isElevated = true,
-                          isInteractive = true,
-                          onClick = { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
-                        )
-                      } else {
-                        Modifier
-                          .border(0.75.dp, CardBorder.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                          .clip(RoundedCornerShape(8.dp))
-                          .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(timeFormat24Hour = is24)) }
-                      }
-                    )
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                  Text(
-                    text = label,
-                    style = TextStyle(
-                      fontSize = 12.sp,
-                      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color = if (isSelected) InkPrimary else InkSecondary
-                    )
-                  )
-                }
-              }
-            }
+            val timeFormats = listOf(false to "12h", true to "24h")
+            val selectedTimeIndex = if (settings.timeFormat24Hour) 1 else 0
+
+            LiquidGlassSegmentedControl(
+              items = timeFormats.map { it.second },
+              selectedIndex = selectedTimeIndex,
+              onItemSelected = { index ->
+                val is24 = timeFormats[index].first
+                viewModel.updateSettings(settings.copy(timeFormat24Hour = is24))
+              },
+              modifier = Modifier.width(140.dp)
+            )
           }
         }
 
@@ -667,43 +615,17 @@ fun SettingsScreen(
                 style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
               )
 
-              Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("MONTH" to "Month", "WEEK" to "Week", "DAY" to "Day").forEach { (viewKey, label) ->
-                  val isSelected = settings.calendarDefaultView.equals(viewKey, ignoreCase = true)
-                  val bg by animateColorAsState(
-                    targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "calViewBg_$viewKey"
-                  )
-                  val textCol by animateColorAsState(
-                    targetValue = if (isSelected) PillTextDark else InkSecondary,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "calViewText_$viewKey"
-                  )
-                  val borderCol by animateColorAsState(
-                    targetValue = if (isSelected) PillBackgroundDark else CardBorder,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "calViewBorder_$viewKey"
-                  )
-                  Box(
-                    modifier = Modifier
-                      .border(1.2.dp, borderCol, RoundedCornerShape(8.dp))
-                      .clip(RoundedCornerShape(8.dp))
-                      .background(bg)
-                      .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(calendarDefaultView = viewKey)) }
-                      .padding(horizontal = 10.dp, vertical = 6.dp)
-                  ) {
-                    Text(
-                      text = label,
-                      style = TextStyle(
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = textCol
-                      )
-                    )
-                  }
-                }
-              }
+              val views = listOf("MONTH" to "Month", "WEEK" to "Week", "DAY" to "Day")
+              val selectedViewIndex = views.indexOfFirst { it.first.equals(settings.calendarDefaultView, ignoreCase = true) }.coerceAtLeast(0)
+
+              LiquidGlassSegmentedControl(
+                items = views.map { it.second },
+                selectedIndex = selectedViewIndex,
+                onItemSelected = { index ->
+                  viewModel.updateSettings(settings.copy(calendarDefaultView = views[index].first))
+                },
+                modifier = Modifier.width(190.dp)
+              )
             }
 
             GroupedDivider()
@@ -719,43 +641,17 @@ fun SettingsScreen(
                 style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
               )
 
-              Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("MONDAY" to "Monday", "SUNDAY" to "Sunday").forEach { (dow, label) ->
-                  val isSelected = settings.startOfWeek.equals(dow, ignoreCase = true)
-                  val bg by animateColorAsState(
-                    targetValue = if (isSelected) PillBackgroundDark else Color.Transparent,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "sowBg_$dow"
-                  )
-                  val textCol by animateColorAsState(
-                    targetValue = if (isSelected) PillTextDark else InkSecondary,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "sowText_$dow"
-                  )
-                  val borderCol by animateColorAsState(
-                    targetValue = if (isSelected) PillBackgroundDark else CardBorder,
-                    animationSpec = tween(180, easing = FastOutSlowInEasing),
-                    label = "sowBorder_$dow"
-                  )
-                  Box(
-                    modifier = Modifier
-                      .border(1.2.dp, borderCol, RoundedCornerShape(8.dp))
-                      .clip(RoundedCornerShape(8.dp))
-                      .background(bg)
-                      .bounceClick(scaleDown = 0.92f) { viewModel.updateSettings(settings.copy(startOfWeek = dow)) }
-                      .padding(horizontal = 10.dp, vertical = 6.dp)
-                  ) {
-                    Text(
-                      text = label,
-                      style = TextStyle(
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = textCol
-                      )
-                    )
-                  }
-                }
-              }
+              val days = listOf("MONDAY" to "Monday", "SUNDAY" to "Sunday")
+              val selectedDayIndex = days.indexOfFirst { it.first.equals(settings.startOfWeek, ignoreCase = true) }.coerceAtLeast(0)
+
+              LiquidGlassSegmentedControl(
+                items = days.map { it.second },
+                selectedIndex = selectedDayIndex,
+                onItemSelected = { index ->
+                  viewModel.updateSettings(settings.copy(startOfWeek = days[index].first))
+                },
+                modifier = Modifier.width(160.dp)
+              )
             }
 
             GroupedDivider()
