@@ -1,6 +1,6 @@
 package com.example.ui.screens.habits
 
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -326,7 +326,7 @@ fun HabitListScreen(
               Text(
                 text = "HABIT MOMENTUM",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 11.sp,
                   fontWeight = FontWeight.Bold,
                   letterSpacing = 1.sp,
@@ -337,7 +337,7 @@ fun HabitListScreen(
               Text(
                 text = "${todayCompletedIds.size} of ${todayScheduledHabits.size} completed today",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary

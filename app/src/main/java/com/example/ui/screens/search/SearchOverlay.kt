@@ -74,7 +74,7 @@ import com.example.ui.theme.InkMuted
 import com.example.ui.theme.InkPrimary
 import com.example.ui.theme.InkSecondary
 import com.example.ui.theme.LocalAppColors
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.ui.viewmodel.MainViewModel
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
@@ -195,7 +195,7 @@ fun SearchOverlay(
                   .testTag("search_overlay_input"),
                 singleLine = true,
                 textStyle = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 18.sp,
                   color = InkPrimary
                 ),
@@ -205,7 +205,7 @@ fun SearchOverlay(
                 decorationBox = { innerTextField ->
                   Box {
                     if (query.isEmpty()) {
-                      Text("Search tasks and habits", fontFamily = SFProFontFamily, fontSize = 16.sp, color = InkMuted)
+                      Text("Search tasks and habits", fontFamily = StrongFontFamily, fontSize = 16.sp, color = InkMuted)
                     }
                     innerTextField()
                   }
@@ -241,7 +241,7 @@ fun SearchOverlay(
                 Text(
                   "Type to search your tasks and habits",
                   modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 14.sp,
                   color = InkMuted
                 )
@@ -251,7 +251,7 @@ fun SearchOverlay(
                 Text(
                   "No matches",
                   modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   color = InkSecondary
                 )
@@ -317,7 +317,7 @@ private fun SearchSectionLabel(label: String) {
   Text(
     label,
     modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-    fontFamily = SFProFontFamily,
+    fontFamily = StrongFontFamily,
     fontSize = 13.sp,
     fontWeight = FontWeight.SemiBold,
     color = InkMuted
@@ -345,9 +345,9 @@ private fun SearchResultRow(
     ) {
       Icon(icon, contentDescription = null, tint = InkSecondary, modifier = Modifier.size(20.dp))
       Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-        Text(title, fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = InkPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(title, fontFamily = StrongFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = InkPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (detail.isNotBlank()) {
-          Text(detail, fontFamily = SFProFontFamily, fontSize = 12.sp, color = InkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          Text(detail, fontFamily = StrongFontFamily, fontSize = 12.sp, color = InkMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
       }
       Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = InkMuted, modifier = Modifier.size(16.dp))

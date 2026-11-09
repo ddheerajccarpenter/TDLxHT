@@ -43,7 +43,7 @@ import com.example.ui.components.LiquidGlassCard
 import com.example.ui.theme.InnerCornerRadius
 import com.example.ui.theme.InnerCornerShape
 import com.example.ui.theme.OuterCornerRadius
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -394,7 +394,7 @@ fun MonthlyDotMatrixComposable(
                     Text(
                         text = "ACTIVITY MATRIX",
                         style = TextStyle(
-                            fontFamily = SFProFontFamily,
+                            fontFamily = StrongFontFamily,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
@@ -405,7 +405,7 @@ fun MonthlyDotMatrixComposable(
                     Text(
                         text = yearMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy")),
                         style = TextStyle(
-                            fontFamily = SFProFontFamily,
+                            fontFamily = StrongFontFamily,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color(0xFFF5F5F7) else Color(0xFF171717)
@@ -442,7 +442,7 @@ fun MonthlyDotMatrixComposable(
                         Text(
                             text = day,
                             style = TextStyle(
-                                fontFamily = SFProFontFamily,
+                                fontFamily = StrongFontFamily,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isDark) Color(0xFF9E9EA4) else Color(0xFF66686C)
@@ -487,7 +487,7 @@ fun MonthlyDotMatrixComposable(
                                 Text(
                                     text = dayNum.toString(),
                                     style = TextStyle(
-                                        fontFamily = SFProFontFamily,
+                                        fontFamily = StrongFontFamily,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (lvl >= 2) Color.White else (if (isDark) Color(0xFF9E9EA4) else Color(0xFF66686C))

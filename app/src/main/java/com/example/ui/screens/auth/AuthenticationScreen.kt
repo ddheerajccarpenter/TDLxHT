@@ -1,6 +1,6 @@
 package com.example.ui.screens.auth
 
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -584,7 +584,7 @@ private fun AuthPrimaryButton(
             Text(
                 text = text,
                 style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = buttonTextColor

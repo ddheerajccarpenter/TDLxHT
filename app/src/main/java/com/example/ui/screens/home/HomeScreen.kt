@@ -1,7 +1,7 @@
 package com.example.ui.screens.home
 
 import com.example.ui.glass.LiquidGlassPillSwitcher
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.ui.components.AnimatedIcon
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -97,8 +97,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
-import com.example.ui.components.ThreeJsSpatialCompanion
-import com.example.ui.components.rememberSpatialCompanionController
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
@@ -113,13 +111,11 @@ import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.LiquidGlassButton
 import com.example.ui.components.LiquidGlassIconButton
 import com.example.ui.components.LiquidGlassProgressIndicator
-import com.example.ui.components.GlassSegmented
 import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.StreakFlameBadge
 import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchProgressBar
-import com.example.ui.components.SketchSegmentedControl
 import com.example.ui.components.paperDotBackground
 import com.example.ui.theme.AccentOrange
 import com.example.ui.theme.AccentTerracotta
@@ -163,7 +159,6 @@ fun HomeScreen(
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val spatialController = rememberSpatialCompanionController()
   val settings by viewModel.settings.collectAsStateWithLifecycle()
   val todayTasksViewMode by AppPreferences.todayTasksViewMode.collectAsStateWithLifecycle()
   val todayHabitsViewMode by AppPreferences.todayHabitsViewMode.collectAsStateWithLifecycle()
@@ -227,7 +222,6 @@ fun HomeScreen(
     if (willBeCompleted) {
       lastCompletedTaskId = task.id
       showUndoPill = true
-      spatialController.triggerCelebration(task.priority, summary.maxStreak + 1)
       com.example.util.SoundManager.playTaskComplete(context)
       com.example.util.HapticManager.taskCompleted(context)
       undoDismissJob?.cancel()
@@ -374,7 +368,7 @@ fun HomeScreen(
               Text(
                 text = "DASHBOARD LAYOUT",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 11.sp,
                   fontWeight = FontWeight.Bold,
                   letterSpacing = 1.sp,
@@ -385,7 +379,7 @@ fun HomeScreen(
               Text(
               text = "Reorder sections and choose what appears on Home.",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 13.sp,
                   color = InkSecondary
                 )
@@ -550,7 +544,7 @@ fun HomeScreen(
                 Text(
                   text = section.title,
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (isVisible) InkPrimary else InkSecondary
@@ -560,7 +554,7 @@ fun HomeScreen(
                 Text(
                   text = section.subtitle,
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 12.sp,
                     color = InkSecondary
                   ),
@@ -673,7 +667,7 @@ fun HomeScreen(
                   tint = PrimaryAccentLime,
                   modifier = Modifier.size(16.dp)
                 )
-                Text("Save", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PrimaryAccentLime))
+                Text("Save", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PrimaryAccentLime))
               }
             }
           }
@@ -770,7 +764,7 @@ fun HomeScreen(
               Text(
                 text = "Today's Tasks",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 18.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -814,7 +808,7 @@ fun HomeScreen(
                 Text(
                   text = "Add",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
@@ -910,7 +904,7 @@ fun HomeScreen(
               Text(
                 text = "Today's Habits",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 18.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -954,7 +948,7 @@ fun HomeScreen(
                 Text(
                   text = "Add",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
@@ -1059,7 +1053,7 @@ fun HomeScreen(
                 Text(
                   text = "TIME BLOCKS",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -1118,16 +1112,6 @@ fun HomeScreen(
           Spacer(modifier = Modifier.height(18.dp))
         }
       }
-        if (sectionVisibility[DashboardSection.SPATIAL_COMPANION] != false) {
-          // 3D SPATIAL COMPANION (Three.js WebGL Engine, 360 Orbit, Pet & Focus Core)
-          item {
-            ThreeJsSpatialCompanion(
-              controller = spatialController,
-              onOpenFocusTimer = onOpenFocusTimer
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-          }
-        }
       } // end else (!isDashboardEditMode)
     }
 

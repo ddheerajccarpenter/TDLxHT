@@ -110,7 +110,7 @@ import com.example.ui.theme.InkPrimary
 import com.example.ui.theme.InkSecondary
 import com.example.ui.theme.PillBackgroundDark
 import com.example.ui.theme.PillTextDark
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.ui.theme.InkWashCharcoalSurface
 import com.example.ui.theme.InkWashIvoryCard
 import com.example.ui.theme.InkWashCharcoalDeep
@@ -237,7 +237,7 @@ fun ToolsScreen(
                 Text(
                   text = if (isReorderMode) "Done" else "Reorder",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -385,7 +385,7 @@ fun ToolsScreen(
                         Text(
                           text = tool.name,
                           style = TextStyle(
-                            fontFamily = SFProFontFamily,
+                            fontFamily = StrongFontFamily,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = InkPrimary
@@ -708,7 +708,7 @@ fun ToolRunnerModal(
               Text(
                 text = tool.name,
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 20.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -927,7 +927,7 @@ fun ToolRunnerModal(
                 Text(
                   text = result.primaryValue,
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -969,7 +969,7 @@ fun ToolRunnerModal(
                       Spacer(modifier = Modifier.width(4.dp))
                       Text(
                         text = "Add as Task",
-                        style = TextStyle(fontFamily = SFProFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                        style = TextStyle(fontFamily = StrongFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
                       )
                     }
                   }
@@ -1046,7 +1046,7 @@ fun ToolInputField(
     Text(
       text = label,
       style = TextStyle(
-        fontFamily = SFProFontFamily,
+        fontFamily = StrongFontFamily,
         fontSize = 13.sp,
         fontWeight = FontWeight.SemiBold,
         color = InkSecondary

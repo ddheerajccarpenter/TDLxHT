@@ -74,17 +74,24 @@ export function initBottomNav() {
 
     sections.forEach((sec) => observer.observe(sec));
 
-    // Scroll-to-bottom fallback to ensure #download tab activates on short viewports
+    // RAF-throttled scroll-to-bottom fallback to ensure #download tab activates on short viewports
+    let scrollScheduled = false;
     window.addEventListener(
       'scroll',
       () => {
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const totalHeight = document.documentElement.scrollHeight;
-        if (scrollPosition >= totalHeight - 65) {
-          const downloadIndex = sectionIds.indexOf('download');
-          if (downloadIndex !== -1) {
-            setIndex(downloadIndex);
-          }
+        if (!scrollScheduled) {
+          scrollScheduled = true;
+          requestAnimationFrame(() => {
+            scrollScheduled = false;
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const totalHeight = document.documentElement.scrollHeight;
+            if (scrollPosition >= totalHeight - 65) {
+              const downloadIndex = sectionIds.indexOf('download');
+              if (downloadIndex !== -1) {
+                setIndex(downloadIndex);
+              }
+            }
+          });
         }
       },
       { passive: true }

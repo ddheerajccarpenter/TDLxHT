@@ -1,6 +1,6 @@
 package com.example.ui.screens.tasks
 
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -265,7 +265,7 @@ fun TaskListScreen(
               Text(
                 text = "$totalSelectedCount selected",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   fontFeatureSettings = "tnum",
@@ -276,7 +276,7 @@ fun TaskListScreen(
               Text(
                 text = if (allSelected) "Deselect All" else "Select All (${filteredTasks.size})",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 12.sp,
                   fontWeight = FontWeight.SemiBold,
                   fontFeatureSettings = "tnum",
@@ -339,7 +339,7 @@ fun TaskListScreen(
                   Text(
                     text = "Delete ($totalSelectedCount)",
                     style = TextStyle(
-                      fontFamily = SFProFontFamily,
+                      fontFamily = StrongFontFamily,
                       fontSize = 13.sp,
                       fontWeight = FontWeight.Bold,
                       fontFeatureSettings = "tnum",

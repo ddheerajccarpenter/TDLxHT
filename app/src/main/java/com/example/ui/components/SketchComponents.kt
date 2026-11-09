@@ -5,7 +5,8 @@ import android.os.Build
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.unit.IntOffset
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.SpecialFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -114,6 +115,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -449,9 +453,9 @@ fun Modifier.pulseEntrance(
  * Navigation Items: MINIMAL (0.985f)
  */
 enum class InteractionLevel(val scaleDown: Float, val pressedAlpha: Float) {
-  MICRO(scaleDown = 0.985f, pressedAlpha = 0.97f),
-  SMALL(scaleDown = 0.975f, pressedAlpha = 0.96f),
-  MEDIUM(scaleDown = 0.96f, pressedAlpha = 0.94f),
+  MICRO(scaleDown = 0.98f, pressedAlpha = 0.96f),
+  SMALL(scaleDown = 0.96f, pressedAlpha = 0.94f),
+  MEDIUM(scaleDown = 0.93f, pressedAlpha = 0.90f),
   MINIMAL(scaleDown = 0.99f, pressedAlpha = 0.98f)
 }
 
@@ -764,7 +768,7 @@ fun UndoConfirmationPill(
         Text(
           text = message,
           style = TextStyle(
-            fontFamily = SFProFontFamily,
+            fontFamily = StrongFontFamily,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = InkPrimary
@@ -779,7 +783,7 @@ fun UndoConfirmationPill(
           Text(
             text = "Undo",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 12.sp,
               fontWeight = FontWeight.Bold,
               color = AccentTerracotta
@@ -922,15 +926,23 @@ fun Modifier.fluidLensedGlass(
   val glassFill = when {
     customBackgroundColor != null && customBackgroundColor != Color.Unspecified && customBackgroundColor != defaultCardBg ->
       customBackgroundColor.copy(alpha = if (isDark) 0.14f else 0.10f)
-    isDark -> Color.White.copy(alpha = if (isElevated) 0.10f else 0.07f)
-    else -> Color.White.copy(alpha = if (isElevated) 0.78f else 0.66f)
+    isDark -> Color.White.copy(alpha = if (isElevated) 0.07f else 0.05f)
+    else -> Color.White.copy(alpha = if (isElevated) 0.38f else 0.30f)
   }
   val hazeModifier = hazeState?.let { state ->
     Modifier.hazeEffect(state = state) {
-      blurRadius = if (isElevated) 14.dp else 9.dp
-      noiseFactor = 0f
-      tints = listOf(HazeTint(if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.28f)))
-      fallbackTint = HazeTint(if (isDark) Color(0xFF101010) else Color.White)
+      blurRadius = if (isElevated) 20.dp else 14.dp
+      noiseFactor = if (isDark) 0.04f else 0f
+      tints = listOf(
+        HazeTint(
+          if (isDark) Color(0xFF0B0C10).copy(alpha = 0.34f)
+          else Color.White.copy(alpha = 0.45f)
+        )
+      )
+      fallbackTint = HazeTint(
+        if (isDark) Color(0xFF0B0C10).copy(alpha = 0.80f)
+        else Color.White.copy(alpha = 0.86f)
+      )
     }
   } ?: Modifier
 
@@ -1095,21 +1107,27 @@ fun GlassButton(
   enabled: Boolean = true,
   icon: @Composable () -> Unit
 ) {
-  val resolvedSize = (if (size != 40.dp) size else buttonSize).coerceAtLeast(48.dp)
+  // 48dp touch target with a smaller visible glass circle (designglass §05).
+  val visualSize = size.coerceIn(32.dp, 48.dp)
   Box(
     modifier = modifier
-      .size(resolvedSize)
-      .fluidLensedGlass(
-        shape = CircleShape,
-        elevation = 2.dp,
-        borderWidth = 0.75.dp,
-        isElevated = true,
-        isInteractive = enabled,
-        onClick = if (enabled) onClick else null
-      ),
+      .size(48.dp)
+      .then(if (enabled) Modifier.bounceClick { onClick() } else Modifier),
     contentAlignment = Alignment.Center
   ) {
-    icon()
+    Box(
+      modifier = Modifier
+        .size(visualSize)
+        .fluidLensedGlass(
+          shape = CircleShape,
+          elevation = 2.dp,
+          borderWidth = 0.75.dp,
+          isElevated = true
+        ),
+      contentAlignment = Alignment.Center
+    ) {
+      icon()
+    }
   }
 }
 
@@ -1180,7 +1198,7 @@ fun GlassMenuItem(
       Text(
         text = label,
         style = TextStyle(
-          fontFamily = SFProFontFamily,
+          fontFamily = StrongFontFamily,
           fontSize = 15.sp,
           fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
           color = when {
@@ -1195,7 +1213,7 @@ fun GlassMenuItem(
       Text(
         text = "✓",
         style = TextStyle(
-          fontFamily = SFProFontFamily,
+          fontFamily = StrongFontFamily,
           fontSize = 15.sp,
           fontWeight = FontWeight.Bold,
           color = InkPrimary
@@ -1203,26 +1221,6 @@ fun GlassMenuItem(
       )
     }
   }
-}
-
-/**
- * Canonical GlassSegmented composable implementing Apple Liquid Glass segmented tab.
- */
-@Composable
-fun GlassSegmented(
-  items: List<String>,
-  selectedIndex: Int,
-  onItemSelected: (Int) -> Unit,
-  modifier: Modifier = Modifier,
-  isElevated: Boolean = false
-) {
-  SketchSegmentedControl(
-    items = items,
-    selectedIndex = selectedIndex,
-    onItemSelected = onItemSelected,
-    modifier = modifier,
-    isElevated = isElevated
-  )
 }
 
 /**
@@ -1263,7 +1261,7 @@ fun GlassSwitch(
 
   val trackBgColor by animateColorAsState(
     targetValue = if (checked) {
-      if (isDark) com.example.ui.theme.OklchIndigo else Color(0xFF4F46E5)
+      com.example.ui.theme.BlueHorizon
     } else {
       if (isDark) Color(0x28303038) else Color(0x1F71717A)
     },
@@ -1397,7 +1395,7 @@ fun GlassInput(
           Text(
             text = placeholder,
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 15.sp,
               color = InkMuted
             )
@@ -1407,7 +1405,7 @@ fun GlassInput(
           value = value,
           onValueChange = onValueChange,
           textStyle = TextStyle(
-            fontFamily = SFProFontFamily,
+            fontFamily = StrongFontFamily,
             fontSize = 15.sp,
             color = InkPrimary
           ),
@@ -1541,7 +1539,7 @@ fun AppHeader(
     Text(
       text = title,
       style = TextStyle(
-        fontFamily = SFProFontFamily,
+        fontFamily = StrongFontFamily,
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = InkPrimary
@@ -1619,7 +1617,7 @@ fun SketchFilterChip(
     Text(
       text = label,
       style = TextStyle(
-        fontFamily = SFProFontFamily,
+        fontFamily = StrongFontFamily,
         fontSize = 13.sp,
         fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
         color = textCol
@@ -1669,7 +1667,7 @@ fun AppEmptyState(
     Text(
       text = title,
       style = TextStyle(
-        fontFamily = SFProFontFamily,
+        fontFamily = StrongFontFamily,
         fontSize = 16.sp,
         fontWeight = FontWeight.SemiBold,
         color = InkPrimary
@@ -1682,7 +1680,7 @@ fun AppEmptyState(
       Text(
         text = subtitle,
         style = TextStyle(
-          fontFamily = SFProFontFamily,
+          fontFamily = StrongFontFamily,
           fontSize = 13.sp,
           color = InkMuted
         ),
@@ -1698,7 +1696,7 @@ fun AppEmptyState(
         Text(
           text = actionText,
           style = TextStyle(
-            fontFamily = SFProFontFamily,
+            fontFamily = StrongFontFamily,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             color = InkPrimary
@@ -1896,140 +1894,6 @@ fun SketchCheckbox(
 }
 
 @Composable
-fun SketchSegmentedControl(
-  items: List<String>,
-  selectedIndex: Int,
-  onItemSelected: (Int) -> Unit,
-  modifier: Modifier = Modifier,
-  isElevated: Boolean = false
-) {
-  val context = LocalContext.current
-  val isDark = LocalAppColors.current.isDark
-  val currentSelection by rememberUpdatedState(selectedIndex)
-  val onItemSelectedUpdated by rememberUpdatedState(onItemSelected)
-
-  Box(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(56.dp)
-      .fluidLensedGlass(
-        shape = RoundedCornerShape(14.dp),
-        elevation = if (isElevated) 4.dp else 0.dp,
-        borderWidth = 0.75.dp,
-        isElevated = isElevated
-      )
-  ) {
-    androidx.compose.foundation.layout.BoxWithConstraints(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(2.dp)
-        .pointerInput(items.size) {
-          awaitEachGesture {
-            val down = awaitFirstDown(requireUnconsumed = false)
-            val count = items.size
-            var lastSelected = currentSelection
-            var totalDx = 0f
-            var totalDy = 0f
-            var dragging = false
-            val touchSlop = viewConfiguration.touchSlop
-            fun selectForX(x: Float) {
-              if (count == 0 || size.width <= 0) return
-              val itemWidth = size.width / count.toFloat()
-              val targetIndex = (x / itemWidth).toInt().coerceIn(0, count - 1)
-              if (targetIndex != lastSelected) {
-                lastSelected = targetIndex
-                onItemSelectedUpdated(targetIndex)
-                VibrationHelper.tick(context)
-              }
-            }
-            do {
-              val event = awaitPointerEvent()
-              val change = event.changes.firstOrNull { it.id == down.id } ?: break
-              if (!dragging) {
-                totalDx += change.position.x - change.previousPosition.x
-                totalDy += change.position.y - change.previousPosition.y
-                if (kotlin.math.abs(totalDx) > touchSlop && kotlin.math.abs(totalDx) > kotlin.math.abs(totalDy)) {
-                  dragging = true
-                  change.consume()
-                }
-              }
-              if (dragging) {
-                change.consume()
-                selectForX(change.position.x)
-              }
-            } while (event.changes.any { it.pressed })
-          }
-        }
-    ) {
-      val count = items.size.coerceAtLeast(1)
-      val segmentWidth = maxWidth / count
-      val safeIndex = selectedIndex.coerceIn(0, count - 1)
-
-      val animatedOffset by animateDpAsState(
-        targetValue = segmentWidth * safeIndex,
-        animationSpec = PhysicalMotionSpecs.SpatialSlideDp,
-        label = "segmentOffset"
-      )
-
-      // 1. Single Continuous Optical Translucent Floating Fluid Glass Lens
-      Box(
-        modifier = Modifier
-          .offset(x = animatedOffset)
-          .width(segmentWidth)
-          .fillMaxHeight()
-          .fluidLensedGlass(
-            shape = RoundedCornerShape(10.dp),
-            elevation = if (isDark) 2.dp else 1.dp,
-            borderWidth = 0.75.dp,
-            isElevated = true
-          )
-      )
-
-      // 2. Interactive labels on top
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-      ) {
-        items.forEachIndexed { index, title ->
-          val isSelected = index == selectedIndex
-          val animatedTextColor by animateColorAsState(
-            targetValue = if (isSelected) {
-              if (isDark) Color.White else Color(0xFF111113)
-            } else InkSecondary,
-            animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-            label = "segText_$index"
-          )
-
-          Box(
-            modifier = Modifier
-              .weight(1f)
-              .fillMaxHeight()
-              .clip(RoundedCornerShape(10.dp))
-      .bounceClick(level = InteractionLevel.MICRO, scaleDown = 0.985f, shine = true) {
-                if (index != selectedIndex) {
-                  onItemSelected(index)
-                }
-              }
-              .testTag("segment_$title"),
-            contentAlignment = Alignment.Center
-          ) {
-            Text(
-              text = title,
-              style = TextStyle(
-                fontFamily = SFProFontFamily,
-                fontSize = 13.5.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                color = animatedTextColor
-              )
-            )
-          }
-        }
-      }
-    }
-  }
-}
-
-@Composable
 fun SketchProgressBar(
   progress: Float,
   modifier: Modifier = Modifier,
@@ -2216,7 +2080,7 @@ fun DeleteConfirmationDialog(
           Text(
             text = title,
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 22.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary
@@ -2254,7 +2118,7 @@ fun DeleteConfirmationDialog(
               Text(
                 text = "Cancel",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkPrimary
@@ -2275,7 +2139,7 @@ fun DeleteConfirmationDialog(
               Text(
                 text = "Delete",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Bold,
                   color = AccentRed
@@ -2427,7 +2291,7 @@ fun CircularProgressGauge(
       Text(
         text = "${(animatedProgress * 100).toInt()}%",
         style = TextStyle(
-          fontFamily = SFProFontFamily,
+          fontFamily = StrongFontFamily,
           fontSize = 18.sp,
           fontWeight = FontWeight.Bold,
           color = InkPrimary
@@ -2473,7 +2337,7 @@ fun PriorityPill(
     Text(
       text = label,
       style = TextStyle(
-        fontFamily = SFProFontFamily,
+        fontFamily = StrongFontFamily,
         fontSize = 10.sp,
         fontWeight = FontWeight.Bold,
         color = textColor
@@ -2506,8 +2370,8 @@ fun StreakFlameBadge(
     Text(
       text = "$streakCount",
       style = TextStyle(
-        fontFamily = SFProFontFamily,
-        fontSize = 12.sp,
+        fontFamily = SpecialFontFamily,
+        fontSize = 14.sp,
         fontWeight = FontWeight.Bold,
         color = flameColor
       )

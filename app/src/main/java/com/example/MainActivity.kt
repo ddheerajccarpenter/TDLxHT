@@ -6,7 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.content.Intent
 import android.widget.Toast
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.data.service.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.handleDeeplinks
@@ -166,7 +166,6 @@ import com.example.ui.components.bounceClick
 import com.example.ui.components.elasticStretchPress
 import com.example.ui.components.LiquidGlassNavigationDock
 import com.example.ui.components.FloatingLiquidGlassActionButton
-import com.example.ui.components.LiquidGlassFloatingActionButton
 import com.example.ui.screens.auth.AuthenticationScreen
 import com.example.ui.screens.calendar.CalendarScreen
 import com.example.ui.screens.habits.HabitDetailEditScreen
@@ -569,6 +568,7 @@ fun MainApp(
           Box(
             modifier = Modifier
               .fillMaxSize()
+              .hazeSource(hazeState)
               .windowInsetsPadding(WindowInsets.statusBars)
               .windowInsetsPadding(WindowInsets.navigationBars)
           ) {
@@ -587,6 +587,7 @@ fun MainApp(
           Box(
             modifier = Modifier
               .fillMaxSize()
+              .hazeSource(hazeState)
               .windowInsetsPadding(WindowInsets.statusBars)
               .windowInsetsPadding(WindowInsets.navigationBars)
           ) {
@@ -602,6 +603,7 @@ fun MainApp(
           Box(
             modifier = Modifier
               .fillMaxSize()
+              .hazeSource(hazeState)
               .windowInsetsPadding(WindowInsets.statusBars)
               .windowInsetsPadding(WindowInsets.navigationBars)
           ) {
@@ -618,6 +620,7 @@ fun MainApp(
           Box(
             modifier = Modifier
               .fillMaxSize()
+              .hazeSource(hazeState)
               .windowInsetsPadding(WindowInsets.statusBars)
               .windowInsetsPadding(WindowInsets.navigationBars)
           ) {
@@ -633,6 +636,7 @@ fun MainApp(
           Box(
             modifier = Modifier
               .fillMaxSize()
+              .hazeSource(hazeState)
               .windowInsetsPadding(WindowInsets.statusBars)
               .windowInsetsPadding(WindowInsets.navigationBars)
           ) {
@@ -693,7 +697,7 @@ fun MainApp(
             Text(
               text = "Quick Create",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
@@ -753,7 +757,7 @@ fun MainApp(
                 Text(
                   text = "New Task",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -806,7 +810,7 @@ fun MainApp(
                 Text(
                   text = "New Habit",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -861,7 +865,7 @@ fun MainApp(
                 Text(
                   text = "Short-term Task",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -947,7 +951,7 @@ fun MainApp(
           Text(
             text = "Stay Consistent",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 26.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary
@@ -987,7 +991,7 @@ fun MainApp(
               Text(
                 text = "Later",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 17.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkPrimary
@@ -1015,7 +1019,7 @@ fun MainApp(
               Text(
                 text = "Enable Alerts",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 18.sp,
                   fontWeight = FontWeight.Bold,
                   color = PillTextDark
@@ -1094,7 +1098,7 @@ fun MainApp(
                 Text(
                   text = "Update Available!",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -1129,7 +1133,7 @@ fun MainApp(
                   Text(
                     text = "Download & Install Update",
                     style = TextStyle(
-                      fontFamily = SFProFontFamily,
+                      fontFamily = StrongFontFamily,
                       fontSize = 15.sp,
                       fontWeight = FontWeight.Bold,
                       color = PillTextDark
@@ -1165,7 +1169,7 @@ fun MainApp(
                 Text(
                   text = "Downloading v${update.version}...",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -1272,7 +1276,7 @@ fun MainApp(
                 ) {
                   Text(
                     text = if (canInstall) "Install Now" else "Enable in Settings",
-                    style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = PillTextDark)
+                    style = TextStyle(fontFamily = StrongFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = PillTextDark)
                   )
                 }
               }
@@ -1495,7 +1499,7 @@ fun FocusTimerDialog(
         Text(
           text = "Focus Timer",
           style = TextStyle(
-            fontFamily = SFProFontFamily,
+            fontFamily = StrongFontFamily,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = InkPrimary
@@ -1542,7 +1546,7 @@ fun FocusTimerDialog(
           Text(
             text = formattedTime,
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 36.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary,
@@ -1553,7 +1557,7 @@ fun FocusTimerDialog(
           Text(
             text = if (isRunning) "FOCUSING" else if (remainingSeconds == 0) "COMPLETED" else "PAUSED",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 10.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.sp,
@@ -1587,7 +1591,7 @@ fun FocusTimerDialog(
             Text(
               text = "${preset}m",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isSel) PillTextDark else InkPrimary
@@ -1621,7 +1625,7 @@ fun FocusTimerDialog(
           Text(
             text = if (isRunning) "Pause" else "Start Focus",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 15.sp,
               fontWeight = FontWeight.Bold,
               color = PillTextDark
@@ -1644,7 +1648,7 @@ fun FocusTimerDialog(
           Text(
             text = "Reset",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 15.sp,
               fontWeight = FontWeight.SemiBold,
               color = InkPrimary

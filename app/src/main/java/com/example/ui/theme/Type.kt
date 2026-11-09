@@ -9,14 +9,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-// Apple SF Pro Font Family loaded directly from bundled OpenType assets
-val SFProFontFamily = FontFamily(
-  Font(R.font.sf_pro_regular, FontWeight.Normal),
-  Font(R.font.sf_pro_medium, FontWeight.Medium),
-  Font(R.font.sf_pro_semibold, FontWeight.SemiBold),
-  Font(R.font.sf_pro_bold, FontWeight.Bold)
-)
-
 // Seramonde Display Typeface (Used for App Brand Name & Hero Titles)
 val SeramondeFontFamily = FontFamily(
   Font(R.font.seramonde, FontWeight.Normal)

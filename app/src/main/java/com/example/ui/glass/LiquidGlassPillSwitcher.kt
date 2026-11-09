@@ -10,7 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -54,7 +53,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.LocalAppColors
+import com.example.ui.theme.StrongFontFamily
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+import com.kyant.backdrop.highlight.Highlight
+import com.kyant.backdrop.shadow.InnerShadow
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.exp
@@ -75,7 +82,7 @@ fun LiquidGlassPillSwitcher(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalAppColors.current.isDark
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
         val haptics = LocalHapticFeedback.current
@@ -144,25 +151,42 @@ fun LiquidGlassPillSwitcher(
             0.86f to Color.Transparent,
             1.0f to sideGlowColor
         )
+        val trackBackdrop = rememberLayerBackdrop()
+        val hazeState = LocalHazeState.current
 
-        // Track container
+        // Track container. Records the blurred screen so the pill lens refracts
+        // real content instead of a flat fill.
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .layerBackdrop(trackBackdrop)
                 .clip(trackShape)
-                .background(trackBg)
-                .background(sideGlowBrush)
-                .border(
-                    0.75.dp,
-                    if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f),
-                    trackShape
+        ) {
+            if (hazeState != null) {
+                LiquidGlassBackdrop(
+                    hazeState = hazeState,
+                    shape = trackShape,
+                    isDark = isDark,
+                    modifier = Modifier.matchParentSize()
                 )
-        )
+            } else {
+                Box(Modifier.fillMaxSize().background(trackBg))
+            }
+            Box(Modifier.fillMaxSize().background(sideGlowBrush))
+            Box(Modifier.fillMaxSize().liquidGlassRim(trackShape, isDark, 0.75.dp))
+        }
 
-        // Pill shape & styling (Image 1: elevated white/frosted glass pill)
+        // Pill shape & styling (elevated frosted glass lens)
         val pillShape = RoundedCornerShape(percent = 50)
-        val pillFill = if (isDark) Color(0xFF23252E) else Color.White.copy(alpha = 0.96f)
-        val pillBorderColor = if (isDark) Color.White.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.06f)
+        val pillBrush = if (isDark) {
+            Brush.verticalGradient(
+                listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.10f))
+            )
+        } else {
+            Brush.verticalGradient(
+                listOf(Color.White.copy(alpha = 0.94f), Color.White.copy(alpha = 0.74f))
+            )
+        }
         val liftGlowColor = if (isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.20f)
         val pillWidthDp = with(density) { pillWidthPx.toDp() }
         val shadowSpot = if (isDark) Color.Black.copy(alpha = 0.50f) else com.example.ui.theme.CocaNoir.copy(alpha = 0.18f)
@@ -173,34 +197,42 @@ fun LiquidGlassPillSwitcher(
                 .width(pillWidthDp)
                 .fillMaxHeight()
                 .padding(vertical = 3.dp, horizontal = 2.dp)
-                .graphicsLayer {
-                    val l = leftEdge.value
-                    val r = rightEdge.value
-                    val liftValue = lift.value
-                    translationX = (l + r) / 2f - pillWidthPx / 2f
-                    val stretch = ((r - l) / pillWidthPx).coerceIn(0.75f, 1.5f)
-                    val liftScale = 1f + LIFT_SCALE * liftValue
-                    scaleX = stretch * liftScale
-                    scaleY = liftScale
-                    shadowElevation = (4.dp.toPx() + 8.dp.toPx() * liftValue)
-                    spotShadowColor = shadowSpot
-                    ambientShadowColor = shadowAmbient
-                    shape = pillShape
-                    clip = true
-                },
+                .drawBackdrop(
+                    backdrop = trackBackdrop,
+                    shape = { pillShape },
+                    effects = {
+                        vibrancy()
+                        lens(10.dp.toPx(), 18.dp.toPx(), chromaticAberration = false)
+                    },
+                    highlight = { Highlight.Default.copy(alpha = 0.22f + 0.55f * lift.value) },
+                    innerShadow = { InnerShadow(radius = 4.dp, alpha = 0.12f) },
+                    layerBlock = {
+                        val l = leftEdge.value
+                        val r = rightEdge.value
+                        val liftValue = lift.value
+                        translationX = (l + r) / 2f - pillWidthPx / 2f
+                        val stretch = ((r - l) / pillWidthPx).coerceIn(0.75f, 1.5f)
+                        val liftScale = 1f + LIFT_SCALE * liftValue
+                        scaleX = stretch * liftScale
+                        scaleY = liftScale
+                        shadowElevation = (4.dp.toPx() + 8.dp.toPx() * liftValue)
+                        spotShadowColor = shadowSpot
+                        ambientShadowColor = shadowAmbient
+                        shape = pillShape
+                    },
+                    onDrawSurface = { drawRect(brush = pillBrush) }
+                ),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(pillFill)
-                    .border(0.75.dp, pillBorderColor, pillShape)
-                    .liquidGlassRim(pillShape, isDark, 0.75.dp),
-            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer { alpha = lift.value }
                     .background(liftGlowColor),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .liquidGlassRim(pillShape, isDark, 0.75.dp),
             )
         }
 
@@ -318,7 +350,7 @@ private fun SwitcherItem(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalAppColors.current.isDark
     val contentColor = if (selected) {
         if (isDark) Color.White else com.example.ui.theme.CocaNoir
     } else {

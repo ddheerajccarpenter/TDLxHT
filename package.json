@@ -1,12 +1,11 @@
 {
   "name": "tdlxht",
-  "version": "2.5.30",
+  "version": "2.5.31",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:android-3d": "node scripts/build_android_spatial.js",
-    "build": "node scripts/build_android_spatial.js && vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp -r web/sounds dist/ 2>/dev/null || true) && (cp -r web/models dist/ 2>/dev/null || true) && (cp web/*.png dist/ 2>/dev/null || true) && (cp web/*.svg dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true) && (mkdir -p dist/apk && cp app/build/outputs/apk/release/app-release.apk dist/apk/app-liquid-glass-updated.apk 2>/dev/null || true)",
+    "build": "vite build && (cp -r web/.well-known dist/ 2>/dev/null || true) && (cp -r web/js dist/ 2>/dev/null || true) && (cp -r web/fonts dist/ 2>/dev/null || true) && (cp -r web/sounds dist/ 2>/dev/null || true) && (cp web/*.png dist/ 2>/dev/null || true) && (cp web/*.svg dist/ 2>/dev/null || true) && (cp web/version.json dist/ 2>/dev/null || true) && (cp web/robots.txt dist/ 2>/dev/null || true) && (cp web/sitemap*.xml dist/ 2>/dev/null || true) && (mkdir -p dist/apk && cp app/build/outputs/apk/release/app-release.apk dist/apk/app-liquid-glass-updated.apk 2>/dev/null || true)",
     "bundle:release": "./gradlew bundleRelease",
     "release": "./gradlew syncReleaseApk && npm run build && npx vercel --prod --yes",
     "preview": "vite preview"
@@ -19,7 +18,6 @@
     "@supabase/supabase-js": "^2.118.0",
     "@zakisheriff/liquid-glass": "^0.3.20",
     "gsap": "^3.15.0",
-    "nodemailer": "^10.0.13",
-    "three": "^0.186.1"
+    "nodemailer": "^10.0.13"
   }
 }

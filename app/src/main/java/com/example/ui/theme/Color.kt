@@ -9,12 +9,12 @@ import androidx.compose.ui.graphics.Color
 // Light surfaces use white and near-black text; dark surfaces use black and white text.
 // =========================================================================
 
-// Canonical Dark Tokens (Solid Charcoal Grey System)
-val CanonicalCanvasDark = Color.Black
-val CanonicalCanvasSecondaryDark = Color(0xFF101010)
-val CanonicalGlassFillBaseDark = Color(0xE6121212)
-val CanonicalGlassFillElevatedDark = Color(0xF01B1B1B)
-val CanonicalGlassFillSubtleDark = Color(0x66101010)
+// Canonical Dark Tokens (designglass.md §02B — OLED Deep Environment)
+val CanonicalCanvasDark = Color(0xFF0B0C10)
+val CanonicalCanvasSecondaryDark = Color(0xFF101014)
+val CanonicalGlassFillBaseDark = Color(0x0EFFFFFF)
+val CanonicalGlassFillElevatedDark = Color(0x1FFFFFFF)
+val CanonicalGlassFillSubtleDark = Color(0x0AFFFFFF)
 val CanonicalGlassBorderTopDark = Color(0xFF4A4A4A) // Solid Specular Hairline
 val CanonicalGlassBorderBottomDark = Color(0xFF35383C)
 val CanonicalGlassSheenTopDark = Color(0xFF4A4A4A)
@@ -248,8 +248,8 @@ val LightColors = AppColors(
   inkPrimary = LightTextCocoa,
   inkSecondary = LightTextMuted,
   inkMuted = Color(0xFF9E958A),
-  cardBackground = Color(0xB8FFFFFF),
-  cardBorder = Color(0x223E2C23),
+  cardBackground = Color(0x9EFFFFFF),
+  cardBorder = Color(0x1F3E2C23),
   pillBackgroundDark = CocaNoir,
   pillTextDark = DesertCream,
   progressBarTrack = Color(0x1F3E2C23),
@@ -262,26 +262,26 @@ val LightColors = AppColors(
   chipUnselected = Color(0x0C3E2C23),
   isDark = false,
   oklchPrimary = BlueHorizon,
-  oklchSuccess = BlueHorizon,
+  oklchSuccess = Color(0xFF34C759),
   oklchWarning = Color(0xFFF59E0B),
   oklchDanger = Color(0xFFDC2626),
   oklchFocus = BlueHorizon,
   oklchPurple = BlueHorizon,
-  surfaceCard = Color(0xB8FFFFFF),
-  surfaceElevated = Color(0xEAFFFFFF),
+  surfaceCard = Color(0x9EFFFFFF),
+  surfaceElevated = Color(0xE0FFFFFF),
   cocaNoirNavGlass = CocaNoirNavGlassLight,
   cocaNoirShadow = CocaNoirShadowLight,
   blueHorizonAccent = BlueHorizon
 )
 
 val DarkColors = AppColors(
-  paperBackground = Color(0xFF0C0E12),
+  paperBackground = Color(0xFF0B0C10),
   paperDotColor = Color.Transparent,
-  inkPrimary = Color(0xFFF5F5F7),
-  inkSecondary = Color(0xFFB0B4BA),
+  inkPrimary = Color(0xFFFFFFFF),
+  inkSecondary = Color(0xFF9E9E9E),
   inkMuted = Color(0xFF71767E),
-  cardBackground = Color(0x18FFFFFF),
-  cardBorder = Color(0x1FFFFFFF),
+  cardBackground = Color(0x0EFFFFFF),
+  cardBorder = Color(0x14FFFFFF),
   pillBackgroundDark = Color.White,
   pillTextDark = Color(0xFF111114),
   progressBarTrack = Color(0x1AFFFFFF),
@@ -294,13 +294,13 @@ val DarkColors = AppColors(
   chipUnselected = Color(0x14FFFFFF),
   isDark = true,
   oklchPrimary = BlueHorizon,
-  oklchSuccess = BlueHorizon,
+  oklchSuccess = Color(0xFF30D158),
   oklchWarning = Color(0xFFF59E0B),
-  oklchDanger = Color(0xFFEF4444),
+  oklchDanger = Color(0xFFFF453A),
   oklchFocus = BlueHorizon,
   oklchPurple = BlueHorizon,
-  surfaceCard = Color(0x18FFFFFF),
-  surfaceElevated = Color(0x28FFFFFF),
+  surfaceCard = Color(0x0EFFFFFF),
+  surfaceElevated = Color(0x1FFFFFFF),
   cocaNoirNavGlass = CocaNoirNavGlassDark,
   cocaNoirShadow = CocaNoirShadowDark,
   blueHorizonAccent = BlueHorizon

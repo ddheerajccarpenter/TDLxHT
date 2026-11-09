@@ -1,6 +1,6 @@
 package com.example.ui.screens.calendar
 
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -76,8 +76,7 @@ import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.LiquidGlassCard
-import com.example.ui.components.SketchSegmentedControl
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
 import com.example.ui.components.sectionEntrance
@@ -208,7 +207,7 @@ fun CalendarScreen(
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkPrimary
@@ -323,7 +322,7 @@ fun CalendarScreen(
                 maxLines = 1,
                 softWrap = false,
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 11.sp,
                   fontWeight = FontWeight.Bold,
                   color = PillTextDark
@@ -348,7 +347,7 @@ fun CalendarScreen(
             Text(
               text = "Untimed / All Day Tasks (${untimedTasks.size})",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
@@ -388,7 +387,7 @@ fun CalendarScreen(
             Text(
               text = "Timed Schedule (${timedTasks.size})",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
@@ -446,7 +445,7 @@ fun CalendarScreen(
             Text(
               text = "Tasks (${tasksForDate.size})",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
@@ -487,7 +486,7 @@ fun CalendarScreen(
           Text(
             text = "Scheduled Habits (${visibleHabitsForDate.size})",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 18.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary

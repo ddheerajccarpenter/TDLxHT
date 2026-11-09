@@ -1,6 +1,6 @@
 package com.example.ui.screens.reports
 
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -83,7 +83,6 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassSegmentedControl
-import com.example.ui.components.SketchSegmentedControl
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
 import com.example.ui.components.isReducedMotionEnabled
@@ -220,7 +219,7 @@ fun ReportsScreen(
 
                     Text(
                         text = state.stats.periodLabel.ifEmpty { "Loading…" },
-                        style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary),
+                        style = TextStyle(fontFamily = StrongFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary),
                         textAlign = TextAlign.Center
                     )
 
@@ -292,7 +291,7 @@ fun ReportsScreen(
                             Text(
                                 text = "Save Report",
                                 style = TextStyle(
-                                    fontFamily = SFProFontFamily,
+                                    fontFamily = StrongFontFamily,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = InkPrimary
@@ -331,7 +330,7 @@ fun ReportsScreen(
                             Text(
                                 text = "Share",
                                 style = TextStyle(
-                                    fontFamily = SFProFontFamily,
+                                    fontFamily = StrongFontFamily,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryAccentLime
@@ -379,7 +378,7 @@ private fun StatsSection(stats: ReportStats) {
                     Text(
                         text = "EXECUTIVE SCORE",
                         style = TextStyle(
-                            fontFamily = SFProFontFamily,
+                            fontFamily = StrongFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
@@ -394,7 +393,7 @@ private fun StatsSection(stats: ReportStats) {
                             else -> "Building Cadence"
                         },
                         style = TextStyle(
-                            fontFamily = SFProFontFamily,
+                            fontFamily = StrongFontFamily,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = InkPrimary
@@ -607,7 +606,7 @@ private fun AiProductivitySection(
             Text(
                 text = title,
                 style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -638,7 +637,7 @@ private fun AiProductivitySection(
                         Text(
                             text = actionSuggestion,
                             style = TextStyle(
-                                fontFamily = SFProFontFamily,
+                                fontFamily = StrongFontFamily,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = InkPrimary

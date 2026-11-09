@@ -1,7 +1,7 @@
 package com.example.ui.screens.habits
 
 import android.widget.Toast
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -225,7 +225,7 @@ fun HabitDetailEditScreen(
               Text(
                 text = "Save",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -792,7 +792,7 @@ fun HabitDetailEditScreen(
           Text(
             text = "Save Habit",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 16.sp,
               fontWeight = FontWeight.Bold,
               color = InkPrimary
@@ -824,7 +824,7 @@ fun HabitDetailEditScreen(
               Text(
                 text = "Delete Habit",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = AccentRed

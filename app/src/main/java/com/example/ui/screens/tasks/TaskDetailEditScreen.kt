@@ -1,7 +1,7 @@
 package com.example.ui.screens.tasks
 
 import android.widget.Toast
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -247,7 +247,7 @@ fun TaskDetailEditScreen(
               Text(
                 text = "Save",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -325,7 +325,7 @@ fun TaskDetailEditScreen(
               Text(
                 text = "Short-term Task",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = if (isShortTerm) PrimaryAccentLime else InkPrimary
@@ -367,7 +367,7 @@ fun TaskDetailEditScreen(
           Text(
             text = "Select tag",
             style = TextStyle(
-              fontFamily = SFProFontFamily,
+              fontFamily = StrongFontFamily,
               fontSize = 14.sp,
               color = InkSecondary
             )
@@ -628,7 +628,7 @@ fun TaskDetailEditScreen(
                 Text(
                   text = displayMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())),
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkPrimary
@@ -827,7 +827,7 @@ fun TaskDetailEditScreen(
             Text(
               text = "$completedCount / ${subtaskList.size} completed",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = InkSecondary
@@ -965,7 +965,7 @@ fun TaskDetailEditScreen(
               Text(
                 text = "Delete Task",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 18.sp,
                   fontWeight = FontWeight.Bold,
                   color = AccentRed

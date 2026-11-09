@@ -6,7 +6,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.SeramondeFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.HabitTaskApplication
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -257,7 +258,7 @@ fun SettingsScreen(
               Text(
                 text = email.take(1).uppercase(),
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 20.sp,
                   fontWeight = FontWeight.Bold,
                   color = OklchIndigo
@@ -271,7 +272,7 @@ fun SettingsScreen(
               Text(
                 text = if (isGuest) "Offline Account" else "Account & Cloud Sync",
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 12.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkSecondary
@@ -282,7 +283,7 @@ fun SettingsScreen(
               Text(
                 text = email,
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -321,12 +322,12 @@ fun SettingsScreen(
               if (syncState is SyncStatus.Syncing) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                   CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = OklchIndigo)
-                  Text("Syncing…", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = OklchIndigo, fontWeight = FontWeight.SemiBold))
+                  Text("Syncing…", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, color = OklchIndigo, fontWeight = FontWeight.SemiBold))
                 }
               } else {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                   Icon(Icons.Default.CloudSync, contentDescription = null, tint = OklchIndigo, modifier = Modifier.size(16.dp))
-                  Text("Sync Now", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = OklchIndigo, fontWeight = FontWeight.SemiBold))
+                  Text("Sync Now", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, color = OklchIndigo, fontWeight = FontWeight.SemiBold))
                 }
               }
             }
@@ -347,7 +348,7 @@ fun SettingsScreen(
                 .semantics { contentDescription = "Sign out of account" },
               contentAlignment = Alignment.Center
             ) {
-              Text("Sign Out", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+              Text("Sign Out", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
             }
           }
         }
@@ -464,7 +465,7 @@ fun SettingsScreen(
                   Column(modifier = Modifier.weight(1f)) {
                     Text(
                       text = "System notifications disabled",
-                      style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.Bold)
+                      style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.Bold)
                     )
                     Text(
                       text = "Tap to open Android Settings and enable alerts",
@@ -748,7 +749,7 @@ fun SettingsScreen(
                 Text(
                   text = "AUDITION SOUNDS",
                   style = TextStyle(
-                    fontFamily = SFProFontFamily,
+                    fontFamily = StrongFontFamily,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -839,7 +840,7 @@ fun SettingsScreen(
                       Text(
                         text = label,
                         style = TextStyle(
-                          fontFamily = SFProFontFamily,
+                          fontFamily = StrongFontFamily,
                           fontSize = 12.sp,
                           fontWeight = FontWeight.SemiBold,
                           color = if (isSel) PillTextDark else InkPrimary
@@ -878,7 +879,7 @@ fun SettingsScreen(
                         Text(
                           text = "${mins}m",
                           style = TextStyle(
-                            fontFamily = SFProFontFamily,
+                            fontFamily = StrongFontFamily,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isSel) PillTextDark else InkPrimary
@@ -908,7 +909,7 @@ fun SettingsScreen(
           Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
               text = "Backup & Restore",
-              style = TextStyle(fontFamily = SFProFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+              style = TextStyle(fontFamily = StrongFontFamily, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -953,7 +954,7 @@ fun SettingsScreen(
                 } else {
                   Text(
                     text = "Export Data",
-                    style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PillTextDark)
+                    style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PillTextDark)
                   )
                 }
               }
@@ -975,7 +976,7 @@ fun SettingsScreen(
                 } else {
                   Text(
                     text = "Import Data",
-                    style = TextStyle(fontFamily = SFProFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                    style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
                   )
                 }
               }
@@ -1002,7 +1003,7 @@ fun SettingsScreen(
             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
               Text(
                 text = "System Diagnostics",
-                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                style = TextStyle(fontFamily = StrongFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
               )
               Text(
                 text = "Inspect backend connection, sync health & sensors",
@@ -1065,7 +1066,7 @@ fun SettingsScreen(
             Text(
               text = "TDlxHT • Planner & Habits",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = SeramondeFontFamily,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
@@ -1138,7 +1139,7 @@ fun SettingsScreen(
             ) {
               Text(
                 text = "Daily Summary Time",
-                style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
+                style = TextStyle(fontFamily = StrongFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
               )
               Box(
                 modifier = Modifier
@@ -1222,7 +1223,7 @@ fun SettingsScreen(
       Dialog(onDismissRequest = { showLogoutDialog = false }) {
         LiquidGlassCard(modifier = Modifier.fillMaxWidth().padding(8.dp), cornerRadius = 20.dp) {
           Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Sign Out?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
+            Text("Sign Out?", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = InkPrimary))
             Spacer(Modifier.height(10.dp))
             Text(
               text = "Your account will be safely signed out, and local data cleared to isolate accounts. Sign back in at any time to sync with the cloud.",
@@ -1237,7 +1238,7 @@ fun SettingsScreen(
                   .bounceClick { showLogoutDialog = false },
                 contentAlignment = Alignment.Center
               ) {
-                Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+                Text("Cancel", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
               }
               Box(
                 modifier = Modifier.weight(1f).height(48.dp)
@@ -1247,7 +1248,7 @@ fun SettingsScreen(
                   .bounceClick { showLogoutDialog = false; authViewModel.signOut(context) },
                 contentAlignment = Alignment.Center
               ) {
-                Text("Sign Out", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = AccentRed, fontWeight = FontWeight.SemiBold))
+                Text("Sign Out", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = AccentRed, fontWeight = FontWeight.SemiBold))
               }
             }
           }
@@ -1260,7 +1261,7 @@ fun SettingsScreen(
       Dialog(onDismissRequest = { showDeleteAccountDialog = false }) {
         LiquidGlassCard(modifier = Modifier.fillMaxWidth().padding(8.dp), cornerRadius = 20.dp) {
           Column(modifier = Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Delete Account?", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AccentRed))
+            Text("Delete Account?", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AccentRed))
             Spacer(Modifier.height(10.dp))
             Text(
               text = "Are you sure you want to delete your account? All your cloud data, tasks, habits, and history will be permanently deleted. This action cannot be undone.",
@@ -1275,7 +1276,7 @@ fun SettingsScreen(
                   .bounceClick { showDeleteAccountDialog = false },
                 contentAlignment = Alignment.Center
               ) {
-                Text("Cancel", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+                Text("Cancel", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
               }
               Box(
                 modifier = Modifier.weight(1f).height(48.dp)
@@ -1287,7 +1288,7 @@ fun SettingsScreen(
                   },
                 contentAlignment = Alignment.Center
               ) {
-                Text("Delete", style = TextStyle(fontFamily = SFProFontFamily, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold))
+                Text("Delete", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold))
               }
             }
           }

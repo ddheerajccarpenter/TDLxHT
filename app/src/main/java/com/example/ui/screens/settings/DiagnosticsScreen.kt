@@ -67,7 +67,7 @@ import com.example.ui.theme.InkSecondary
 import com.example.ui.theme.LocalAppColors
 import com.example.ui.theme.PillBackgroundDark
 import com.example.ui.theme.PillTextDark
-import com.example.ui.theme.SFProFontFamily
+import com.example.ui.theme.StrongFontFamily
 import com.example.util.AppPreferences
 import com.example.util.AppUpdateManager
 import kotlinx.coroutines.Dispatchers
@@ -351,7 +351,7 @@ fun DiagnosticsScreen(
             Text(
               text = "System Diagnostics",
               style = TextStyle(
-                fontFamily = SFProFontFamily,
+                fontFamily = StrongFontFamily,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = InkPrimary
@@ -432,7 +432,7 @@ fun DiagnosticsScreen(
               Text(
                 text = cat.categoryName,
                 style = TextStyle(
-                  fontFamily = SFProFontFamily,
+                  fontFamily = StrongFontFamily,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = InkPrimary
@@ -483,7 +483,7 @@ fun DiagnosticsScreen(
                     Text(
                       text = item.status.label,
                       style = TextStyle(
-                        fontFamily = SFProFontFamily,
+                        fontFamily = StrongFontFamily,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = badgeText
