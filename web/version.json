@@ -1,10 +1,10 @@
 {
-  "version": "2.5.30",
-  "versionCode": 67,
-  "filename": "TDLxHT.2.5.30.apk",
-  "sha256": "3e11d3c9dd585e8f0d4da5dd92003e1868756977d7a777b4a5583292b406f4f6",
-  "apkUrl": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.2.5.30.apk",
-  "fallbackUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.30/TDLxHT.2.5.30.apk",
-  "githubReleaseUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.5.30",
+  "version": "2.5.31",
+  "versionCode": 68,
+  "filename": "TDLxHT.2.5.31.apk",
+  "sha256": "e8c41ea1d96fbe8814b6564b0669f0fdc5428736dd0c8964bb335dcd4eecf696",
+  "apkUrl": "https://mtlckvkyimoqbrlvirch.supabase.co/storage/v1/object/public/apk/TDLxHT.2.5.31.apk",
+  "fallbackUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.31/TDLxHT.2.5.31.apk",
+  "githubReleaseUrl": "https://github.com/ddheerajccarpenter/TDLxHT/releases/tag/v2.5.31",
   "releaseDate": "2026-11-09"
 }
