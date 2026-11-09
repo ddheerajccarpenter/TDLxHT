@@ -28,10 +28,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -225,7 +225,7 @@ fun LiquidGlassQuickCreateMenu(
 
             // Action 1: New Task
             LiquidGlassMenuItem(
-              icon = Icons.AutoMirrored.Filled.Assignment,
+              icon = Icons.Rounded.Checklist,
               title = "NEW TASK",
               subtitle = "Actionable to-do with due dates & subtasks",
               isDark = isDark,

@@ -155,6 +155,7 @@ fun HomeScreen(
   onNavigateToSettings: (() -> Unit)? = null,
   onNavigateToSearch: (() -> Unit)? = null,
   onOpenFocusTimer: (() -> Unit)? = null,
+  onQuickAdd: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -792,7 +793,7 @@ fun HomeScreen(
               }
 
               LiquidGlassButton(
-                onClick = onNavigateToAddTask,
+                onClick = onQuickAdd ?: onNavigateToAddTask,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.height(34.dp).testTag("add_task_header_btn"),
                 icon = {
@@ -932,7 +933,7 @@ fun HomeScreen(
               }
 
               LiquidGlassButton(
-                onClick = onNavigateToAddHabit,
+                onClick = onQuickAdd ?: onNavigateToAddHabit,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.height(34.dp).testTag("add_habit_header_btn"),
                 icon = {

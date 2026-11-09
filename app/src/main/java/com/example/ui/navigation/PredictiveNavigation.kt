@@ -136,7 +136,6 @@ class PredictiveNavController(
 
   val currentBackTarget: PredictiveBackTarget
     get() = when {
-      isTransitioning -> PredictiveBackTarget.NONE
       activeOverlay != null -> PredictiveBackTarget.OVERLAY
       backStack.size > 1 -> PredictiveBackTarget.STACK_DESTINATION
       selectedTab != 0 -> PredictiveBackTarget.TAB_ROOT
@@ -298,9 +297,9 @@ fun PredictiveNavigationHost(
   // System PredictiveBackHandler integration with strict backstack guards
   PredictiveBackHandler(enabled = navController.canPredictiveBack) { progressFlow: Flow<BackEventCompat> ->
     val target = navController.currentBackTarget
+    if (target == PredictiveBackTarget.NONE) return@PredictiveBackHandler
     gestureState.targetKind = target
     gestureState.isPredictingBack = true
-    navController.isTransitioning = true
     try {
       progressFlow.collect { backEvent ->
         gestureState.progress = backEvent.progress
@@ -338,7 +337,6 @@ fun PredictiveNavigationHost(
       gestureState.targetKind = PredictiveBackTarget.NONE
       gestureState.animProgress.snapTo(0f)
       gestureState.progress = 0f
-      navController.isTransitioning = false
     }
   }
 

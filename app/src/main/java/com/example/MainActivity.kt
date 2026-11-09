@@ -578,6 +578,7 @@ fun MainApp(
                         viewModel = viewModel,
                         onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
                         onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                        onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
                         onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
                         onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
                         onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
@@ -1303,14 +1304,22 @@ fun SketchBottomNavigationBar(
   hazeState: dev.chrisbanes.haze.HazeState? = null,
   backdrop: com.kyant.backdrop.Backdrop? = null
 ) {
-  Box(
+  Column(
     modifier = Modifier
       .fillMaxWidth()
       .windowInsetsPadding(WindowInsets.navigationBars)
       .padding(bottom = 8.dp),
-    contentAlignment = Alignment.Center
+    horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    // Main 4-Destination Floating Navigation Dock (height 48.dp, flush at rest, 1.2dp pop-out when active)
+    // 1. Standalone Floating Quick Add Button (separated & floating above the nav bar with drop shadow)
+    FloatingLiquidGlassActionButton(
+      isOpen = isQuickAddOpen,
+      onClick = onQuickAdd
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // 2. Main 4-Destination Floating Navigation Dock (height 48.dp, flush at rest, 1.2dp pop-out when active)
     LiquidGlassNavigationDock(
       destinations = destinations.take(4),
       selectedTab = selectedTab.coerceIn(0, 3),

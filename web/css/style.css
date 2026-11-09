@@ -940,37 +940,39 @@ button {
   color: #8E8E93;
 }
 
-/* Sliding Glass Lens (iOS 26 Liquid Glass: Normal size at rest, 1.2px Pop-Out & Frosted Fill in Action) */
+/* Sliding Glass Lens (iOS 26 Liquid Glass: Normal size & un-filled at rest, 1.2px Pop-Out & Frosted Fill in Action) */
 .lg-track__lens {
   position: absolute;
   top: 4px;
   bottom: 4px;
   width: 52px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.20);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  opacity: 0;
+  background: transparent;
+  border: 1px solid transparent;
   box-shadow: none;
   pointer-events: none;
   z-index: 1;
   transform: translateX(calc(var(--lg-index, 0) * 52px + var(--lg-drag-x, 0px))) scale(var(--lg-lens-scale, 1)) translateZ(0);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.22s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease, box-shadow 0.22s ease;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.22s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.20s ease, background 0.22s ease, box-shadow 0.22s ease;
 }
 
 [data-theme="dark"] .lg-track__lens {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.0);
+  border: 1px solid transparent;
   box-shadow: none;
 }
 
 [data-theme="light"] .lg-track__lens {
-  background: rgba(255, 255, 255, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.0);
+  border: 1px solid transparent;
   box-shadow: none;
 }
 
 /* Active / Drag Action State: Pops out by 1.2px, scales to 1.22x, fills with frosted white glass and drop shadow */
 .bottom-dock.active-pop .lg-track__lens,
 .bottom-dock.dragging .lg-track__lens {
+  opacity: 1;
   top: -1.2px;
   bottom: -1.2px;
   border-radius: 25.2px;
