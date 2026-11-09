@@ -1,5 +1,11 @@
 package com.example.ui.components
 
+import android.graphics.RenderEffect
+import android.graphics.RuntimeShader
+import android.os.Build
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import com.example.ui.glass.PILL_LENS_SHADER
+
 import com.kyant.backdrop.Backdrop
 import com.example.ui.glass.LiquidGlassBackdrop
 import com.example.ui.glass.LiquidGlassHighlight
@@ -320,18 +326,44 @@ fun LiquidGlassSegmentedControl(
     label = "segDragProgress"
   )
 
+  var jiggleOffset by remember { mutableFloatStateOf(0f) }
+  LaunchedEffect(isDragging, isPressed) {
+    if (!isDragging && !isPressed) {
+      jiggleOffset = 0f
+      return@LaunchedEffect
+    }
+    var lastNanos = withFrameNanos { it }
+    var elapsed = 0f
+    while (isDragging || isPressed) {
+      withFrameNanos { now ->
+        val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
+        lastNanos = now
+        elapsed += dt
+        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * dragProgress
+      }
+    }
+    jiggleOffset = 0f
+  }
+
   val trackColor = if (isDark) Color(0x38181A20) else Color.Black.copy(alpha = 0.065f)
-  val selectedColor = if (isDark) Color.White.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.85f)
+  val selectedColor = if (isDark) Color.White.copy(alpha = 0.16f + 0.08f * dragProgress) else Color.Black.copy(alpha = 0.10f + 0.06f * dragProgress)
+  val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
+  val liftScale = 1f + 0.16f * dragProgress
+
+  val lensShader = remember {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      try { RuntimeShader(PILL_LENS_SHADER) } catch (_: Throwable) { null }
+    } else null
+  }
 
   BoxWithConstraints(
-    modifier = modifier.fillMaxWidth().height(48.dp),
+    modifier = modifier.fillMaxWidth().height(54.dp),
     contentAlignment = Alignment.CenterStart
   ) {
-    val sideInset = 3.dp
+    val sideInset = 4.dp
     val indicatorWidth = (maxWidth - sideInset * 2) / totalSlots
     val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
     val sideInsetPx = with(density) { sideInset.toPx() }
-    val indicatorHeightDp = (42f + 10f * dragProgress).dp
 
     // 1. Live Layer Backdrop Glass Track
     Box(
@@ -343,14 +375,17 @@ fun LiquidGlassSegmentedControl(
       Box(Modifier.fillMaxSize().background(trackColor))
     }
 
-    // 2. Active Pill Lens Indicator (Pops out symmetrically during drag).
-    // Translation and scale live in layerBlock so the backdrop sampler can
-    // apply the inverse transform and refract the correct screen region.
+    // 2. Active Pill Lens Indicator (Pops out symmetrically during drag/hold with giggle physics).
     Box(
       Modifier
         .padding(horizontal = sideInset)
-        .height(42.dp)
+        .height(44.dp)
         .width(indicatorWidth)
+        .graphicsLayer {
+          shadowElevation = 12.dp.toPx() * dragProgress
+          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.55f) else Color.Black.copy(alpha = 0.18f)
+          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f) else Color.Black.copy(alpha = 0.08f)
+        }
         .drawBackdrop(
           backdrop = trackBackdrop,
           shape = { controlShape },
@@ -358,22 +393,38 @@ fun LiquidGlassSegmentedControl(
             vibrancy()
             lens(11f.dp.toPx(), 21f.dp.toPx(), chromaticAberration = false)
           },
-          highlight = { Highlight.Default.copy(alpha = 0.45f + 0.50f * dragProgress) },
+          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.45f + 0.50f * dragProgress) else 0.65f) },
           innerShadow = { InnerShadow(radius = 3.dp, alpha = 0.22f) },
           layerBlock = {
-            translationX = indicatorWidthPx * indicatorPos.value
-            scaleX = 1f + 0.035f * dragProgress
-            scaleY = 1f + 0.065f * dragProgress
+            translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
+            scaleX = liftScale + dynamicStretch
+            scaleY = liftScale
           },
           onDrawSurface = { drawRect(selectedColor) }
         )
     )
 
-    // 3. Tab Items & Pointer Input (supports tap and horizontal drag)
+    // 3. Tab Items & Pointer Input with AGSL chromatic dispersion on API 33+
+    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+      Modifier.graphicsLayer {
+        val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
+        val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
+        val halfHPx = (44.dp.toPx() / 2f) * liftScale
+        lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
+        lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
+        lensShader.setFloatUniform("uZoom", 0.08f + 0.20f * dragProgress)
+        lensShader.setFloatUniform("uChroma", dragProgress)
+        renderEffect = RenderEffect
+          .createRuntimeShaderEffect(lensShader, "content")
+          .asComposeRenderEffect()
+      }
+    } else Modifier
+
     Row(
       Modifier
         .fillMaxSize()
-        .padding(horizontal = sideInset, vertical = 3.dp)
+        .then(lensModifier)
+        .padding(horizontal = sideInset, vertical = 5.dp)
         .pointerInput(totalSlots, indicatorWidthPx) {
           if (indicatorWidthPx <= 0f) return@pointerInput
           val touchSlop = viewConfiguration.touchSlop
@@ -613,20 +664,46 @@ fun LiquidGlassNavigationDock(
     label = "dockDragProgress"
   )
 
+  var jiggleOffset by remember { mutableFloatStateOf(0f) }
+  LaunchedEffect(isDragging, isPressed) {
+    if (!isDragging && !isPressed) {
+      jiggleOffset = 0f
+      return@LaunchedEffect
+    }
+    var lastNanos = withFrameNanos { it }
+    var elapsed = 0f
+    while (isDragging || isPressed) {
+      withFrameNanos { now ->
+        val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
+        lastNanos = now
+        elapsed += dt
+        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * dragProgress
+      }
+    }
+    jiggleOffset = 0f
+  }
+
   val trackColor = if (isDark) Color(0x38181A20) else Color.Black.copy(alpha = 0.065f)
-  val selectedColor = if (isDark) Color.White.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.85f)
+  val selectedColor = if (isDark) Color.White.copy(alpha = 0.16f + 0.08f * dragProgress) else Color.Black.copy(alpha = 0.10f + 0.06f * dragProgress)
+  val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
+  val liftScale = 1f + 0.16f * dragProgress
+
+  val lensShader = remember {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      try { RuntimeShader(PILL_LENS_SHADER) } catch (_: Throwable) { null }
+    } else null
+  }
 
   BoxWithConstraints(
     modifier = modifier
       .fillMaxWidth()
-      .height(48.dp),
+      .height(54.dp),
     contentAlignment = Alignment.CenterStart
   ) {
-    val sideInset = 3.dp
+    val sideInset = 4.dp
     val indicatorWidth = (maxWidth - sideInset * 2) / totalSlots
     val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
     val sideInsetPx = with(density) { sideInset.toPx() }
-    val indicatorHeightDp = (42f + 10f * dragProgress).dp
 
     // 1. Live Layer Backdrop Glass Track (1:1 identical to LiquidGlassSegmentedControl)
     Box(
@@ -638,14 +715,17 @@ fun LiquidGlassNavigationDock(
       Box(Modifier.fillMaxSize().background(trackColor))
     }
 
-    // 2. Active Pill Lens Indicator (Pops out symmetrically during drag).
-    // Translation and scale live in layerBlock so the backdrop sampler can
-    // apply the inverse transform and refract the correct screen region.
+    // 2. Active Pill Lens Indicator (Pops out symmetrically during drag/hold with giggle physics).
     Box(
       Modifier
         .padding(horizontal = sideInset)
-        .height(42.dp)
+        .height(44.dp)
         .width(indicatorWidth)
+        .graphicsLayer {
+          shadowElevation = 12.dp.toPx() * dragProgress
+          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.55f) else Color.Black.copy(alpha = 0.18f)
+          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f) else Color.Black.copy(alpha = 0.08f)
+        }
         .drawBackdrop(
           backdrop = trackBackdrop,
           shape = { controlShape },
@@ -653,22 +733,38 @@ fun LiquidGlassNavigationDock(
             vibrancy()
             lens(11f.dp.toPx(), 21f.dp.toPx(), chromaticAberration = false)
           },
-          highlight = { Highlight.Default.copy(alpha = 0.45f + 0.50f * dragProgress) },
+          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.45f + 0.50f * dragProgress) else 0.65f) },
           innerShadow = { InnerShadow(radius = 3.dp, alpha = 0.22f) },
           layerBlock = {
-            translationX = indicatorWidthPx * indicatorPos.value
-            scaleX = 1f + 0.035f * dragProgress
-            scaleY = 1f + 0.065f * dragProgress
+            translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
+            scaleX = liftScale + dynamicStretch
+            scaleY = liftScale
           },
           onDrawSurface = { drawRect(selectedColor) }
         )
     )
 
-    // 3. Tab Items & Pointer Input (supports tap and horizontal drag)
+    // 3. Tab Items & Pointer Input (supports tap and horizontal drag with AGSL lens)
+    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+      Modifier.graphicsLayer {
+        val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
+        val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
+        val halfHPx = (44.dp.toPx() / 2f) * liftScale
+        lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
+        lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
+        lensShader.setFloatUniform("uZoom", 0.08f + 0.20f * dragProgress)
+        lensShader.setFloatUniform("uChroma", dragProgress)
+        renderEffect = RenderEffect
+          .createRuntimeShaderEffect(lensShader, "content")
+          .asComposeRenderEffect()
+      }
+    } else Modifier
+
     Row(
       Modifier
         .fillMaxSize()
-        .padding(horizontal = sideInset, vertical = 3.dp)
+        .then(lensModifier)
+        .padding(horizontal = sideInset, vertical = 5.dp)
         .pointerInput(totalSlots, indicatorWidthPx) {
           if (indicatorWidthPx <= 0f) return@pointerInput
           val touchSlop = viewConfiguration.touchSlop

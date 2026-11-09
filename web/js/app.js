@@ -36,4 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initCalculatorSuite();
   initFocusWidget();
   initVersionSync();
+
+  // Cold launch classic 12-blade spinner dismissal
+  const loader = document.getElementById('cold-launch-loader');
+  if (loader) {
+    setTimeout(() => {
+      loader.classList.add('fade-out');
+      setTimeout(() => loader.remove(), 400);
+    }, 650);
+  }
 });

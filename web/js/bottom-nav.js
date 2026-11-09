@@ -14,6 +14,7 @@ export function initBottomNav() {
   function setIndex(index) {
     if (index < 0 || index >= navTabs.length) return;
     dock.style.setProperty('--lg-index', index);
+    dock.style.setProperty('--lg-drag-x', '0px');
     navTabs.forEach((tab, i) => {
       const isActive = i === index;
       tab.classList.toggle('active', isActive);
@@ -25,6 +26,61 @@ export function initBottomNav() {
     });
   }
 
+  // Pointer drag gesture support for interactive liquid glass tracking
+  let isDragging = false;
+  let startX = 0;
+  let currentIndex = 0;
+  const TAB_WIDTH = 52; // Matching 52px tab width
+
+  dock.addEventListener('pointerdown', (e) => {
+    // Only drag on primary pointer and avoid theme button
+    if (e.button !== 0 || e.target.closest('.dock-theme-btn')) return;
+    isDragging = true;
+    startX = e.clientX;
+    dock.classList.add('dragging');
+    dock.setPointerCapture(e.pointerId);
+  });
+
+  dock.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - startX;
+    dock.style.setProperty('--lg-drag-x', `${deltaX}px`);
+
+    // Calculate dynamic hover index
+    const computedIndex = Math.round(currentIndex + deltaX / TAB_WIDTH);
+    const clampedIndex = Math.max(0, Math.min(navTabs.length - 1, computedIndex));
+    navTabs.forEach((tab, i) => {
+      tab.classList.toggle('active', i === clampedIndex);
+    });
+  });
+
+  function finishDrag(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    dock.classList.remove('dragging');
+    try {
+      dock.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
+    const deltaX = e.clientX - startX;
+    const targetIndex = Math.max(0, Math.min(navTabs.length - 1, Math.round(currentIndex + deltaX / TAB_WIDTH)));
+    currentIndex = targetIndex;
+    setIndex(targetIndex);
+
+    // If dragged to a new tab, trigger navigation
+    const targetTab = navTabs[targetIndex];
+    if (targetTab && Math.abs(deltaX) > 10) {
+      const href = targetTab.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        const targetEl = document.querySelector(href);
+        if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+
+  dock.addEventListener('pointerup', finishDrag);
+  dock.addEventListener('pointercancel', finishDrag);
+
   // Click handler for navigation tabs
   navTabs.forEach((tab, index) => {
     tab.addEventListener('click', (e) => {
@@ -33,6 +89,7 @@ export function initBottomNav() {
         const target = document.querySelector(href);
         if (target) {
           e.preventDefault();
+          currentIndex = index;
           setIndex(index);
           target.scrollIntoView({ behavior: 'smooth' });
         } else {

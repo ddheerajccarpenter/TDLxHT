@@ -38,6 +38,8 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.pointerInput
@@ -84,6 +86,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.runtime.mutableFloatStateOf
 import com.example.ui.theme.MobbinInk
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.ShowChart
@@ -157,6 +160,7 @@ import com.example.data.model.Task
 import com.example.ui.components.AnimatedDialogContent
 import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.ClassicLoadingSpinner
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassSheet
@@ -228,6 +232,8 @@ enum class AppDestination(
   INSIGHTS("Insights", Icons.Rounded.Insights, Icons.Outlined.Insights, R.raw.anim_insights)
 }
 
+private var hasCompletedProcessColdLaunch = false
+
 class MainActivity : ComponentActivity() {
 
   private val viewModel: MainViewModel by viewModels {
@@ -273,17 +279,61 @@ class MainActivity : ComponentActivity() {
       val shakeTrigger by shakeTriggerFlow.collectAsStateWithLifecycle()
       val updateTrigger by updateTriggerFlow.collectAsStateWithLifecycle()
 
+      var showColdLaunchLoader by remember { mutableStateOf(!hasCompletedProcessColdLaunch) }
+      LaunchedEffect(Unit) {
+        if (!hasCompletedProcessColdLaunch) {
+          kotlinx.coroutines.delay(750)
+          hasCompletedProcessColdLaunch = true
+          showColdLaunchLoader = false
+        }
+      }
+
       MyApplicationTheme(darkTheme = isDark) {
-        if (currentUser != null) {
-          MainApp(
-            viewModel = viewModel,
-            authViewModel = authViewModel,
-            settings = settings,
-            shakeTrigger = shakeTrigger,
-            updateTrigger = updateTrigger
-          )
-        } else {
-          AuthenticationScreen(viewModel = authViewModel)
+        Box(modifier = Modifier.fillMaxSize()) {
+          if (currentUser != null) {
+            MainApp(
+              viewModel = viewModel,
+              authViewModel = authViewModel,
+              settings = settings,
+              shakeTrigger = shakeTrigger,
+              updateTrigger = updateTrigger
+            )
+          } else {
+            AuthenticationScreen(viewModel = authViewModel)
+          }
+
+          androidx.compose.animation.AnimatedVisibility(
+            visible = showColdLaunchLoader,
+            enter = androidx.compose.animation.fadeIn(),
+            exit = androidx.compose.animation.fadeOut(
+              animationSpec = androidx.compose.animation.core.tween(durationMillis = 350)
+            )
+          ) {
+            Box(
+              modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+              contentAlignment = Alignment.Center
+            ) {
+              Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+              ) {
+                Image(
+                  painter = painterResource(id = R.drawable.app_logo),
+                  contentDescription = "TDLxHT Logo",
+                  modifier = Modifier
+                    .size(84.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                ClassicLoadingSpinner(
+                  size = 40.dp,
+                  color = Color.White
+                )
+              }
+            }
+          }
         }
       }
     }
@@ -687,7 +737,9 @@ fun MainApp(
           visible = true,
           onDismissRequest = { navController.dismissOverlay() }
         ) {
-          val optionIconAccent = OklchIndigo
+          val isDarkTheme = isSystemInDarkTheme()
+          val badgeBg = if (isDarkTheme) Color(0x28FFFFFF) else Color(0x12000000)
+          val badgeBorder = if (isDarkTheme) Color(0x38FFFFFF) else Color(0x1F000000)
 
           Row(
             modifier = Modifier.fillMaxWidth(),
@@ -721,15 +773,15 @@ fun MainApp(
           Spacer(modifier = Modifier.height(18.dp))
 
           // Option 1: New Task
-          GlassCard(
+          LiquidGlassCard(
             modifier = Modifier
               .fillMaxWidth()
               .bounceClick {
                 navController.dismissOverlay()
                 navController.navigate(AppNavDestination.TaskDetail())
               },
-            cornerRadius = 16.dp,
-            elevation = 2.dp
+            cornerRadius = 18.dp,
+            borderWidth = 0.75.dp
           ) {
             Row(
               modifier = Modifier
@@ -739,27 +791,27 @@ fun MainApp(
             ) {
               Box(
                 modifier = Modifier
-                  .size(42.dp)
-                  .clip(CircleShape)
-                  .background(optionIconAccent.copy(alpha = 0.14f))
-                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+                  .size(44.dp)
+                  .clip(RoundedCornerShape(13.dp))
+                  .background(badgeBg)
+                  .border(0.75.dp, badgeBorder, RoundedCornerShape(13.dp)),
                 contentAlignment = Alignment.Center
               ) {
                 AnimatedIcon(
                   resId = R.raw.anim_productivity,
                   isSelected = true,
-                  tint = optionIconAccent,
+                  tint = InkPrimary,
                   size = 24.dp
                 )
               }
               Spacer(modifier = Modifier.width(14.dp))
-              Column {
+              Column(modifier = Modifier.weight(1f)) {
                 Text(
                   text = "New Task",
                   style = TextStyle(
                     fontFamily = StrongFontFamily,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )
                 )
@@ -768,21 +820,27 @@ fun MainApp(
                   style = TextStyle(fontSize = 12.sp, color = InkSecondary)
                 )
               }
+              Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = InkSecondary.copy(alpha = 0.4f),
+                modifier = Modifier.size(14.dp)
+              )
             }
           }
 
           Spacer(modifier = Modifier.height(12.dp))
 
           // Option 2: New Habit
-          GlassCard(
+          LiquidGlassCard(
             modifier = Modifier
               .fillMaxWidth()
               .bounceClick {
                 navController.dismissOverlay()
                 navController.navigate(AppNavDestination.HabitDetail())
               },
-            cornerRadius = 16.dp,
-            elevation = 2.dp
+            cornerRadius = 18.dp,
+            borderWidth = 0.75.dp
           ) {
             Row(
               modifier = Modifier
@@ -792,27 +850,27 @@ fun MainApp(
             ) {
               Box(
                 modifier = Modifier
-                  .size(42.dp)
-                  .clip(CircleShape)
-                  .background(optionIconAccent.copy(alpha = 0.14f))
-                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+                  .size(44.dp)
+                  .clip(RoundedCornerShape(13.dp))
+                  .background(badgeBg)
+                  .border(0.75.dp, badgeBorder, RoundedCornerShape(13.dp)),
                 contentAlignment = Alignment.Center
               ) {
                 AnimatedIcon(
                   resId = R.raw.anim_today,
                   isSelected = true,
-                  tint = optionIconAccent,
+                  tint = InkPrimary,
                   size = 24.dp
                 )
               }
               Spacer(modifier = Modifier.width(14.dp))
-              Column {
+              Column(modifier = Modifier.weight(1f)) {
                 Text(
                   text = "New Habit",
                   style = TextStyle(
                     fontFamily = StrongFontFamily,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )
                 )
@@ -821,13 +879,19 @@ fun MainApp(
                   style = TextStyle(fontSize = 12.sp, color = InkSecondary)
                 )
               }
+              Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = InkSecondary.copy(alpha = 0.4f),
+                modifier = Modifier.size(14.dp)
+              )
             }
           }
 
           Spacer(modifier = Modifier.height(12.dp))
 
           // Option 3: Short-term Task (Auto-removes upon completion, local record only)
-          GlassCard(
+          LiquidGlassCard(
             modifier = Modifier
               .fillMaxWidth()
               .bounceClick {
@@ -836,8 +900,8 @@ fun MainApp(
                   AppNavDestination.TaskDetail(initialIsShortTerm = true)
                 )
               },
-            cornerRadius = 16.dp,
-            elevation = 2.dp
+            cornerRadius = 18.dp,
+            borderWidth = 0.75.dp
           ) {
             Row(
               modifier = Modifier
@@ -847,27 +911,27 @@ fun MainApp(
             ) {
               Box(
                 modifier = Modifier
-                  .size(42.dp)
-                  .clip(CircleShape)
-                  .background(optionIconAccent.copy(alpha = 0.14f))
-                  .border(1.dp, optionIconAccent.copy(alpha = 0.5f), CircleShape),
+                  .size(44.dp)
+                  .clip(RoundedCornerShape(13.dp))
+                  .background(badgeBg)
+                  .border(0.75.dp, badgeBorder, RoundedCornerShape(13.dp)),
                 contentAlignment = Alignment.Center
               ) {
                 Icon(
                   imageVector = Icons.Default.Check,
                   contentDescription = null,
-                  tint = optionIconAccent,
+                  tint = InkPrimary,
                   modifier = Modifier.size(22.dp)
                 )
               }
               Spacer(modifier = Modifier.width(14.dp))
-              Column {
+              Column(modifier = Modifier.weight(1f)) {
                 Text(
                   text = "Short-term Task",
                   style = TextStyle(
                     fontFamily = StrongFontFamily,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )
                 )
@@ -876,6 +940,12 @@ fun MainApp(
                   style = TextStyle(fontSize = 12.sp, color = InkSecondary)
                 )
               }
+              Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = InkSecondary.copy(alpha = 0.4f),
+                modifier = Modifier.size(14.dp)
+              )
             }
           }
           Spacer(modifier = Modifier.height(8.dp))
@@ -1421,26 +1491,18 @@ fun SketchBottomNavigationBar(
   selectedTab: Int,
   isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
-  onQuickAdd: () -> Unit,
+  onQuickAdd: () -> Unit = {},
   hazeState: dev.chrisbanes.haze.HazeState? = null,
   backdrop: com.kyant.backdrop.Backdrop? = null
 ) {
-  Column(
+  Box(
     modifier = Modifier
       .fillMaxWidth()
       .windowInsetsPadding(WindowInsets.navigationBars)
       .padding(bottom = 8.dp),
-    horizontalAlignment = Alignment.CenterHorizontally
+    contentAlignment = Alignment.Center
   ) {
-    // 1. Standalone Floating Quick Add Button (separated & floating above the nav bar with drop shadow)
-    FloatingLiquidGlassActionButton(
-      isOpen = isQuickAddOpen,
-      onClick = onQuickAdd
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // 2. Main 4-Destination Floating Navigation Dock (matching sub navbar height 48.dp & 16.dp insets)
+    // Main 4-Destination Floating Navigation Dock (height 54.dp & concentric 27.dp radius)
     LiquidGlassNavigationDock(
       destinations = destinations.take(4),
       selectedTab = selectedTab.coerceIn(0, 3),

@@ -109,6 +109,7 @@ fun CalendarScreen(
   onNavigateToAddTask: () -> Unit,
   onTaskClick: (Task) -> Unit,
   onHabitClick: (Habit) -> Unit,
+  showHeader: Boolean = true,
   modifier: Modifier = Modifier
 ) {
   val tasks by viewModel.tasks.collectAsStateWithLifecycle()
@@ -179,47 +180,49 @@ fun CalendarScreen(
       contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 64.dp)
     ) {
       // Header: Unified AppHeader
-      item {
-        AppHeader(
-          title = "Calendar",
-          leftContent = {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier
-                .height(48.dp)
-                .bounceClick {
-                  val currentDeviceDate = LocalDate.now()
-                  viewModel.setSelectedCalendarDate(currentDeviceDate)
-                  displayMonth = YearMonth.from(currentDeviceDate)
-                }
-                .testTag("calendar_today_btn")
-            ) {
-              Icon(
-                imageVector = Icons.Default.Today,
-                contentDescription = "Jump to Today",
-                tint = InkPrimary,
-                modifier = Modifier.size(18.dp)
-              )
-              Spacer(modifier = Modifier.width(4.dp))
-              Text(
-                text = "Today",
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis,
-                style = TextStyle(
-                  fontFamily = StrongFontFamily,
-                  fontSize = 15.sp,
-                  fontWeight = FontWeight.SemiBold,
-                  color = InkPrimary
+      if (showHeader) {
+        item {
+          AppHeader(
+            title = "Calendar",
+            leftContent = {
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                  .height(48.dp)
+                  .bounceClick {
+                    val currentDeviceDate = LocalDate.now()
+                    viewModel.setSelectedCalendarDate(currentDeviceDate)
+                    displayMonth = YearMonth.from(currentDeviceDate)
+                  }
+                  .testTag("calendar_today_btn")
+              ) {
+                Icon(
+                  imageVector = Icons.Default.Today,
+                  contentDescription = "Jump to Today",
+                  tint = InkPrimary,
+                  modifier = Modifier.size(18.dp)
                 )
-              )
-            }
-          },
-          actionIcon = Icons.Default.Add,
-          onActionClick = onNavigateToAddTask
-        )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                  text = "Today",
+                  maxLines = 1,
+                  softWrap = false,
+                  overflow = TextOverflow.Ellipsis,
+                  style = TextStyle(
+                    fontFamily = StrongFontFamily,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = InkPrimary
+                  )
+                )
+              }
+            },
+            actionIcon = Icons.Default.Add,
+            onActionClick = onNavigateToAddTask
+          )
 
-        Spacer(modifier = Modifier.height(10.dp))
+          Spacer(modifier = Modifier.height(10.dp))
+        }
       }
 
       // View mode segmented toggle: [Month] [Week] [Day] - Canonical Liquid Glass Segmented

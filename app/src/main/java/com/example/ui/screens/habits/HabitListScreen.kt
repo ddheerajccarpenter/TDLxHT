@@ -106,6 +106,7 @@ fun HabitListScreen(
   onNavigateToAddHabit: () -> Unit,
   onHabitClick: (Habit) -> Unit,
   onBack: () -> Unit,
+  showHeader: Boolean = true,
   modifier: Modifier = Modifier
 ) {
   val habits by viewModel.habits.collectAsStateWithLifecycle()
@@ -158,23 +159,25 @@ fun HabitListScreen(
         .fillMaxSize()
         .padding(horizontal = 16.dp)
     ) {
-      // Header: Standardized Reusable AppHeader
-      AppHeader(
-        title = "Habits",
-        onBack = {
-          if (isMultiSelectMode) {
-            isMultiSelectMode = false
-            selectedHabitIds = emptySet()
-          } else {
-            onBack()
-          }
-        },
-        backLabel = if (isMultiSelectMode) "Done" else "Back",
-        actionIcon = Icons.Default.Add,
-        actionContentDescription = "Add Habit",
-        onActionClick = onNavigateToAddHabit,
-        actionTestTag = "habits_add_button"
-      )
+      if (showHeader) {
+        // Header: Standardized Reusable AppHeader
+        AppHeader(
+          title = "Habits",
+          onBack = {
+            if (isMultiSelectMode) {
+              isMultiSelectMode = false
+              selectedHabitIds = emptySet()
+            } else {
+              onBack()
+            }
+          },
+          backLabel = if (isMultiSelectMode) "Done" else "Back",
+          actionIcon = Icons.Default.Add,
+          actionContentDescription = "Add Habit",
+          onActionClick = onNavigateToAddHabit,
+          actionTestTag = "habits_add_button"
+        )
+      }
 
       // Filter Tabs
       Row(

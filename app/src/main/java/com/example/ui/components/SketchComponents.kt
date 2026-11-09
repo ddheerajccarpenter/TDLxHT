@@ -1718,25 +1718,46 @@ fun SketchCheckbox(
   val isDark = LocalAppColors.current.isDark
   val isReduced = remember { isReducedMotionEnabled(context) }
 
-  // Kern Society kinetic elastic squash & stretch on check completion (Priority 2)
+  // Spring pop-and-bounce scale on check toggle
+  val popScale = remember { Animatable(1f) }
   val squashX = remember { Animatable(1f) }
   val squashY = remember { Animatable(1f) }
 
   LaunchedEffect(checked) {
-    if (checked && !isReduced) {
-      squashX.snapTo(1.16f)
-      squashY.snapTo(0.84f)
-      launch {
-        squashX.animateTo(
+    if (!isReduced) {
+      if (checked) {
+        launch {
+          popScale.snapTo(0.82f)
+          popScale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(dampingRatio = 0.48f, stiffness = 400f)
+          )
+        }
+        squashX.snapTo(1.18f)
+        squashY.snapTo(0.82f)
+        launch {
+          squashX.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
+          )
+        }
+        squashY.animateTo(
           targetValue = 1f,
           animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
         )
+      } else {
+        launch {
+          popScale.snapTo(0.92f)
+          popScale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(dampingRatio = 0.60f, stiffness = 500f)
+          )
+        }
+        squashX.snapTo(1f)
+        squashY.snapTo(1f)
       }
-      squashY.animateTo(
-        targetValue = 1f,
-        animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
-      )
     } else {
+      popScale.snapTo(1f)
       squashX.snapTo(1f)
       squashY.snapTo(1f)
     }
@@ -1795,8 +1816,8 @@ fun SketchCheckbox(
       modifier = Modifier
         .size(sizeDp)
         .graphicsLayer {
-          scaleX = squashX.value
-          scaleY = squashY.value
+          scaleX = squashX.value * popScale.value
+          scaleY = squashY.value * popScale.value
         },
       contentAlignment = Alignment.Center
     ) {

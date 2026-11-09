@@ -101,6 +101,7 @@ fun TaskListScreen(
   onNavigateToAddTask: () -> Unit,
   onTaskClick: (Task) -> Unit,
   onBack: () -> Unit,
+  showHeader: Boolean = true,
   modifier: Modifier = Modifier
 ) {
   val filteredTasks by viewModel.filteredTasks.collectAsStateWithLifecycle()
@@ -154,35 +155,37 @@ fun TaskListScreen(
         .fillMaxSize()
         .padding(horizontal = 16.dp)
     ) {
-      // Standardized Top Navigation Header
-      AppHeader(
-        title = "Tasks",
-        onBack = {
-          if (isMultiSelectMode) {
-            isMultiSelectMode = false
-            selectedTaskIds = emptySet()
-          } else {
-            onBack()
-          }
-        },
-        backLabel = if (isMultiSelectMode) "Done" else "Back",
-        actionIcon = Icons.Default.Add,
-        actionContentDescription = "Add Task",
-        onActionClick = onNavigateToAddTask,
-        actionTestTag = "tasks_add_button"
-      )
+      if (showHeader) {
+        // Standardized Top Navigation Header
+        AppHeader(
+          title = "Tasks",
+          onBack = {
+            if (isMultiSelectMode) {
+              isMultiSelectMode = false
+              selectedTaskIds = emptySet()
+            } else {
+              onBack()
+            }
+          },
+          backLabel = if (isMultiSelectMode) "Done" else "Back",
+          actionIcon = Icons.Default.Add,
+          actionContentDescription = "Add Task",
+          onActionClick = onNavigateToAddTask,
+          actionTestTag = "tasks_add_button"
+        )
 
-      Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-      // Search Bar
-      SketchSearchBar(
-        query = searchQuery,
-        onQueryChange = { viewModel.setTaskSearchQuery(it) },
-        placeholder = "Search tasks, tags...",
-        modifier = Modifier.fillMaxWidth()
-      )
+        // Search Bar
+        SketchSearchBar(
+          query = searchQuery,
+          onQueryChange = { viewModel.setTaskSearchQuery(it) },
+          placeholder = "Search tasks, tags...",
+          modifier = Modifier.fillMaxWidth()
+        )
 
-      Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+      }
 
       // Filter Chips + Sort Row
       Row(

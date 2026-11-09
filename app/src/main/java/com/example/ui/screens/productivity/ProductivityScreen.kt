@@ -9,15 +9,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,9 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
+import com.example.ui.components.FloatingLiquidGlassActionButton
 import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.SketchSearchBar
 import com.example.ui.components.isReducedMotionEnabled
 import com.example.ui.components.paperDotBackground
 import com.example.ui.navigation.horizontalSwipeNavigation
@@ -54,14 +61,21 @@ fun ProductivityScreen(
   val context = LocalContext.current
   val reduceMotion = remember { isReducedMotionEnabled(context) }
 
+  val taskSearchQuery by viewModel.taskSearchQuery.collectAsStateWithLifecycle()
+  val habitSearchQuery by viewModel.habitSearchQuery.collectAsStateWithLifecycle()
+  val isHabits = selectedTab == 1
+  val currentSearchQuery = if (isHabits) habitSearchQuery else taskSearchQuery
+
   BackHandler(enabled = selectedTab > 0) {
     selectedTab = 0
   }
 
-  Box(
+  Column(
     modifier = modifier
       .fillMaxSize()
       .paperDotBackground()
+      .windowInsetsPadding(WindowInsets.statusBars)
+      .padding(top = 10.dp)
       .horizontalSwipeNavigation(
         onSwipeLeft = {
           if (selectedTab < 2) {
@@ -79,70 +93,109 @@ fun ProductivityScreen(
         }
       )
   ) {
-    // Tab Content (Tasks / Habits / Calendar)
-    AnimatedContent(
-      targetState = selectedTab,
-      transitionSpec = {
-        if (reduceMotion) {
-          fadeIn(animationSpec = tween(80)) togetherWith fadeOut(animationSpec = tween(80))
-        } else if (targetState > initialState) {
-          (slideInHorizontally { (it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
-            (slideOutHorizontally { (-it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
-        } else {
-          (slideInHorizontally { (-it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
-            (slideOutHorizontally { (it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
-        }
-      },
-      label = "productivityTab",
-      modifier = Modifier.fillMaxSize()
-    ) { tabIndex ->
-      when (tabIndex) {
-        0 -> {
-          TaskListScreen(
-            viewModel = viewModel,
-            onNavigateToAddTask = onNavigateToAddTask,
-            onTaskClick = onTaskClick,
-            onBack = onBackToHome
-          )
-        }
-        1 -> {
-          HabitListScreen(
-            viewModel = viewModel,
-            onNavigateToAddHabit = onNavigateToAddHabit,
-            onHabitClick = onHabitClick,
-            onBack = onBackToHome
-          )
-        }
-        2 -> {
-          CalendarScreen(
-            viewModel = viewModel,
-            onNavigateToAddTask = onNavigateToAddTask,
-            onTaskClick = onTaskClick,
-            onHabitClick = onHabitClick
-          )
-        }
-      }
-    }
-
-    // Bottom Controls: Productivity Tab Nav Bar + Horizontal Divider Line above Main Bottom Nav
-    Column(
+    // 1. Top Sub-Navbar ("Tasks", "Habits", "Calendar")
+    LiquidGlassSegmentedControl(
+      items = listOf("Tasks", "Habits", "Calendar"),
+      selectedIndex = selectedTab,
+      onItemSelected = { selectedTab = it },
       modifier = Modifier
-        .align(Alignment.BottomCenter)
         .fillMaxWidth()
-        .windowInsetsPadding(WindowInsets.navigationBars),
-      horizontalAlignment = Alignment.CenterHorizontally
+        .padding(horizontal = 16.dp)
+    )
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    // 2. Search & Plus Action Row: Search Bar on left + Quick Add (+) button on right
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-      // Secondary productivity tabs sit just above the fixed main dock.
-      LiquidGlassSegmentedControl(
-        items = listOf("Tasks", "Habits", "Calendar"),
-        selectedIndex = selectedTab,
-        onItemSelected = { selectedTab = it },
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp)
+      SketchSearchBar(
+        query = currentSearchQuery,
+        onQueryChange = { q ->
+          if (isHabits) {
+            viewModel.setHabitSearchQuery(q)
+          } else {
+            viewModel.setTaskSearchQuery(q)
+          }
+        },
+        placeholder = when (selectedTab) {
+          1 -> "Search habits..."
+          2 -> "Search calendar tasks..."
+          else -> "Search tasks, tags..."
+        },
+        modifier = Modifier.weight(1f)
       )
 
-      Spacer(modifier = Modifier.height(124.dp))
+      FloatingLiquidGlassActionButton(
+        isOpen = false,
+        onClick = {
+          when (selectedTab) {
+            0 -> onNavigateToAddTask()
+            1 -> onNavigateToAddHabit()
+            else -> onNavigateToAddTask()
+          }
+        }
+      )
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // 3. Tab Content (fills remaining space and scrolls smoothly above the bottom dock)
+    Box(
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxWidth()
+    ) {
+      AnimatedContent(
+        targetState = selectedTab,
+        transitionSpec = {
+          if (reduceMotion) {
+            fadeIn(animationSpec = tween(80)) togetherWith fadeOut(animationSpec = tween(80))
+          } else if (targetState > initialState) {
+            (slideInHorizontally { (it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
+              (slideOutHorizontally { (-it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
+          } else {
+            (slideInHorizontally { (-it * 0.25f).toInt() } + fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing))) togetherWith
+              (slideOutHorizontally { (it * 0.25f).toInt() } + fadeOut(animationSpec = tween(140, easing = FastOutSlowInEasing)))
+          }
+        },
+        label = "productivityTab",
+        modifier = Modifier.fillMaxSize()
+      ) { tabIndex ->
+        when (tabIndex) {
+          0 -> {
+            TaskListScreen(
+              viewModel = viewModel,
+              onNavigateToAddTask = onNavigateToAddTask,
+              onTaskClick = onTaskClick,
+              onBack = onBackToHome,
+              showHeader = false
+            )
+          }
+          1 -> {
+            HabitListScreen(
+              viewModel = viewModel,
+              onNavigateToAddHabit = onNavigateToAddHabit,
+              onHabitClick = onHabitClick,
+              onBack = onBackToHome,
+              showHeader = false
+            )
+          }
+          2 -> {
+            CalendarScreen(
+              viewModel = viewModel,
+              onNavigateToAddTask = onNavigateToAddTask,
+              onTaskClick = onTaskClick,
+              onHabitClick = onHabitClick,
+              showHeader = false
+            )
+          }
+        }
+      }
     }
   }
 }
