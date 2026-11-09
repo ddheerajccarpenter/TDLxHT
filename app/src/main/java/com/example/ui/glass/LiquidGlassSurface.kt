@@ -196,9 +196,9 @@ fun Modifier.liquidGlassRim(
             )
         } else {
             listOf(
-                Color.White.copy(alpha = 0.65f),
-                Color.Black.copy(alpha = 0.12f),
-                Color.Black.copy(alpha = 0.16f)
+                Color.White.copy(alpha = 0.75f),
+                Color.White.copy(alpha = 0.30f),
+                Color.White.copy(alpha = 0.08f)
             )
         },
         startY = 0f,

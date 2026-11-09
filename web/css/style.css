@@ -897,16 +897,15 @@ button {
   display: flex;
   align-items: center;
   position: relative;
-  height: 54px;
-  padding: 5px;
-  border-radius: 27px;
+  height: 48px;
+  padding: 0 5px;
+  border-radius: 24px;
   background: var(--nav-glass-tint);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-bevel), 0 16px 40px -8px var(--nav-glass-shadow);
   transform: translateZ(0);
-  contain: layout style;
   user-select: none;
   touch-action: pan-y;
 }
@@ -918,8 +917,8 @@ button {
   align-items: center;
   justify-content: center;
   width: 52px;
-  height: 44px;
-  border-radius: 22px;
+  height: 48px;
+  border-radius: 24px;
   color: var(--text-secondary);
   transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -934,35 +933,66 @@ button {
 }
 
 [data-theme="light"] .dock-tab.active {
-  color: var(--text-primary);
+  color: #1C1C1E;
 }
 
-/* Sliding Glass Lens (iOS 26 Refraction & Specular Bevel with Concentric Geometry) */
+[data-theme="light"] .dock-tab {
+  color: #8E8E93;
+}
+
+/* Sliding Glass Lens (iOS 26 Liquid Glass: Normal size at rest, 1.2px Pop-Out & Frosted Fill in Action) */
 .lg-track__lens {
   position: absolute;
-  top: 5px;
-  bottom: 5px;
+  top: 4px;
+  bottom: 4px;
   width: 52px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.40);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(0, 0, 0, 0.18);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.20);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: none;
   pointer-events: none;
   z-index: 1;
   transform: translateX(calc(var(--lg-index, 0) * 52px + var(--lg-drag-x, 0px))) scale(var(--lg-lens-scale, 1)) translateZ(0);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bottom-dock.dragging .lg-track__lens {
-  transition: transform 0.05s linear;
-  --lg-lens-scale: 1.15;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.70), 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.22s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease, box-shadow 0.22s ease;
 }
 
 [data-theme="dark"] .lg-track__lens {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+[data-theme="light"] .lg-track__lens {
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: none;
+}
+
+/* Active / Drag Action State: Pops out by 1.2px, scales to 1.22x, fills with frosted white glass and drop shadow */
+.bottom-dock.active-pop .lg-track__lens,
+.bottom-dock.dragging .lg-track__lens {
+  top: -1.2px;
+  bottom: -1.2px;
+  border-radius: 25.2px;
+  --lg-lens-scale: 1.22;
+}
+
+.bottom-dock.dragging .lg-track__lens {
+  transition: transform 0.05s linear, top 0.15s ease, bottom 0.15s ease;
+}
+
+[data-theme="dark"] .bottom-dock.active-pop .lg-track__lens,
+[data-theme="dark"] .bottom-dock.dragging .lg-track__lens {
+  background: rgba(255, 255, 255, 0.20);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.55), 0 6px 18px rgba(0, 0, 0, 0.40);
+}
+
+[data-theme="light"] .bottom-dock.active-pop .lg-track__lens,
+[data-theme="light"] .bottom-dock.dragging .lg-track__lens {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10), inset 0 1px 1.5px #FFFFFF;
 }
 
 /* Dock Divider */

@@ -91,6 +91,8 @@ import com.example.data.tools.ToolResult
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassCapsule
+import com.example.ui.theme.LocalAppColors
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.fluidLensedGlass
@@ -275,7 +277,7 @@ fun ToolsScreen(
           modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        // Category Chips (Pinned, horizontal scroll decoupled from vertical cards)
+        // Category Chips (Pinned, horizontal scroll with authentic Liquid Glass capsules)
         Row(
           modifier = Modifier
             .fillMaxWidth()
@@ -284,11 +286,41 @@ fun ToolsScreen(
         ) {
           ToolCategory.entries.forEach { category ->
             val isSelected = category == selectedCategory
-            SketchFilterChip(
-              selected = isSelected,
-              onClick = { selectedCategory = category },
-              label = category.displayName
-            )
+            LiquidGlassCapsule(
+              shape = RoundedCornerShape(percent = 50),
+              borderWidth = if (isSelected) 1.dp else 0.75.dp,
+              modifier = Modifier
+                .bounceClick {
+                  selectedCategory = category
+                  com.example.util.SoundManager.playSwipeNav(context)
+                }
+            ) {
+              val isDark = LocalAppColors.current.isDark
+              val pillBg = if (isSelected) {
+                if (isDark) Color.White.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.85f)
+              } else {
+                if (isDark) Color(0x24181A20) else Color.White.copy(alpha = 0.35f)
+              }
+              val textColor = if (isSelected) {
+                if (isDark) Color.White else Color(0xFF1C1C1E)
+              } else {
+                if (isDark) Color.White.copy(alpha = 0.50f) else Color(0xFF8E8E93)
+              }
+              Box(
+                modifier = Modifier
+                  .background(pillBg, RoundedCornerShape(percent = 50))
+                  .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+              ) {
+                Text(
+                  text = category.displayName,
+                  color = textColor,
+                  fontFamily = StrongFontFamily,
+                  fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                  fontSize = 13.sp
+                )
+              }
+            }
           }
         }
 

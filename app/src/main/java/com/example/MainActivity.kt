@@ -210,6 +210,9 @@ import com.example.ui.viewmodel.MainViewModel
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
 import androidx.annotation.RawRes
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import com.example.ui.components.LiquidGlassQuickCreateMenu
 import com.example.ui.components.AnimatedIcon
 import com.example.ui.navigation.AppNavDestination
 import com.example.ui.navigation.AppNavOverlay
@@ -489,13 +492,6 @@ fun MainApp(
     }
   }
 
-  // Centralized physical back handling: guards against unexpected application exit
-  BackHandler(
-    enabled = navController.canNavigateBack
-  ) {
-    navController.navigateBack()
-  }
-
   val hazeState = rememberHazeState()
 
   CompositionLocalProvider(LocalHazeState provides hazeState) {
@@ -510,6 +506,29 @@ fun MainApp(
       ) { destination ->
         when (destination) {
           is AppNavDestination.Main -> {
+            val pagerState = rememberPagerState(
+              initialPage = navController.selectedTab.coerceIn(0, destinations.size - 1),
+              pageCount = { destinations.size }
+            )
+
+            // Keep pager and navController in sync when page settles
+            LaunchedEffect(pagerState.currentPage) {
+              if (navController.selectedTab != pagerState.currentPage) {
+                navController.switchTab(pagerState.currentPage)
+              }
+            }
+            LaunchedEffect(navController.selectedTab) {
+              if (pagerState.currentPage != navController.selectedTab) {
+                if (reduceMotion) {
+                  pagerState.scrollToPage(navController.selectedTab)
+                } else {
+                  pagerState.animateScrollToPage(navController.selectedTab)
+                }
+              }
+            }
+
+            val pageOffset = pagerState.currentPage + pagerState.currentPageOffsetFraction
+
             Scaffold(
               modifier = Modifier.fillMaxSize(),
               containerColor = PaperBackground,
@@ -517,6 +536,19 @@ fun MainApp(
                 SketchBottomNavigationBar(
                   destinations = destinations,
                   selectedTab = navController.selectedTab,
+                  externalPageOffset = pageOffset,
+                  onDragOffset = { slotPos ->
+                    coroutineScope.launch {
+                      val targetPage = slotPos.toInt().coerceIn(0, destinations.size - 1)
+                      val offsetFraction = (slotPos - targetPage).coerceIn(0f, 0.999f)
+                      pagerState.scrollToPage(targetPage, offsetFraction)
+                    }
+                  },
+                  onDragReleased = { finalSlot ->
+                    coroutineScope.launch {
+                      pagerState.animateScrollToPage(finalSlot)
+                    }
+                  },
                   isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
                   onDestinationSelected = { dest ->
                     val targetIndex = destinations.indexOf(dest)
@@ -535,84 +567,56 @@ fun MainApp(
                   .hazeSource(hazeState)
                   .background(PaperBackground)
                   .padding(top = innerPadding.calculateTopPadding())
-                  .horizontalSwipeNavigation(
-                  onSwipeLeft = {
-                    if (navController.selectedTab < destinations.size - 1) {
-                      navController.switchTab(navController.selectedTab + 1)
+              ) {
+                HorizontalPager(
+                  state = pagerState,
+                  modifier = Modifier.fillMaxSize()
+                ) { tabIndex ->
+                  when (destinations[tabIndex]) {
+                    AppDestination.TODAY -> {
+                      HomeScreen(
+                        viewModel = viewModel,
+                        onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
+                        onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                        onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
+                        onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                        onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
+                        onNavigateToSearch = { navController.navigate(AppNavDestination.Search) },
+                        onOpenFocusTimer = { navController.navigate(AppNavDestination.FocusTimer(25)) }
+                      )
                     }
-                  },
-                  onSwipeRight = {
-                    if (navController.selectedTab > 0) {
-                      navController.switchTab(navController.selectedTab - 1)
+                    AppDestination.PRODUCTIVITY -> {
+                      ProductivityScreen(
+                        viewModel = viewModel,
+                        onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
+                        onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                        onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
+                        onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
+                        onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                        onBackToHome = { navController.switchTab(0) },
+                        onSwipeToTools = { navController.switchTab(2) }
+                      )
                     }
-                  }
-                )
-            ) {
-              AnimatedContent(
-                targetState = navController.selectedTab,
-                transitionSpec = {
-                  if (reduceMotion) {
-                    fadeIn(tween(80)).togetherWith(fadeOut(tween(80)))
-                  } else {
-                    val forward = targetState >= initialState
-                    val slideDir = if (forward) 1 else -1
-                    (slideInHorizontally(
-                      initialOffsetX = { fullWidth -> slideDir * (fullWidth / 10) },
-                      animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f)
-                    ) + fadeIn(tween(150, easing = FastOutSlowInEasing), initialAlpha = 0f)).togetherWith(
-                      slideOutHorizontally(
-                        targetOffsetX = { fullWidth -> -slideDir * (fullWidth / 10) },
-                        animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f)
-                      ) + fadeOut(tween(120, easing = FastOutSlowInEasing), targetAlpha = 0f)
-                    )
-                  }
-                },
-                label = "mainTabContent"
-              ) { tabIndex ->
-                when (destinations[tabIndex]) {
-                  AppDestination.TODAY -> {
-                    HomeScreen(
-                      viewModel = viewModel,
-                      onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
-                      onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
-                      onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
-                      onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
-                      onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
-                      onNavigateToSearch = { navController.navigate(AppNavDestination.Search) },
-                      onOpenFocusTimer = { navController.navigate(AppNavDestination.FocusTimer(25)) }
-                    )
-                  }
-                  AppDestination.PRODUCTIVITY -> {
-                    ProductivityScreen(
-                      viewModel = viewModel,
-                      onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) },
-                      onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
-                      onTaskClick = { navController.navigate(AppNavDestination.TaskDetail(task = it)) },
-                      onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
-                      onBackToHome = { navController.switchTab(0) },
-                      onSwipeToTools = { navController.switchTab(2) }
-                    )
-                  }
-                  AppDestination.TOOLS -> {
-                    ToolsScreen(
-                      onBack = { navController.switchTab(0) },
-                      onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
-                      onCreateTaskFromResult = { title, notes ->
-                        navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
-                      }
-                    )
-                  }
-                  AppDestination.INSIGHTS -> {
-                    ReportsScreen(
-                      onBack = { navController.switchTab(0) },
-                      onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
-                    )
+                    AppDestination.TOOLS -> {
+                      ToolsScreen(
+                        onBack = { navController.switchTab(0) },
+                        onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
+                        onCreateTaskFromResult = { title, notes ->
+                          navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
+                        }
+                      )
+                    }
+                    AppDestination.INSIGHTS -> {
+                      ReportsScreen(
+                        onBack = { navController.switchTab(0) },
+                        onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
+                      )
+                    }
                   }
                 }
               }
             }
           }
-        }
 
         is AppNavDestination.TaskDetail -> {
           Box(
@@ -733,223 +737,24 @@ fun MainApp(
         )
       }
       is AppNavOverlay.QuickCreate -> {
-        GlassSheet(
+        LiquidGlassQuickCreateMenu(
           visible = true,
-          onDismissRequest = { navController.dismissOverlay() }
-        ) {
-          val isDarkTheme = isSystemInDarkTheme()
-          val badgeBg = if (isDarkTheme) Color(0x28FFFFFF) else Color(0x12000000)
-          val badgeBorder = if (isDarkTheme) Color(0x38FFFFFF) else Color(0x1F000000)
-
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Text(
-              text = "Quick Create",
-              style = TextStyle(
-                fontFamily = StrongFontFamily,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = InkPrimary
-              )
-            )
-
-            GlassButton(
-              onClick = { navController.dismissOverlay() },
-              contentDescription = "Close",
-              size = 34.dp
-            ) {
-              Icon(
-                Icons.Default.Close,
-                contentDescription = null,
-                tint = InkPrimary,
-                modifier = Modifier.size(16.dp)
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(18.dp))
-
-          // Option 1: New Task
-          LiquidGlassCard(
-            modifier = Modifier
-              .fillMaxWidth()
-              .bounceClick {
-                navController.dismissOverlay()
-                navController.navigate(AppNavDestination.TaskDetail())
-              },
-            cornerRadius = 18.dp,
-            borderWidth = 0.75.dp
-          ) {
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Box(
-                modifier = Modifier
-                  .size(44.dp)
-                  .clip(RoundedCornerShape(13.dp))
-                  .background(badgeBg)
-                  .border(0.75.dp, badgeBorder, RoundedCornerShape(13.dp)),
-                contentAlignment = Alignment.Center
-              ) {
-                AnimatedIcon(
-                  resId = R.raw.anim_productivity,
-                  isSelected = true,
-                  tint = InkPrimary,
-                  size = 24.dp
-                )
-              }
-              Spacer(modifier = Modifier.width(14.dp))
-              Column(modifier = Modifier.weight(1f)) {
-                Text(
-                  text = "New Task",
-                  style = TextStyle(
-                    fontFamily = StrongFontFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = InkPrimary
-                  )
-                )
-                Text(
-                  text = "Actionable to-do with due dates & subtasks",
-                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
-                )
-              }
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = InkSecondary.copy(alpha = 0.4f),
-                modifier = Modifier.size(14.dp)
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          // Option 2: New Habit
-          LiquidGlassCard(
-            modifier = Modifier
-              .fillMaxWidth()
-              .bounceClick {
-                navController.dismissOverlay()
-                navController.navigate(AppNavDestination.HabitDetail())
-              },
-            cornerRadius = 18.dp,
-            borderWidth = 0.75.dp
-          ) {
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Box(
-                modifier = Modifier
-                  .size(44.dp)
-                  .clip(RoundedCornerShape(13.dp))
-                  .background(badgeBg)
-                  .border(0.75.dp, badgeBorder, RoundedCornerShape(13.dp)),
-                contentAlignment = Alignment.Center
-              ) {
-                AnimatedIcon(
-                  resId = R.raw.anim_today,
-                  isSelected = true,
-                  tint = InkPrimary,
-                  size = 24.dp
-                )
-              }
-              Spacer(modifier = Modifier.width(14.dp))
-              Column(modifier = Modifier.weight(1f)) {
-                Text(
-                  text = "New Habit",
-                  style = TextStyle(
-                    fontFamily = StrongFontFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = InkPrimary
-                  )
-                )
-                Text(
-                  text = "Track daily routines & maintain momentum",
-                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
-                )
-              }
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = InkSecondary.copy(alpha = 0.4f),
-                modifier = Modifier.size(14.dp)
-              )
-            }
-          }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          // Option 3: Short-term Task (Auto-removes upon completion, local record only)
-          LiquidGlassCard(
-            modifier = Modifier
-              .fillMaxWidth()
-              .bounceClick {
-                navController.dismissOverlay()
-                navController.navigate(
-                  AppNavDestination.TaskDetail(initialIsShortTerm = true)
-                )
-              },
-            cornerRadius = 18.dp,
-            borderWidth = 0.75.dp
-          ) {
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Box(
-                modifier = Modifier
-                  .size(44.dp)
-                  .clip(RoundedCornerShape(13.dp))
-                  .background(badgeBg)
-                  .border(0.75.dp, badgeBorder, RoundedCornerShape(13.dp)),
-                contentAlignment = Alignment.Center
-              ) {
-                Icon(
-                  imageVector = Icons.Default.Check,
-                  contentDescription = null,
-                  tint = InkPrimary,
-                  modifier = Modifier.size(22.dp)
-                )
-              }
-              Spacer(modifier = Modifier.width(14.dp))
-              Column(modifier = Modifier.weight(1f)) {
-                Text(
-                  text = "Short-term Task",
-                  style = TextStyle(
-                    fontFamily = StrongFontFamily,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = InkPrimary
-                  )
-                )
-                Text(
-                  text = "Stored locally • Auto-clears when complete",
-                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
-                )
-              }
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = InkSecondary.copy(alpha = 0.4f),
-                modifier = Modifier.size(14.dp)
-              )
-            }
-          }
-          Spacer(modifier = Modifier.height(8.dp))
-        }
+          onDismissRequest = { navController.dismissOverlay() },
+          onNewTask = {
+            navController.dismissOverlay()
+            navController.navigate(AppNavDestination.TaskDetail())
+          },
+          onNewHabit = {
+            navController.dismissOverlay()
+            navController.navigate(AppNavDestination.HabitDetail())
+          },
+          onShortTermTask = {
+            navController.dismissOverlay()
+            navController.navigate(AppNavDestination.TaskDetail(initialIsShortTerm = true))
+          },
+          gestureState = navController.gestureState,
+          hazeState = hazeState
+        )
       }
 
       is AppNavOverlay.FocusTimer -> {
@@ -1489,6 +1294,9 @@ class CenterFabScoopedShape(
 fun SketchBottomNavigationBar(
   destinations: List<AppDestination> = AppDestination.entries,
   selectedTab: Int,
+  externalPageOffset: Float? = null,
+  onDragOffset: ((Float) -> Unit)? = null,
+  onDragReleased: ((Int) -> Unit)? = null,
   isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
   onQuickAdd: () -> Unit = {},
@@ -1502,10 +1310,13 @@ fun SketchBottomNavigationBar(
       .padding(bottom = 8.dp),
     contentAlignment = Alignment.Center
   ) {
-    // Main 4-Destination Floating Navigation Dock (height 54.dp & concentric 27.dp radius)
+    // Main 4-Destination Floating Navigation Dock (height 48.dp, flush at rest, 1.2dp pop-out when active)
     LiquidGlassNavigationDock(
       destinations = destinations.take(4),
       selectedTab = selectedTab.coerceIn(0, 3),
+      externalPageOffset = externalPageOffset,
+      onDragOffset = onDragOffset,
+      onDragReleased = onDragReleased,
       onDestinationSelected = onDestinationSelected,
       hazeState = hazeState,
       modifier = Modifier

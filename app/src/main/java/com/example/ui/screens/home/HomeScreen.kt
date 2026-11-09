@@ -1,6 +1,5 @@
 package com.example.ui.screens.home
 
-import com.example.ui.glass.LiquidGlassPillSwitcher
 import com.example.ui.theme.StrongFontFamily
 import com.example.ui.components.AnimatedIcon
 import androidx.compose.animation.AnimatedContent
@@ -735,15 +734,15 @@ fun HomeScreen(
 
         if (sectionVisibility[DashboardSection.DAILY_PLANNER] != false) {
 
-      // Filter Segment: [All] [Tasks] [Habits] - Draggable Liquid Glass Pill Switcher (Image 1)
+      // Filter Segment: [All] [Tasks] [Habits] - Unified Liquid Glass Segmented Control
       item {
-        LiquidGlassPillSwitcher(
+        LiquidGlassSegmentedControl(
           items = listOf("All", "Tasks", "Habits"),
           selectedIndex = selectedTab,
-          onSelect = { selectedTab = it },
+          onItemSelected = { selectedTab = it },
           modifier = Modifier
             .fillMaxWidth()
-            .height(44.dp)
+            .height(56.dp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))

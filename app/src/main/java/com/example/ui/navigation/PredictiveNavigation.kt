@@ -87,11 +87,22 @@ sealed interface AppNavOverlay {
 }
 
 /**
+ * Categorization of active predictive back gesture targets.
+ */
+enum class PredictiveBackTarget {
+  NONE,
+  OVERLAY,
+  STACK_DESTINATION,
+  TAB_ROOT
+}
+
+/**
  * Encapsulates live predictive gesture telemetry (progress 0..1, edge, touch coordinates).
  */
 @Stable
 class PredictiveBackGestureState {
   var isPredictingBack by mutableStateOf(false)
+  var targetKind by mutableStateOf(PredictiveBackTarget.NONE)
   var progress by mutableFloatStateOf(0f)
   var swipeEdge by mutableIntStateOf(BackEventCompat.EDGE_LEFT)
   var touchX by mutableFloatStateOf(0f)
@@ -123,11 +134,20 @@ class PredictiveNavController(
   val previousDestination: AppNavDestination?
     get() = if (backStack.size > 1) backStack[backStack.size - 2] else null
 
+  val currentBackTarget: PredictiveBackTarget
+    get() = when {
+      isTransitioning -> PredictiveBackTarget.NONE
+      activeOverlay != null -> PredictiveBackTarget.OVERLAY
+      backStack.size > 1 -> PredictiveBackTarget.STACK_DESTINATION
+      selectedTab != 0 -> PredictiveBackTarget.TAB_ROOT
+      else -> PredictiveBackTarget.NONE
+    }
+
   val canNavigateBack: Boolean
     get() = activeOverlay != null || backStack.size > 1 || selectedTab != 0
 
   val canPredictiveBack: Boolean
-    get() = activeOverlay == null && backStack.size > 1 && !isTransitioning
+    get() = currentBackTarget != PredictiveBackTarget.NONE
 
   /**
    * Switch the active primary tab immediately without recreating or animating the root shell.
@@ -277,6 +297,8 @@ fun PredictiveNavigationHost(
 
   // System PredictiveBackHandler integration with strict backstack guards
   PredictiveBackHandler(enabled = navController.canPredictiveBack) { progressFlow: Flow<BackEventCompat> ->
+    val target = navController.currentBackTarget
+    gestureState.targetKind = target
     gestureState.isPredictingBack = true
     navController.isTransitioning = true
     try {
@@ -295,8 +317,13 @@ fun PredictiveNavigationHost(
           stiffness = Spring.StiffnessMediumLow
         )
       )
-      // Pop the destination after the card has cleanly exited the viewport
-      navController.popBackStackDirect()
+      // Execute pop / dismiss / tab switch cleanly based on gesture target
+      when (target) {
+        PredictiveBackTarget.OVERLAY -> navController.dismissOverlay()
+        PredictiveBackTarget.STACK_DESTINATION -> navController.popBackStackDirect()
+        PredictiveBackTarget.TAB_ROOT -> navController.switchTab(0)
+        PredictiveBackTarget.NONE -> {}
+      }
     } catch (_: CancellationException) {
       // Gesture cancelled: spring active screen smoothly back to rest (0f)
       gestureState.animProgress.animateTo(
@@ -308,6 +335,7 @@ fun PredictiveNavigationHost(
       )
     } finally {
       gestureState.isPredictingBack = false
+      gestureState.targetKind = PredictiveBackTarget.NONE
       gestureState.animProgress.snapTo(0f)
       gestureState.progress = 0f
       navController.isTransitioning = false
@@ -324,7 +352,10 @@ fun PredictiveNavigationHost(
     // -------------------------------------------------------------
     // LAYER 0: PREVIOUS SCREEN (UNDERNEATH PREVIEW DURING GESTURE)
     // -------------------------------------------------------------
-    if (gestureState.isPredictingBack && previousDest != null) {
+    val isStackGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.STACK_DESTINATION
+    val isTabGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.TAB_ROOT
+
+    if (isStackGesture && previousDest != null) {
       val progress = gestureState.animProgress.value
       // Previous screen rises smoothly from depth: scale 0.95f -> 1.0f
       val prevScale = 0.95f + (progress * 0.05f)
@@ -352,22 +383,41 @@ fun PredictiveNavigationHost(
           )
         }
       }
+    } else if (isTabGesture) {
+      val progress = gestureState.animProgress.value
+      val prevScale = 0.95f + (progress * 0.05f)
+      val scrimAlpha = ((1f - progress) * 0.15f).coerceIn(0f, 0.15f)
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(PaperBackground)
+          .graphicsLayer {
+            scaleX = prevScale
+            scaleY = prevScale
+          }
+      ) {
+        content(AppNavDestination.Main(0))
+        if (scrimAlpha > 0f) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .background(Color.Black.copy(alpha = scrimAlpha))
+          )
+        }
+      }
     }
 
     // -------------------------------------------------------------
     // LAYER 1: ACTIVE SCREEN (TOP / GESTURE OR ANIMATED CONTENT)
     // -------------------------------------------------------------
-    if (gestureState.isPredictingBack) {
+    if (isStackGesture || isTabGesture) {
       val progress = gestureState.animProgress.value
-      // Foreground card scales subtly and rounds its corners
       val activeScale = 1f - (progress * 0.08f)
-      val activeCorner = (progress * 24).dp
+      val activeCorner = (progress * 28).dp
       val direction = if (gestureState.swipeEdge == BackEventCompat.EDGE_RIGHT) -1f else 1f
 
-      // Translation starts tactile and accelerates off-screen on commit (progress -> 1f)
       val translationPx = fullWidthPx * progress * direction
       val shadowElevationPx = with(density) { 20.dp.toPx() }
-      // Card stays 100% solid and opaque while dragging; fades only near the very edge (progress > 0.7f)
       val activeAlpha = if (progress > 0.70f) {
         ((1f - progress) / 0.30f).coerceIn(0f, 1f)
       } else {

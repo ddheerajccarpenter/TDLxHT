@@ -37,6 +37,7 @@ export function initBottomNav() {
     if (e.button !== 0 || e.target.closest('.dock-theme-btn')) return;
     isDragging = true;
     startX = e.clientX;
+    dock.classList.add('active-pop');
     dock.classList.add('dragging');
     dock.setPointerCapture(e.pointerId);
   });
@@ -58,6 +59,9 @@ export function initBottomNav() {
     if (!isDragging) return;
     isDragging = false;
     dock.classList.remove('dragging');
+    setTimeout(() => {
+      dock.classList.remove('active-pop');
+    }, 220);
     try {
       dock.releasePointerCapture(e.pointerId);
     } catch (_) {}
@@ -84,6 +88,8 @@ export function initBottomNav() {
   // Click handler for navigation tabs
   navTabs.forEach((tab, index) => {
     tab.addEventListener('click', (e) => {
+      dock.classList.add('active-pop');
+      setTimeout(() => dock.classList.remove('active-pop'), 260);
       const href = tab.getAttribute('href');
       if (href && href.startsWith('#')) {
         const target = document.querySelector(href);

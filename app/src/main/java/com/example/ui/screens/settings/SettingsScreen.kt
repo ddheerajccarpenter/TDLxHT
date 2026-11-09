@@ -17,6 +17,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import com.example.R
 import com.example.util.AppPreferences
@@ -1308,6 +1309,12 @@ fun SettingsToggleRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
+      .clickable(
+        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+        indication = null
+      ) {
+        onCheckedChange(!checked)
+      }
       .padding(vertical = 8.dp),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically

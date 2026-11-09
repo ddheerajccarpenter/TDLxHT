@@ -320,10 +320,11 @@ fun LiquidGlassSegmentedControl(
     }
   }
 
-  val dragProgress by animateFloatAsState(
+
+  val actionProgress by animateFloatAsState(
     targetValue = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f,
     animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f),
-    label = "segDragProgress"
+    label = "controlActionProgress"
   )
 
   var jiggleOffset by remember { mutableFloatStateOf(0f) }
@@ -339,16 +340,25 @@ fun LiquidGlassSegmentedControl(
         val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastNanos = now
         elapsed += dt
-        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * dragProgress
+        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
       }
     }
     jiggleOffset = 0f
   }
 
-  val trackColor = if (isDark) Color(0x38181A20) else Color.Black.copy(alpha = 0.065f)
-  val selectedColor = if (isDark) Color.White.copy(alpha = 0.16f + 0.08f * dragProgress) else Color.Black.copy(alpha = 0.10f + 0.06f * dragProgress)
+  val trackBrush = if (isDark) {
+    Brush.verticalGradient(listOf(Color(0x38222630), Color(0x2814161C)))
+  } else {
+    Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.65f), Color.White.copy(alpha = 0.40f)))
+  }
+  val selectedColor = if (isDark) {
+    Color.White.copy(alpha = 0.08f + 0.14f * actionProgress)
+  } else {
+    Color.White.copy(alpha = 0.22f + 0.63f * actionProgress)
+  }
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
-  val liftScale = 1f + 0.16f * dragProgress
+  val liftScale = 1f + 0.18f * actionProgress
+  val pillHeight = 40.dp + 10.4.dp * actionProgress
 
   val lensShader = remember {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -357,7 +367,7 @@ fun LiquidGlassSegmentedControl(
   }
 
   BoxWithConstraints(
-    modifier = modifier.fillMaxWidth().height(54.dp),
+    modifier = modifier.fillMaxWidth().height(56.dp),
     contentAlignment = Alignment.CenterStart
   ) {
     val sideInset = 4.dp
@@ -365,26 +375,30 @@ fun LiquidGlassSegmentedControl(
     val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
     val sideInsetPx = with(density) { sideInset.toPx() }
 
-    // 1. Live Layer Backdrop Glass Track
+    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 56.dp)
     Box(
       Modifier
-        .matchParentSize()
+        .fillMaxWidth()
+        .height(48.dp)
+        .align(Alignment.Center)
         .layerBackdrop(trackBackdrop)
         .clip(controlShape)
     ) {
-      Box(Modifier.fillMaxSize().background(trackColor))
+      Box(Modifier.fillMaxSize().background(trackBrush))
+      Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
     }
 
-    // 2. Active Pill Lens Indicator (Pops out symmetrically during drag/hold with giggle physics).
+    // 2. Active Pill Lens Indicator: normal size (40dp) inside track at rest, expanding to 50.4dp pop-out when touched
     Box(
       Modifier
+        .align(Alignment.CenterStart)
         .padding(horizontal = sideInset)
-        .height(44.dp)
+        .height(pillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
-          shadowElevation = 12.dp.toPx() * dragProgress
-          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.55f) else Color.Black.copy(alpha = 0.18f)
-          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f) else Color.Black.copy(alpha = 0.08f)
+          shadowElevation = (if (isDark) 8.dp else 5.dp).toPx() * actionProgress
+          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.12f)
+          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.05f)
         }
         .drawBackdrop(
           backdrop = trackBackdrop,
@@ -393,8 +407,14 @@ fun LiquidGlassSegmentedControl(
             vibrancy()
             lens(11f.dp.toPx(), 21f.dp.toPx(), chromaticAberration = false)
           },
-          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.45f + 0.50f * dragProgress) else 0.65f) },
-          innerShadow = { InnerShadow(radius = 3.dp, alpha = 0.22f) },
+          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.25f + 0.50f * actionProgress) else (0.20f + 0.45f * actionProgress)) },
+          innerShadow = {
+            if (isDark) {
+              InnerShadow(radius = 3.dp, alpha = 0.22f * actionProgress)
+            } else {
+              InnerShadow(radius = 1.dp, alpha = 0.04f * actionProgress)
+            }
+          },
           layerBlock = {
             translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
             scaleX = liftScale + dynamicStretch
@@ -409,11 +429,11 @@ fun LiquidGlassSegmentedControl(
       Modifier.graphicsLayer {
         val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
-        val halfHPx = (44.dp.toPx() / 2f) * liftScale
+        val halfHPx = (pillHeight.toPx() / 2f) * liftScale
         lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
         lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
-        lensShader.setFloatUniform("uZoom", 0.08f + 0.20f * dragProgress)
-        lensShader.setFloatUniform("uChroma", dragProgress)
+        lensShader.setFloatUniform("uZoom", 0.02f + 0.18f * actionProgress)
+        lensShader.setFloatUniform("uChroma", actionProgress)
         renderEffect = RenderEffect
           .createRuntimeShaderEffect(lensShader, "content")
           .asComposeRenderEffect()
@@ -422,9 +442,11 @@ fun LiquidGlassSegmentedControl(
 
     Row(
       Modifier
-        .fillMaxSize()
+        .fillMaxWidth()
+        .height(48.dp)
+        .align(Alignment.Center)
         .then(lensModifier)
-        .padding(horizontal = sideInset, vertical = 5.dp)
+        .padding(horizontal = sideInset)
         .pointerInput(totalSlots, indicatorWidthPx) {
           if (indicatorWidthPx <= 0f) return@pointerInput
           val touchSlop = viewConfiguration.touchSlop
@@ -509,9 +531,11 @@ fun LiquidGlassSegmentedControl(
             },
           contentAlignment = Alignment.Center
         ) {
+          val activeTextColor = if (isDark) Color.White else Color(0xFF1C1C1E)
+          val inactiveTextColor = if (isDark) Color.White.copy(alpha = 0.50f) else Color(0xFF8E8E93)
           Text(
             text = item,
-            color = if (selected) com.example.ui.theme.InkPrimary else com.example.ui.theme.InkSecondary,
+            color = if (selected) activeTextColor else inactiveTextColor,
             fontFamily = StrongFontFamily,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
             style = MaterialTheme.typography.labelLarge,
@@ -520,7 +544,6 @@ fun LiquidGlassSegmentedControl(
         }
       }
     }
-    Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
   }
 }
 
@@ -609,7 +632,10 @@ fun LiquidGlassNavigationDock(
   selectedTab: Int,
   onDestinationSelected: (AppDestination) -> Unit,
   modifier: Modifier = Modifier,
-  hazeState: HazeState? = null
+  hazeState: HazeState? = null,
+  externalPageOffset: Float? = null,
+  onDragOffset: ((fraction: Float) -> Unit)? = null,
+  onDragReleased: ((targetIndex: Int) -> Unit)? = null
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
@@ -631,14 +657,18 @@ fun LiquidGlassNavigationDock(
   var dragTargetPos by remember { mutableFloatStateOf(selectedTab.toFloat()) }
   var lastHapticIndex by remember { mutableIntStateOf(selectedTab) }
 
-  // Sync indicator when not dragging
-  LaunchedEffect(selectedTab) {
+  // Sync indicator when not dragging: smoothly track external page offset (from pager) or selectedTab
+  LaunchedEffect(externalPageOffset, selectedTab, isDragging) {
     if (!isDragging) {
-      val target = selectedTab.coerceIn(0, totalSlots - 1).toFloat()
-      if (reduceMotion) indicatorPos.snapTo(target) else indicatorPos.animateTo(
-        targetValue = target,
-        animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f)
-      )
+      if (externalPageOffset != null) {
+        indicatorPos.snapTo(externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat()))
+      } else {
+        val target = selectedTab.coerceIn(0, totalSlots - 1).toFloat()
+        if (reduceMotion) indicatorPos.snapTo(target) else indicatorPos.animateTo(
+          targetValue = target,
+          animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f)
+        )
+      }
     }
   }
 
@@ -658,10 +688,11 @@ fun LiquidGlassNavigationDock(
     }
   }
 
-  val dragProgress by animateFloatAsState(
+  // "Comes into action" when clicked or held: expands from normal resting size to 1.2dp pop-out overhang & frosted fill
+  val actionProgress by animateFloatAsState(
     targetValue = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f,
     animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f),
-    label = "dockDragProgress"
+    label = "dockActionProgress"
   )
 
   var jiggleOffset by remember { mutableFloatStateOf(0f) }
@@ -677,16 +708,27 @@ fun LiquidGlassNavigationDock(
         val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastNanos = now
         elapsed += dt
-        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * dragProgress
+        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
       }
     }
     jiggleOffset = 0f
   }
 
-  val trackColor = if (isDark) Color(0x38181A20) else Color.Black.copy(alpha = 0.065f)
-  val selectedColor = if (isDark) Color.White.copy(alpha = 0.16f + 0.08f * dragProgress) else Color.Black.copy(alpha = 0.10f + 0.06f * dragProgress)
+  val trackBrush = if (isDark) {
+    Brush.verticalGradient(listOf(Color(0x38222630), Color(0x2814161C)))
+  } else {
+    Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.65f), Color.White.copy(alpha = 0.40f)))
+  }
+  // Subtle transparent glass at rest; prominent filled frosted glass only in action
+  val selectedColor = if (isDark) {
+    Color.White.copy(alpha = 0.08f + 0.14f * actionProgress)
+  } else {
+    Color.White.copy(alpha = 0.22f + 0.63f * actionProgress)
+  }
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
-  val liftScale = 1f + 0.16f * dragProgress
+  val liftScale = 1f + 0.18f * actionProgress
+  // Height: 40dp at rest (flush inside 48dp track), expanding to 50.4dp in action (1.2dp top/bottom overhang)
+  val pillHeight = 40.dp + 10.4.dp * actionProgress
 
   val lensShader = remember {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -697,7 +739,7 @@ fun LiquidGlassNavigationDock(
   BoxWithConstraints(
     modifier = modifier
       .fillMaxWidth()
-      .height(54.dp),
+      .height(56.dp),
     contentAlignment = Alignment.CenterStart
   ) {
     val sideInset = 4.dp
@@ -705,26 +747,32 @@ fun LiquidGlassNavigationDock(
     val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
     val sideInsetPx = with(density) { sideInset.toPx() }
 
-    // 1. Live Layer Backdrop Glass Track (1:1 identical to LiquidGlassSegmentedControl)
+    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 56.dp)
     Box(
       Modifier
-        .matchParentSize()
+        .fillMaxWidth()
+        .height(48.dp)
+        .align(Alignment.Center)
         .layerBackdrop(trackBackdrop)
         .clip(controlShape)
     ) {
-      Box(Modifier.fillMaxSize().background(trackColor))
+      Box(Modifier.fillMaxSize().background(trackBrush))
+      Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
     }
 
-    // 2. Active Pill Lens Indicator (Pops out symmetrically during drag/hold with giggle physics).
+    // 2. Active Pill Lens Indicator:
+    // Sits at normal size (40dp) inside the track at rest without shadow;
+    // Expands to 50.4dp (1.2dp overhang) and fills with frosted glass when touched/held.
     Box(
       Modifier
+        .align(Alignment.CenterStart)
         .padding(horizontal = sideInset)
-        .height(44.dp)
+        .height(pillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
-          shadowElevation = 12.dp.toPx() * dragProgress
-          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.55f) else Color.Black.copy(alpha = 0.18f)
-          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f) else Color.Black.copy(alpha = 0.08f)
+          shadowElevation = (if (isDark) 8.dp else 5.dp).toPx() * actionProgress
+          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.12f)
+          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.05f)
         }
         .drawBackdrop(
           backdrop = trackBackdrop,
@@ -733,8 +781,14 @@ fun LiquidGlassNavigationDock(
             vibrancy()
             lens(11f.dp.toPx(), 21f.dp.toPx(), chromaticAberration = false)
           },
-          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.45f + 0.50f * dragProgress) else 0.65f) },
-          innerShadow = { InnerShadow(radius = 3.dp, alpha = 0.22f) },
+          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.25f + 0.50f * actionProgress) else (0.20f + 0.45f * actionProgress)) },
+          innerShadow = {
+            if (isDark) {
+              InnerShadow(radius = 3.dp, alpha = 0.22f * actionProgress)
+            } else {
+              InnerShadow(radius = 1.dp, alpha = 0.04f * actionProgress)
+            }
+          },
           layerBlock = {
             translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
             scaleX = liftScale + dynamicStretch
@@ -749,11 +803,11 @@ fun LiquidGlassNavigationDock(
       Modifier.graphicsLayer {
         val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
-        val halfHPx = (44.dp.toPx() / 2f) * liftScale
+        val halfHPx = (pillHeight.toPx() / 2f) * liftScale
         lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
         lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
-        lensShader.setFloatUniform("uZoom", 0.08f + 0.20f * dragProgress)
-        lensShader.setFloatUniform("uChroma", dragProgress)
+        lensShader.setFloatUniform("uZoom", 0.02f + 0.18f * actionProgress)
+        lensShader.setFloatUniform("uChroma", actionProgress)
         renderEffect = RenderEffect
           .createRuntimeShaderEffect(lensShader, "content")
           .asComposeRenderEffect()
@@ -762,9 +816,11 @@ fun LiquidGlassNavigationDock(
 
     Row(
       Modifier
-        .fillMaxSize()
+        .fillMaxWidth()
+        .height(48.dp)
+        .align(Alignment.Center)
         .then(lensModifier)
-        .padding(horizontal = sideInset, vertical = 5.dp)
+        .padding(horizontal = sideInset)
         .pointerInput(totalSlots, indicatorWidthPx) {
           if (indicatorWidthPx <= 0f) return@pointerInput
           val touchSlop = viewConfiguration.touchSlop
@@ -790,6 +846,7 @@ fun LiquidGlassNavigationDock(
                   isDragging = true
                   val slotPos = ((change.position.x - sideInsetPx) / indicatorWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
                   dragTargetPos = slotPos
+                  onDragOffset?.invoke(slotPos)
                   change.consume()
                 }
               }
@@ -798,6 +855,7 @@ fun LiquidGlassNavigationDock(
                 change.consume()
                 val slotPos = ((change.position.x - sideInsetPx) / indicatorWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
                 dragTargetPos = slotPos
+                onDragOffset?.invoke(slotPos)
 
                 val currentSlot = slotPos.roundToInt().coerceIn(0, totalSlots - 1)
                 if (currentSlot != lastHapticIndex) {
@@ -812,6 +870,7 @@ fun LiquidGlassNavigationDock(
             if (dragStarted) {
               isDragging = false
               val finalSlot = indicatorPos.value.roundToInt().coerceIn(0, totalSlots - 1)
+              onDragReleased?.invoke(finalSlot)
               onDestinationSelected(activeDestinations[finalSlot])
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
@@ -843,9 +902,6 @@ fun LiquidGlassNavigationDock(
         )
       }
     }
-
-    // 4. Directional specular rim
-    Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
   }
 }
 
@@ -919,8 +975,14 @@ fun FloatingLiquidGlassActionButton(
             blur(4f.dp.toPx())
             lens(14f.dp.toPx(), 24f.dp.toPx(), chromaticAberration = false)
           },
-          highlight = { Highlight.Default.copy(alpha = 0.45f) },
-          innerShadow = { InnerShadow(radius = 4.dp, alpha = 0.22f) },
+          highlight = { Highlight.Default.copy(alpha = if (isDark) 0.45f else 0.35f) },
+          innerShadow = {
+            if (isDark) {
+              InnerShadow(radius = 4.dp, alpha = 0.22f)
+            } else {
+              InnerShadow(radius = 1.dp, alpha = 0.04f)
+            }
+          },
           onDrawSurface = { drawRect(selectedColor) }
         )
     )
@@ -935,7 +997,7 @@ fun FloatingLiquidGlassActionButton(
     Icon(
       imageVector = Icons.Default.Add,
       contentDescription = if (isOpen) "Close create sheet" else "Quick Create",
-      tint = if (isDark) Color.White else com.example.ui.theme.CocaNoir,
+      tint = if (isDark) Color.White else Color(0xFF1C1C1E),
       modifier = Modifier
         .size(24.dp)
         .graphicsLayer(rotationZ = rotation)
@@ -973,8 +1035,8 @@ fun LiquidGlassNavItem(
   val context = LocalContext.current
   val isDark = LocalAppColors.current.isDark
   val reduceMotion = remember { isReducedMotionEnabled(context) }
-  val selectedColor = if (isDark) Color.White else com.example.ui.theme.CocaNoir
-  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.45f) else Color(0xFF6B6E76)
+  val selectedColor = if (isDark) Color.White else Color(0xFF1C1C1E)
+  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.45f) else Color(0xFF8E8E93)
 
   val iconColor by animateColorAsState(
     targetValue = if (isSelected) selectedColor else unselectedColor,

@@ -55,6 +55,7 @@ fun ProductivityScreen(
   onHabitClick: (Habit) -> Unit,
   onBackToHome: () -> Unit,
   onSwipeToTools: (() -> Unit)? = null,
+  onQuickAdd: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   var selectedTab by remember { mutableIntStateOf(0) } // 0: Tasks, 1: Habits, 2: Calendar
@@ -133,10 +134,14 @@ fun ProductivityScreen(
       FloatingLiquidGlassActionButton(
         isOpen = false,
         onClick = {
-          when (selectedTab) {
-            0 -> onNavigateToAddTask()
-            1 -> onNavigateToAddHabit()
-            else -> onNavigateToAddTask()
+          if (onQuickAdd != null) {
+            onQuickAdd()
+          } else {
+            when (selectedTab) {
+              0 -> onNavigateToAddTask()
+              1 -> onNavigateToAddHabit()
+              else -> onNavigateToAddTask()
+            }
           }
         }
       )
