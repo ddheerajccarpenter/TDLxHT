@@ -76,6 +76,8 @@ import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassButton
+import com.example.ui.glass.LiquidGlassVariant
 import com.example.ui.theme.StrongFontFamily
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
@@ -185,24 +187,26 @@ fun CalendarScreen(
           AppHeader(
             title = "Calendar",
             leftContent = {
-              Row(
-                verticalAlignment = Alignment.CenterVertically,
+              LiquidGlassButton(
+                onClick = {
+                  val currentDeviceDate = LocalDate.now()
+                  viewModel.setSelectedCalendarDate(currentDeviceDate)
+                  displayMonth = YearMonth.from(currentDeviceDate)
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
                 modifier = Modifier
-                  .height(48.dp)
-                  .bounceClick {
-                    val currentDeviceDate = LocalDate.now()
-                    viewModel.setSelectedCalendarDate(currentDeviceDate)
-                    displayMonth = YearMonth.from(currentDeviceDate)
-                  }
-                  .testTag("calendar_today_btn")
+                  .height(34.dp)
+                  .testTag("calendar_today_btn"),
+                icon = {
+                  Icon(
+                    imageVector = Icons.Default.Today,
+                    contentDescription = "Jump to Today",
+                    tint = InkPrimary,
+                    modifier = Modifier.size(16.dp)
+                  )
+                }
               ) {
-                Icon(
-                  imageVector = Icons.Default.Today,
-                  contentDescription = "Jump to Today",
-                  tint = InkPrimary,
-                  modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                   text = "Today",
                   maxLines = 1,
@@ -210,7 +214,7 @@ fun CalendarScreen(
                   overflow = TextOverflow.Ellipsis,
                   style = TextStyle(
                     fontFamily = StrongFontFamily,
-                    fontSize = 15.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )

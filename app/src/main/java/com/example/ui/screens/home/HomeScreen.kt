@@ -1,6 +1,7 @@
 package com.example.ui.screens.home
 
 import com.example.ui.theme.StrongFontFamily
+import com.example.ui.theme.LocalAppColors
 import com.example.ui.components.AnimatedIcon
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -113,6 +114,7 @@ import com.example.ui.components.GlassSegmented
 import com.example.ui.components.ColorTagBadge
 import com.example.ui.components.LiquidGlassButton
 import com.example.ui.components.LiquidGlassIconButton
+import com.example.ui.glass.LiquidGlassVariant
 import com.example.ui.components.LiquidGlassProgressIndicator
 import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.StreakFlameBadge
@@ -799,6 +801,7 @@ fun HomeScreen(
               LiquidGlassButton(
                 onClick = onQuickAdd ?: onNavigateToAddTask,
                 shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Prominent,
                 modifier = Modifier.height(34.dp).testTag("add_task_header_btn")
               ) {
                 Text(
@@ -806,8 +809,8 @@ fun HomeScreen(
                   style = TextStyle(
                     fontFamily = StrongFontFamily,
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = InkPrimary
+                    fontWeight = FontWeight.Bold,
+                    color = LocalAppColors.current.oklchPrimary
                   )
                 )
               }
@@ -931,6 +934,7 @@ fun HomeScreen(
               LiquidGlassButton(
                 onClick = onQuickAdd ?: onNavigateToAddHabit,
                 shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Prominent,
                 modifier = Modifier.height(34.dp).testTag("add_habit_header_btn")
               ) {
                 Text(
@@ -938,8 +942,8 @@ fun HomeScreen(
                   style = TextStyle(
                     fontFamily = StrongFontFamily,
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = InkPrimary
+                    fontWeight = FontWeight.Bold,
+                    color = LocalAppColors.current.oklchPrimary
                   )
                 )
               }

@@ -3,15 +3,26 @@ package com.example.ui.glass
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.os.Build
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -36,7 +47,24 @@ import dev.chrisbanes.haze.hazeEffect
 /**
  * CompositionLocal providing ambient HazeState for Liquid Glass surfaces throughout the tree.
  */
-val LocalHazeState = androidx.compose.runtime.staticCompositionLocalOf<HazeState?> { null }
+val LocalHazeState = staticCompositionLocalOf<HazeState?> { null }
+
+/**
+ * Visual variant hierarchy for Apple iOS 26 Liquid Glass:
+ * - Regular: Standard translucent glass integrating with surrounding backdrop.
+ * - Prominent: Tinted, high-vibrancy glass for primary actions with elevated specular rim.
+ * - Subtle: Minimal translucency for secondary nested elements and badges.
+ */
+enum class LiquidGlassVariant {
+    Regular,
+    Prominent,
+    Subtle
+}
+
+/**
+ * CompositionLocal providing shared Liquid Glass container context for grouping sibling glass items.
+ */
+val LocalLiquidGlassContainerSpacing = staticCompositionLocalOf<Dp> { 16.dp }
 
 /**
  * Liquid Glass Refraction Shader (AGSL, Android 13+ / API 33).
@@ -107,19 +135,40 @@ fun LiquidGlassBackdrop(
     shape: Shape,
     isDark: Boolean,
     modifier: Modifier = Modifier,
+    variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
     tintColor: Color? = null,
     extraTints: List<Color> = emptyList(),
-    fallbackColor: Color? = null
+    fallbackColor: Color? = null,
+    interactiveProgress: Float = 0f
 ) {
-    val glassTint = tintColor ?: if (isDark) {
-        Color(0xFF0B0C10).copy(alpha = 0.34f)
-    } else {
-        Color.White.copy(alpha = 0.45f)
+    val defaultBaseTint = when (variant) {
+        LiquidGlassVariant.Prominent -> {
+            if (isDark) Color(0xFF141824).copy(alpha = 0.50f)
+            else Color.White.copy(alpha = 0.65f)
+        }
+        LiquidGlassVariant.Subtle -> {
+            if (isDark) Color(0xFF090A0E).copy(alpha = 0.22f)
+            else Color.White.copy(alpha = 0.30f)
+        }
+        LiquidGlassVariant.Regular -> {
+            if (isDark) Color(0xFF0B0C10).copy(alpha = 0.34f)
+            else Color.White.copy(alpha = 0.45f)
+        }
     }
-    val fallback = fallbackColor ?: if (isDark) {
-        Color(0xFF0B0C10).copy(alpha = 0.80f)
-    } else {
-        Color.White.copy(alpha = 0.86f)
+    val glassTint = tintColor ?: defaultBaseTint
+    val fallback = fallbackColor ?: when (variant) {
+        LiquidGlassVariant.Prominent -> {
+            if (isDark) Color(0xFF141824).copy(alpha = 0.90f)
+            else Color.White.copy(alpha = 0.92f)
+        }
+        LiquidGlassVariant.Subtle -> {
+            if (isDark) Color(0xFF090A0E).copy(alpha = 0.70f)
+            else Color.White.copy(alpha = 0.78f)
+        }
+        LiquidGlassVariant.Regular -> {
+            if (isDark) Color(0xFF0B0C10).copy(alpha = 0.80f)
+            else Color.White.copy(alpha = 0.86f)
+        }
     }
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
@@ -131,9 +180,14 @@ fun LiquidGlassBackdrop(
                 RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
             } catch (_: Throwable) { null }
         }
-        val bandPx = with(density) { 20.dp.toPx() }
-        val dispPx = with(density) { 9.dp.toPx() }
-        val fresnel = if (isDark) 0.22f else 0.10f
+        val bandPx = with(density) { (20.dp - 3.dp * interactiveProgress).toPx() }
+        val dispPx = with(density) { (9.dp + 2.dp * interactiveProgress).toPx() }
+        val baseFresnel = when (variant) {
+            LiquidGlassVariant.Prominent -> if (isDark) 0.30f else 0.16f
+            LiquidGlassVariant.Subtle -> if (isDark) 0.16f else 0.07f
+            LiquidGlassVariant.Regular -> if (isDark) 0.22f else 0.10f
+        }
+        val fresnel = baseFresnel + 0.08f * interactiveProgress
         if (cachedRenderEffect != null) {
             Modifier.graphicsLayer {
                 val outline = shape.createOutline(
@@ -165,7 +219,11 @@ fun LiquidGlassBackdrop(
         modifier = modifier
             .then(refractionModifier)
             .hazeEffect(state = hazeState) {
-                blurRadius = 20.dp
+                blurRadius = when (variant) {
+                    LiquidGlassVariant.Prominent -> 24.dp
+                    LiquidGlassVariant.Subtle -> 16.dp
+                    LiquidGlassVariant.Regular -> 20.dp
+                }
                 noiseFactor = if (isDark) 0.04f else 0f
                 tints = buildList {
                     add(HazeTint(glassTint))
@@ -185,6 +243,9 @@ fun Modifier.liquidGlassRim(
     shape: Shape,
     isDark: Boolean,
     borderWidth: Dp = 0.75.dp,
+    variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+    interactiveProgress: Float = 0f,
+    tint: Color? = null,
 ): Modifier = clip(shape).drawWithCache {
     val outline = shape.createOutline(size, layoutDirection, this)
     val outlinePath = Path().apply {
@@ -196,22 +257,25 @@ fun Modifier.liquidGlassRim(
     }
     val strokeWidth = borderWidth.toPx()
 
-    // Authentic monochromatic directional specular rim:
-    // Bright crisp specular apex on the upper glass rim falling off gracefully to the base.
+    val apexBoost = if (variant == LiquidGlassVariant.Prominent) 0.18f else 0.0f
+    val touchBoost = 0.15f * interactiveProgress
+
+    val specularColors = if (isDark) {
+        listOf(
+            (tint ?: Color.White).copy(alpha = (0.36f + apexBoost + touchBoost).coerceIn(0f, 1f)),
+            Color.White.copy(alpha = (0.14f + touchBoost * 0.5f).coerceIn(0f, 1f)),
+            Color.White.copy(alpha = 0.08f)
+        )
+    } else {
+        listOf(
+            (tint ?: Color.White).copy(alpha = (0.75f + apexBoost * 0.5f + touchBoost).coerceIn(0f, 1f)),
+            Color.White.copy(alpha = (0.30f + touchBoost * 0.4f).coerceIn(0f, 1f)),
+            Color.White.copy(alpha = 0.08f)
+        )
+    }
+
     val specularRimBrush = Brush.verticalGradient(
-        colors = if (isDark) {
-            listOf(
-                Color.White.copy(alpha = 0.36f),
-                Color.White.copy(alpha = 0.14f),
-                Color.White.copy(alpha = 0.08f)
-            )
-        } else {
-            listOf(
-                Color.White.copy(alpha = 0.75f),
-                Color.White.copy(alpha = 0.30f),
-                Color.White.copy(alpha = 0.08f)
-            )
-        },
+        colors = specularColors,
         startY = 0f,
         endY = size.height
     )
@@ -229,9 +293,17 @@ fun LiquidGlassHighlight(
     isDark: Boolean,
     modifier: Modifier = Modifier,
     borderWidth: Dp = 0.75.dp,
+    variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+    interactiveProgress: Float = 0f,
+    tint: Color? = null,
 ) {
+    val sheenAlpha = when (variant) {
+        LiquidGlassVariant.Prominent -> if (isDark) 0.12f else 0.14f
+        LiquidGlassVariant.Subtle -> if (isDark) 0.05f else 0.06f
+        LiquidGlassVariant.Regular -> if (isDark) 0.08f else 0.10f
+    }
     val sheenBrush = Brush.verticalGradient(
-        0f to Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
+        0f to Color.White.copy(alpha = (sheenAlpha + 0.06f * interactiveProgress).coerceIn(0f, 1f)),
         0.55f to Color.White.copy(alpha = if (isDark) 0.02f else 0.06f),
         1f to Color.White.copy(alpha = if (isDark) 0.05f else 0.08f),
     )
@@ -239,7 +311,14 @@ fun LiquidGlassHighlight(
         modifier = modifier
             .clip(shape)
             .background(sheenBrush)
-            .liquidGlassRim(shape, isDark, borderWidth),
+            .liquidGlassRim(
+                shape = shape,
+                isDark = isDark,
+                borderWidth = borderWidth,
+                variant = variant,
+                interactiveProgress = interactiveProgress,
+                tint = tint
+            ),
     )
 }
 
@@ -253,6 +332,8 @@ fun LiquidGlassContainer(
     isDark: Boolean,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(20.dp),
+    variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+    tint: Color? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -261,13 +342,160 @@ fun LiquidGlassContainer(
             hazeState = hazeState,
             shape = shape,
             isDark = isDark,
+            variant = variant,
+            tintColor = tint,
             modifier = Modifier.matchParentSize(),
         )
         LiquidGlassHighlight(
             shape = shape,
             isDark = isDark,
+            variant = variant,
+            tint = tint,
             modifier = Modifier.matchParentSize(),
         )
         Box(modifier = Modifier.padding(contentPadding), content = content)
     }
+}
+
+/**
+ * Container pattern from iOS 26 Liquid Glass specification:
+ * Wrap multiple sibling glass views in an effect container to coordinate shared spacing,
+ * synchronize directional lighting, and prevent redundant GPU blur passes.
+ */
+@Composable
+fun LiquidGlassEffectContainer(
+    spacing: Dp = 16.dp,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    CompositionLocalProvider(LocalLiquidGlassContainerSpacing provides spacing) {
+        Box(modifier = modifier, content = content)
+    }
+}
+
+/**
+ * Idiomatic Compose modifier equivalent to SwiftUI's `.glassEffect(variant, in: shape)`.
+ * Applies authentic iOS 26 Liquid Glass material to any Composable:
+ * - Real backdrop blur via ambient [LocalHazeState].
+ * - AGSL refraction + dispersion on Android 13+.
+ * - Directional specular rim and sheen.
+ * - Interactive spring feedback when [onClick] is provided.
+ */
+fun Modifier.liquidGlass(
+    variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+    shape: Shape = RoundedCornerShape(20.dp),
+    tint: Color? = null,
+    borderWidth: Dp = 0.75.dp,
+    interactive: Boolean = false,
+    onClick: (() -> Unit)? = null
+): Modifier = composed {
+    val hazeState = LocalHazeState.current
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val interactiveProgress by animateFloatAsState(
+        targetValue = if (isPressed) 1f else 0f,
+        animationSpec = tween(durationMillis = 150, easing = FastOutSlowInEasing),
+        label = "liquidGlassInteractive"
+    )
+
+    val clickModifier = if (onClick != null) {
+        Modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
+    } else Modifier
+
+    val scaleModifier = if (interactive && onClick != null) {
+        Modifier.graphicsLayer {
+            val scale = 1f - 0.025f * interactiveProgress
+            scaleX = scale
+            scaleY = scale
+        }
+    } else Modifier
+
+    this
+        .then(scaleModifier)
+        .then(clickModifier)
+        .clip(shape)
+        .drawWithCache {
+            val outline = shape.createOutline(size, layoutDirection, this)
+            val outlinePath = Path().apply {
+                when (outline) {
+                    is Outline.Rectangle -> addRect(outline.rect)
+                    is Outline.Rounded -> addRoundRect(outline.roundRect)
+                    is Outline.Generic -> addPath(outline.path)
+                }
+            }
+            val strokePx = borderWidth.toPx()
+            val apexBoost = if (variant == LiquidGlassVariant.Prominent) 0.18f else 0.0f
+            val touchBoost = 0.15f * interactiveProgress
+
+            val rimColors = if (isDark) {
+                listOf(
+                    (tint ?: Color.White).copy(alpha = (0.36f + apexBoost + touchBoost).coerceIn(0f, 1f)),
+                    Color.White.copy(alpha = (0.14f + touchBoost * 0.5f).coerceIn(0f, 1f)),
+                    Color.White.copy(alpha = 0.08f)
+                )
+            } else {
+                listOf(
+                    (tint ?: Color.White).copy(alpha = (0.75f + apexBoost * 0.5f + touchBoost).coerceIn(0f, 1f)),
+                    Color.White.copy(alpha = (0.30f + touchBoost * 0.4f).coerceIn(0f, 1f)),
+                    Color.White.copy(alpha = 0.08f)
+                )
+            }
+            val rimBrush = Brush.verticalGradient(rimColors, 0f, size.height)
+
+            val sheenAlpha = when (variant) {
+                LiquidGlassVariant.Prominent -> if (isDark) 0.14f else 0.18f
+                LiquidGlassVariant.Subtle -> if (isDark) 0.04f else 0.06f
+                LiquidGlassVariant.Regular -> if (isDark) 0.08f else 0.10f
+            }
+            val sheenBrush = Brush.verticalGradient(
+                0f to Color.White.copy(alpha = (sheenAlpha + 0.06f * interactiveProgress).coerceIn(0f, 1f)),
+                0.55f to Color.White.copy(alpha = if (isDark) 0.02f else 0.06f),
+                1f to Color.White.copy(alpha = if (isDark) 0.05f else 0.08f)
+            )
+
+            val baseFallbackColor = if (isDark) {
+                Color(0xFF0B0C10).copy(alpha = if (variant == LiquidGlassVariant.Prominent) 0.65f else 0.45f)
+            } else {
+                Color.White.copy(alpha = if (variant == LiquidGlassVariant.Prominent) 0.75f else 0.55f)
+            }
+
+            onDrawWithContent {
+                drawRect(baseFallbackColor)
+                if (tint != null) {
+                    drawRect(tint.copy(alpha = if (variant == LiquidGlassVariant.Prominent) 0.22f else 0.10f))
+                }
+                drawRect(sheenBrush)
+                drawContent()
+                drawPath(outlinePath, rimBrush, style = Stroke(width = strokePx))
+            }
+        }
+        .then(
+            if (hazeState != null) {
+                Modifier.hazeEffect(state = hazeState) {
+                    blurRadius = when (variant) {
+                        LiquidGlassVariant.Prominent -> 24.dp
+                        LiquidGlassVariant.Subtle -> 16.dp
+                        LiquidGlassVariant.Regular -> 20.dp
+                    }
+                    noiseFactor = if (isDark) 0.04f else 0f
+                    tints = listOf(
+                        HazeTint(
+                            (tint ?: if (isDark) Color(0xFF0B0C10) else Color.White).copy(
+                                alpha = when (variant) {
+                                    LiquidGlassVariant.Prominent -> if (isDark) 0.50f else 0.65f
+                                    LiquidGlassVariant.Subtle -> if (isDark) 0.22f else 0.30f
+                                    LiquidGlassVariant.Regular -> if (isDark) 0.34f else 0.45f
+                                }
+                            )
+                        )
+                    )
+                }
+            } else Modifier
+        )
 }

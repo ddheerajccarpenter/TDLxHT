@@ -20,6 +20,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -754,7 +755,8 @@ fun ToolRunnerModal(
           GlassButton(
             onClick = { onDismiss() },
             contentDescription = "Close",
-            size = 34.dp
+            size = 40.dp,
+            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
           ) {
             Icon(
               imageVector = Icons.Default.Close,

@@ -1,6 +1,8 @@
 package com.example.ui.screens.habits
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.window.Dialog
 import com.example.ui.theme.StrongFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,8 @@ import com.example.data.model.HabitFrequency
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassButton
+import com.example.ui.glass.LiquidGlassVariant
 import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.GlassSegmented
 import com.example.ui.components.GlassCard
@@ -146,6 +151,34 @@ fun HabitDetailEditScreen(
   var showDeleteDialog by remember { mutableStateOf(false) }
   var isSaving by remember { mutableStateOf(false) }
 
+  val isDirty = remember(
+    existingHabit?.id, name, description, colorTag, selectedCategory,
+    customCategoryText, frequency, targetValue, targetUnit, reminderEnabled, reminderTimes
+  ) {
+    if (existingHabit == null) {
+      name.isNotBlank() || description.isNotBlank() || colorTag != null ||
+      (selectedCategory != "Study" && selectedCategory.isNotBlank()) ||
+      customCategoryText.isNotBlank() || frequency != HabitFrequency.EVERY_DAY ||
+      targetValue != 1f || targetUnit != "session" || reminderEnabled
+    } else {
+      name != existingHabit.name ||
+      description != existingHabit.description ||
+      colorTag != existingHabit.colorTag ||
+      (if (selectedCategory == "Other") customCategoryText.trim() else selectedCategory) != existingHabit.category ||
+      frequency != existingHabit.frequency ||
+      targetValue != existingHabit.targetValue ||
+      targetUnit != existingHabit.targetUnit ||
+      reminderEnabled != existingHabit.reminderEnabled ||
+      reminderTimes != initialParsedTimes
+    }
+  }
+
+  var showDiscardDialog by remember { mutableStateOf(false) }
+
+  BackHandler(enabled = isDirty) {
+    showDiscardDialog = true
+  }
+
   val frequencies = listOf(
     HabitFrequency.EVERY_DAY to "Every Day",
     HabitFrequency.WEEKDAYS to "Weekdays",
@@ -174,16 +207,22 @@ fun HabitDetailEditScreen(
       item {
         AppHeader(
           title = if (isEditing) "Edit Habit" else "New Habit",
-          onBack = onDismiss,
+          onBack = {
+            if (isDirty) {
+              showDiscardDialog = true
+            } else {
+              onDismiss()
+            }
+          },
           rightContent = {
-            GlassButton(
-              variant = GlassButtonVariant.FILLED,
+            LiquidGlassButton(
+              variant = LiquidGlassVariant.Prominent,
               onClick = {
-                if (isSaving) return@GlassButton
+                if (isSaving) return@LiquidGlassButton
                 if (name.isBlank()) {
                   nameError = "Habit name is required"
                   Toast.makeText(context, "Please enter a habit name", Toast.LENGTH_SHORT).show()
-                  return@GlassButton
+                  return@LiquidGlassButton
                 }
                 nameError = null
                 isSaving = true
@@ -880,6 +919,90 @@ fun HabitDetailEditScreen(
         },
         onDismiss = { showDeleteDialog = false }
       )
+    }
+
+    if (showDiscardDialog) {
+      Dialog(onDismissRequest = { showDiscardDialog = false }) {
+        LiquidGlassCard(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+          cornerRadius = 20.dp
+        ) {
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            Text(
+              text = "Discard Unsaved Changes?",
+              style = TextStyle(
+                fontFamily = StrongFontFamily,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = AccentRed
+              )
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+              text = "You have unsaved changes that will be lost if you leave now.",
+              style = TextStyle(
+                fontSize = 13.sp,
+                color = InkSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+              )
+            )
+            Spacer(Modifier.height(20.dp))
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+              LiquidGlassButton(
+                onClick = { showDiscardDialog = false },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
+                modifier = Modifier
+                  .weight(1f)
+                  .height(48.dp)
+              ) {
+                Text(
+                  text = "Keep Editing",
+                  style = TextStyle(
+                    fontFamily = StrongFontFamily,
+                    fontSize = 14.sp,
+                    color = InkPrimary,
+                    fontWeight = FontWeight.SemiBold
+                  )
+                )
+              }
+              LiquidGlassButton(
+                onClick = {
+                  showDiscardDialog = false
+                  onDismiss()
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Prominent,
+                tint = AccentRed,
+                modifier = Modifier
+                  .weight(1f)
+                  .height(48.dp)
+              ) {
+                Text(
+                  text = "Discard",
+                  style = TextStyle(
+                    fontFamily = StrongFontFamily,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                  )
+                )
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

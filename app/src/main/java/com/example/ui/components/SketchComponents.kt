@@ -88,7 +88,13 @@ import androidx.compose.ui.draw.shadow
 import kotlinx.coroutines.launch
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -174,6 +180,10 @@ import com.example.ui.theme.OklchPurpleSoft
 import com.example.ui.theme.LocalAppColors
 import com.example.ui.glass.LocalHazeState
 import com.example.ui.glass.liquidGlassRim
+import com.example.ui.glass.LiquidGlassVariant
+import com.example.ui.glass.LiquidGlassTopAppBar
+import com.example.ui.glass.LiquidGlassLinearProgress
+import com.example.ui.glass.LiquidGlassEffectContainer
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 
@@ -991,7 +1001,13 @@ fun Modifier.fluidLensedGlass(
     .drawBehind {
       drawRect(color = glassFill)
     }
-    .liquidGlassRim(shape, isDark, borderWidth)
+    .liquidGlassRim(
+      shape = shape,
+      isDark = isDark,
+      borderWidth = borderWidth,
+      variant = if (isElevated) LiquidGlassVariant.Prominent else LiquidGlassVariant.Regular,
+      tint = customBackgroundColor
+    )
     .then(
       if (customBorderColor != null && customBorderColor != Color.Unspecified && customBorderColor != defaultCardBrd) {
         Modifier.border(borderWidth, customBorderColor.copy(alpha = 0.45f), shape)
@@ -1259,7 +1275,7 @@ data class GlassMenuItemData(
 
 /**
  * Declarative Apple-Style Liquid Glass Menu Popup (@zakisheriff/liquid-glass).
- * Anchored directly to trigger icon, floating beneath it without full-screen modal dimming.
+ * Anchored directly to trigger icon, blooming outward with authentic spring physics.
  */
 @Composable
 fun GlassMenu(
@@ -1269,39 +1285,25 @@ fun GlassMenu(
   contentDescription: String = "More",
   buttonSize: Dp = 40.dp
 ) {
-  var expanded by remember { mutableStateOf(false) }
-
-  Box(modifier = modifier) {
-    LiquidGlassIconButton(
-      onClick = { expanded = true },
-      contentDescription = contentDescription,
-      size = buttonSize
-    ) {
-      icon()
-    }
-
-    GlassMenu(
-      expanded = expanded,
-      onDismissRequest = { expanded = false }
-    ) {
-      items.forEach { item ->
-        GlassMenuItem(
-          label = item.label,
-          checked = item.checked,
-          destructive = item.destructive,
-          icon = item.icon,
-          onSelect = {
-            expanded = false
-            item.onSelect()
-          }
-        )
-      }
-    }
-  }
+  com.example.ui.glass.LiquidGlassMenu(
+    icon = icon,
+    items = items.map {
+      com.example.ui.glass.LiquidGlassMenuItemData(
+        label = it.label,
+        icon = it.icon,
+        checked = it.checked,
+        destructive = it.destructive,
+        onSelect = it.onSelect
+      )
+    },
+    modifier = modifier,
+    contentDescription = contentDescription,
+    buttonSize = buttonSize
+  )
 }
 
 /**
- * Anchored Floating Glass Menu Container.
+ * Anchored Floating Liquid Glass Menu Container with Apple spring physics.
  */
 @Composable
 fun GlassMenu(
@@ -1310,20 +1312,120 @@ fun GlassMenu(
   modifier: Modifier = Modifier,
   content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
-  DropdownMenu(
-    expanded = expanded,
-    onDismissRequest = onDismissRequest,
-    modifier = modifier
-      .widthIn(min = 180.dp, max = 280.dp)
-      .fluidLensedGlass(
-        shape = RoundedCornerShape(16.dp),
-        elevation = 12.dp,
-        borderWidth = 0.75.dp,
-        isElevated = false
+  val isDark = LocalAppColors.current.isDark
+  val density = LocalDensity.current
+  val hazeState = LocalHazeState.current
+  val coroutineScope = rememberCoroutineScope()
+
+  var isMounted by remember { mutableStateOf(false) }
+  val animProgress = remember { Animatable(0f) }
+
+  LaunchedEffect(expanded) {
+    if (expanded) {
+      isMounted = true
+      // OPEN spring: dampingRatio = 0.74f, stiffness = 380f
+      animProgress.animateTo(1f, spring(dampingRatio = 0.74f, stiffness = 380f))
+    } else if (isMounted) {
+      // CLOSE spring: dampingRatio = 0.66f, stiffness = 480f
+      animProgress.animateTo(0f, spring(dampingRatio = 0.66f, stiffness = 480f))
+      isMounted = false
+    }
+  }
+
+  if (isMounted || animProgress.value > 0.01f) {
+    val positionProvider = remember {
+      object : PopupPositionProvider {
+        override fun calculatePosition(
+          anchorBounds: IntRect,
+          windowSize: IntSize,
+          layoutDirection: LayoutDirection,
+          popupContentSize: IntSize
+        ): IntOffset {
+          val marginPx = (8 * density.density).toInt()
+          val x = (anchorBounds.right - popupContentSize.width).coerceIn(marginPx, windowSize.width - popupContentSize.width - marginPx)
+          val spaceBelow = windowSize.height - anchorBounds.bottom
+          val y = if (spaceBelow >= popupContentSize.height + marginPx) {
+            anchorBounds.bottom + (4 * density.density).toInt()
+          } else {
+            (anchorBounds.top - popupContentSize.height - (4 * density.density).toInt()).coerceAtLeast(marginPx)
+          }
+          return IntOffset(x, y)
+        }
+      }
+    }
+
+    Popup(
+      popupPositionProvider = positionProvider,
+      onDismissRequest = {
+        coroutineScope.launch {
+          animProgress.animateTo(0f, spring(dampingRatio = 0.66f, stiffness = 480f))
+          onDismissRequest()
+        }
+      },
+      properties = PopupProperties(
+        focusable = true,
+        dismissOnBackPress = true,
+        dismissOnClickOutside = true
       )
-      .padding(4.dp),
-    content = content
-  )
+    ) {
+      val progress = animProgress.value
+      val scale = 0.78f + 0.22f * progress
+      val alpha = (progress / 0.35f).coerceIn(0f, 1f)
+      val cornerRadius = (16.dp + (6.dp * progress)).coerceIn(16.dp, 22.dp)
+      val menuShape = RoundedCornerShape(cornerRadius)
+
+      val hazeModifier = if (hazeState != null) {
+        Modifier.clip(menuShape).hazeEffect(state = hazeState) {
+          blurRadius = 24.dp
+          noiseFactor = if (isDark) 0.03f else 0f
+          tints = buildList {
+            if (isDark) {
+              add(dev.chrisbanes.haze.HazeTint(Color(0xFF14151B).copy(alpha = 0.85f)))
+            } else {
+              add(dev.chrisbanes.haze.HazeTint(Color(0xFFFAFAFC).copy(alpha = 0.90f)))
+            }
+          }
+        }
+      } else Modifier
+
+      val fallbackBg = if (isDark) {
+        Brush.verticalGradient(listOf(Color(0xF0181A22), Color(0xF2121319)))
+      } else {
+        Brush.verticalGradient(listOf(Color(0xF5FFFFFF), Color(0xFAF4F5F7)))
+      }
+
+      Box(
+        modifier = modifier
+          .widthIn(min = 200.dp, max = 280.dp)
+          .graphicsLayer {
+            this.scaleX = scale
+            this.scaleY = scale
+            this.alpha = alpha
+            this.transformOrigin = TransformOrigin(1f, 0f)
+            this.shadowElevation = (if (isDark) 20.dp else 14.dp).toPx() * progress
+            this.spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.60f) else Color.Black.copy(alpha = 0.16f)
+            this.ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f) else Color.Black.copy(alpha = 0.06f)
+            this.shape = menuShape
+            this.clip = false
+          }
+          .then(hazeModifier)
+          .background(fallbackBg, menuShape)
+          .liquidGlassRim(
+            shape = menuShape,
+            isDark = isDark,
+            borderWidth = 0.75.dp,
+            variant = LiquidGlassVariant.Regular
+          )
+          .padding(6.dp)
+      ) {
+        Column(
+          modifier = Modifier.fillMaxWidth(),
+          verticalArrangement = Arrangement.spacedBy(2.dp),
+          content = content
+        )
+      }
+    }
+  }
 }
 
 /**
@@ -1339,44 +1441,55 @@ fun GlassMenuItem(
   icon: (@Composable () -> Unit)? = null
 ) {
   val isDark = LocalAppColors.current.isDark
+  val context = LocalContext.current
+  val itemShape = RoundedCornerShape(12.dp)
+
+  val itemContentColor = when {
+    destructive -> AccentRed
+    checked -> InkPrimary
+    else -> InkSecondary
+  }
+
   Row(
     modifier = modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(10.dp))
+      .clip(itemShape)
       .defaultMinSize(minHeight = 44.dp)
-      .bounceClick(shine = true) { onSelect() }
+      .bounceClick(shine = true) {
+        VibrationHelper.tick(context)
+        onSelect()
+      }
       .padding(horizontal = 12.dp, vertical = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
   ) {
     Row(
+      modifier = Modifier.weight(1f),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
       if (icon != null) {
-        icon()
+        Box(modifier = Modifier.size(20.dp), contentAlignment = Alignment.Center) {
+          icon()
+        }
       }
       Text(
         text = label,
         style = TextStyle(
           fontSize = 15.sp,
           fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
-          color = when {
-            destructive -> AccentRed
-            checked -> InkPrimary
-            else -> InkSecondary
-          }
-        )
+          color = itemContentColor
+        ),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
       )
     }
     if (checked) {
-      Text(
-        text = "✓",
-        style = TextStyle(
-          fontSize = 15.sp,
-          fontWeight = FontWeight.Bold,
-          color = InkPrimary
-        )
+      Icon(
+        imageVector = Icons.Default.Check,
+        contentDescription = "Selected",
+        tint = if (destructive) AccentRed else LocalAppColors.current.oklchPrimary,
+        modifier = Modifier.size(17.dp)
       )
     }
   }
@@ -1710,10 +1823,11 @@ fun AppHeader(
       if (leftContent != null) {
         leftContent()
       } else if (onBack != null) {
-        GlassButton(
+        LiquidGlassIconButton(
           onClick = onBack,
           contentDescription = backLabel,
           size = 38.dp,
+          variant = LiquidGlassVariant.Regular,
           modifier = Modifier.testTag("header_back_btn")
         ) {
           Icon(
@@ -1746,11 +1860,14 @@ fun AppHeader(
       contentAlignment = Alignment.CenterEnd
     ) {
       if (rightContent != null) {
-        rightContent()
+        LiquidGlassEffectContainer(spacing = 8.dp) {
+          rightContent()
+        }
       } else if (actionText != null && onActionClick != null) {
         LiquidGlassButton(
           onClick = onActionClick,
           shape = RoundedCornerShape(10.dp),
+          variant = LiquidGlassVariant.Prominent,
           modifier = Modifier.height(34.dp).then(if (actionTestTag != null) Modifier.testTag(actionTestTag) else Modifier)
         ) {
           Text(
@@ -1758,16 +1875,17 @@ fun AppHeader(
             style = TextStyle(
               fontFamily = StrongFontFamily,
               fontSize = 12.sp,
-              fontWeight = FontWeight.SemiBold,
-              color = InkPrimary
+              fontWeight = FontWeight.Bold,
+              color = LocalAppColors.current.oklchPrimary
             )
           )
         }
       } else if (actionIcon != null && onActionClick != null) {
-        GlassButton(
+        LiquidGlassIconButton(
           onClick = onActionClick,
           contentDescription = actionContentDescription ?: "Action",
           size = 38.dp,
+          variant = LiquidGlassVariant.Regular,
           modifier = if (actionTestTag != null) Modifier.testTag(actionTestTag) else Modifier
         ) {
           Icon(
@@ -2127,32 +2245,11 @@ fun SketchProgressBar(
   modifier: Modifier = Modifier,
   height: Dp = 10.dp
 ) {
-  val clamped = progress.coerceIn(0f, 1f)
-  var initialLoaded by remember { mutableStateOf(false) }
-  LaunchedEffect(Unit) {
-    initialLoaded = true
-  }
-  val targetVal = if (initialLoaded) clamped else 0f
-  val animatedProgress by animateFloatAsState(
-    targetValue = targetVal,
-    animationSpec = tween(durationMillis = 450, easing = FastOutSlowInEasing),
-    label = "progressBar"
+  LiquidGlassLinearProgress(
+    progress = progress,
+    modifier = modifier,
+    height = height
   )
-  Box(
-    modifier = modifier
-      .height(height)
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(5.dp))
-      .background(ProgressBarTrack)
-      .border(1.2.dp, CardBorder, RoundedCornerShape(5.dp))
-  ) {
-    Box(
-      modifier = Modifier
-        .fillMaxWidth(animatedProgress)
-        .height(height)
-        .background(ProgressBarFilled, RoundedCornerShape(4.dp))
-    )
-  }
 }
 
 @Composable
@@ -2334,20 +2431,17 @@ fun DeleteConfirmationDialog(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
           ) {
             // Cancel button (glass)
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .height(48.dp)
-                .fluidLensedGlass(shape = RoundedCornerShape(12.dp), elevation = 2.dp)
-                .bounceClick { onDismiss() }
-                .testTag("dialog_cancel"),
-              contentAlignment = Alignment.Center
+            LiquidGlassButton(
+              onClick = onDismiss,
+              shape = RoundedCornerShape(12.dp),
+              variant = LiquidGlassVariant.Regular,
+              modifier = Modifier.weight(1f).height(48.dp).testTag("dialog_cancel")
             ) {
               Text(
                 text = "Cancel",
                 style = TextStyle(
                   fontFamily = StrongFontFamily,
-                  fontSize = 16.sp,
+                  fontSize = 15.sp,
                   fontWeight = FontWeight.SemiBold,
                   color = InkPrimary
                 )
@@ -2355,20 +2449,18 @@ fun DeleteConfirmationDialog(
             }
 
             // Delete button (destructive glass)
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .height(48.dp)
-                .fluidLensedGlass(shape = RoundedCornerShape(12.dp), elevation = 3.dp, isElevated = true)
-                .bounceClick { onConfirm() }
-                .testTag("dialog_delete"),
-              contentAlignment = Alignment.Center
+            LiquidGlassButton(
+              onClick = onConfirm,
+              shape = RoundedCornerShape(12.dp),
+              variant = LiquidGlassVariant.Prominent,
+              tint = AccentRed,
+              modifier = Modifier.weight(1f).height(48.dp).testTag("dialog_delete")
             ) {
               Text(
                 text = "Delete",
                 style = TextStyle(
                   fontFamily = StrongFontFamily,
-                  fontSize = 16.sp,
+                  fontSize = 15.sp,
                   fontWeight = FontWeight.Bold,
                   color = AccentRed
                 )

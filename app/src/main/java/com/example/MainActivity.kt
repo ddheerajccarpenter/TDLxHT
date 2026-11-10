@@ -557,7 +557,11 @@ fun MainApp(
                     dragJobHolder[0]?.cancel()
                     coroutineScope.launch {
                       try {
-                        pagerState.animateScrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
+                        if (reduceMotion) {
+                          pagerState.scrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
+                        } else {
+                          pagerState.animateScrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
+                        }
                       } catch (_: Throwable) {}
                     }
                   },
@@ -566,6 +570,15 @@ fun MainApp(
                     val targetIndex = destinations.indexOf(dest)
                     if (targetIndex >= 0) {
                       navController.switchTab(targetIndex)
+                      coroutineScope.launch {
+                        try {
+                          if (reduceMotion) {
+                            pagerState.scrollToPage(targetIndex)
+                          } else {
+                            pagerState.animateScrollToPage(targetIndex)
+                          }
+                        } catch (_: Throwable) {}
+                      }
                     }
                   },
                   onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
@@ -582,6 +595,7 @@ fun MainApp(
               ) {
                 HorizontalPager(
                   state = pagerState,
+                  userScrollEnabled = true,
                   modifier = Modifier.fillMaxSize()
                 ) { tabIndex ->
                   when (destinations[tabIndex]) {

@@ -10,6 +10,7 @@ import com.example.ui.glass.PILL_LENS_SHADER
 import com.kyant.backdrop.Backdrop
 import com.example.ui.glass.LiquidGlassBackdrop
 import com.example.ui.glass.LiquidGlassHighlight
+import com.example.ui.glass.LiquidGlassVariant
 import com.example.ui.glass.LocalHazeState
 import com.example.ui.glass.liquidGlassRim
 import dev.chrisbanes.haze.HazeState
@@ -25,12 +26,15 @@ import com.kyant.backdrop.shadow.InnerShadow
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.ui.text.style.TextOverflow
+import com.example.ui.theme.StrongFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -142,6 +146,8 @@ fun LiquidGlassCard(
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(20.dp),
   cornerRadius: Dp? = null,
+  variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+  tint: Color? = null,
   backgroundColor: Color? = null,
   borderColor: Color? = null,
   borderWidth: Dp = 0.75.dp,
@@ -154,6 +160,8 @@ fun LiquidGlassCard(
   LiquidGlassSurface(
     modifier = modifier,
     shape = resolvedShape,
+    variant = variant,
+    tint = tint,
     borderWidth = borderWidth,
     backgroundColor = backgroundColor,
     borderColor = borderColor,
@@ -173,6 +181,8 @@ fun LiquidGlassCard(
 fun LiquidGlassSurface(
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(20.dp),
+  variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+  tint: Color? = null,
   borderWidth: Dp = 0.75.dp,
   backgroundColor: Color? = null,
   borderColor: Color? = null,
@@ -188,10 +198,9 @@ fun LiquidGlassSurface(
   val resolvedHaze = hazeState ?: LocalHazeState.current
   val fallbackColor = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated
   val defaultBorder = com.example.ui.theme.CardBorder
-  // Accent washes (selected rows, highlighted cards) are translucent by design.
-  // Legacy opaque fills are superseded by the glass body and must not block the backdrop.
+  val effectiveTint = tint ?: (backgroundColor?.takeIf { it != Color.Unspecified && it.alpha in 0.01f..0.35f })
   val accentWash = backgroundColor?.takeIf {
-    it != Color.Unspecified && it.alpha in 0.01f..0.35f
+    it != Color.Unspecified && it.alpha in 0.01f..0.35f && it != tint
   }
   val accentBorder = borderColor?.takeIf {
     it != Color.Unspecified && it != defaultBorder
@@ -212,13 +221,18 @@ fun LiquidGlassSurface(
         hazeState = resolvedHaze,
         shape = shape,
         isDark = isDark,
+        variant = variant,
+        tintColor = effectiveTint,
         modifier = Modifier.matchParentSize()
       )
     } else {
+      val solidBg = if (variant == LiquidGlassVariant.Prominent) {
+        effectiveTint?.copy(alpha = if (isDark) 0.35f else 0.50f) ?: fallbackColor
+      } else fallbackColor
       Box(
         modifier = Modifier
           .matchParentSize()
-          .background(fallbackColor)
+          .background(solidBg)
       )
     }
     if (accentWash != null) {
@@ -228,6 +242,8 @@ fun LiquidGlassSurface(
       shape = shape,
       isDark = isDark,
       borderWidth = borderWidth,
+      variant = variant,
+      tint = effectiveTint,
       modifier = Modifier.matchParentSize()
     )
     if (accentBorder != null) {
@@ -249,6 +265,8 @@ fun LiquidGlassSurface(
 fun LiquidGlassCapsule(
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(20.dp),
+  variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+  tint: Color? = null,
   borderWidth: Dp = 0.75.dp,
   hazeState: HazeState? = null,
   content: @Composable BoxScope.() -> Unit
@@ -256,6 +274,8 @@ fun LiquidGlassCapsule(
   LiquidGlassSurface(
     modifier = modifier,
     shape = shape,
+    variant = variant,
+    tint = tint,
     hazeState = hazeState ?: LocalHazeState.current,
     borderWidth = borderWidth,
     content = content
@@ -580,20 +600,29 @@ fun GlassSegmented(
 /**
  * 4. LiquidGlassButton
  * Translucent text & icon control with hairline specular border and elastic feedback.
+ * Supports iOS 26 Liquid Glass variants:
+ * - Regular: Subtle translucent glass integrating with the background.
+ * - Prominent: Tinted, high-vibrancy glass for primary actions with elevated specular rim.
  */
 @Composable
 fun LiquidGlassButton(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   shape: Shape = RoundedCornerShape(12.dp),
+  variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+  tint: Color? = null,
   enabled: Boolean = true,
   icon: (@Composable () -> Unit)? = null,
   content: @Composable () -> Unit
 ) {
+  val colors = LocalAppColors.current
+  val effectiveTint = tint ?: if (variant == LiquidGlassVariant.Prominent) colors.oklchPrimary else null
   LiquidGlassSurface(
     modifier = modifier.defaultMinSize(minHeight = 34.dp),
     shape = shape,
-    borderWidth = 0.75.dp,
+    variant = variant,
+    tint = effectiveTint,
+    borderWidth = if (variant == LiquidGlassVariant.Prominent) 1.dp else 0.75.dp,
     onClick = if (enabled) onClick else null
   ) {
     Box(Modifier.wrapContentWidth().padding(horizontal = 12.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
@@ -613,6 +642,7 @@ fun LiquidGlassButton(
 /**
  * 5. LiquidGlassIconButton
  * Compact circular or squircle translucent glass button (Header, Search, Settings, Close).
+ * Supports iOS 26 Liquid Glass variants (Regular, Prominent, Subtle) with specular flare on tap.
  */
 @Composable
 fun LiquidGlassIconButton(
@@ -620,6 +650,8 @@ fun LiquidGlassIconButton(
   contentDescription: String?,
   modifier: Modifier = Modifier,
   size: Dp = 48.dp,
+  variant: LiquidGlassVariant = LiquidGlassVariant.Regular,
+  tint: Color? = null,
   enabled: Boolean = true,
   shape: Shape = CircleShape,
   icon: @Composable () -> Unit
@@ -635,7 +667,9 @@ fun LiquidGlassIconButton(
     LiquidGlassSurface(
       modifier = Modifier.size(visualSize),
       shape = shape,
-      borderWidth = 0.75.dp
+      variant = variant,
+      tint = tint,
+      borderWidth = if (variant == LiquidGlassVariant.Prominent) 1.dp else 0.75.dp
     ) {
       Box(
         modifier = Modifier
@@ -687,7 +721,7 @@ fun LiquidGlassNavigationDock(
   var dragTargetPos by remember { mutableFloatStateOf(selectedTab.toFloat()) }
   var lastHapticIndex by remember { mutableIntStateOf(selectedTab) }
 
-  // Sync indicator when not dragging: smoothly track external page offset (from pager) or selectedTab
+  // Sync indicator when not dragging
   LaunchedEffect(externalPageOffset, selectedTab, isDragging) {
     if (!isDragging) {
       if (externalPageOffset != null) {
@@ -702,7 +736,22 @@ fun LiquidGlassNavigationDock(
     }
   }
 
-  // "Comes into action" when clicked, held, or tapped: expands from normal resting size to 1.2dp pop-out overhang & frosted fill
+  // Traveling specular beam shine sweep across the dock
+  val shineProgress = remember { Animatable(0f) }
+  LaunchedEffect(selectedTab) {
+    if (!reduceMotion) {
+      shineProgress.snapTo(0f)
+      shineProgress.animateTo(
+        targetValue = 1f,
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing)
+      )
+    }
+  }
+
+  // Instantaneous tap bloom shine
+  val tapShine = remember { Animatable(0f) }
+
+  // "Comes into action" when clicked, held, or tapped: expands with liquid fill
   val actionProgress by animateFloatAsState(
     targetValue = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f,
     animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f),
@@ -740,15 +789,15 @@ fun LiquidGlassNavigationDock(
   val trackBrush = if (isDark) {
     Brush.verticalGradient(listOf(Color(0x28222630), Color(0x1814161C)))
   } else {
-    // Subtle, low-gradient effect with high translucency matching user request
     Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.25f)))
   }
-  // Resting: subtle translucent frosted pill. In action: glowing liquid glass fill.
+
   val selectedColor = if (isDark) {
     Color.White.copy(alpha = 0.08f + 0.14f * combinedActionProgress)
   } else {
     Color.White.copy(alpha = 0.25f + 0.65f * combinedActionProgress)
   }
+
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
   val lengthStretch = dynamicStretch + (tapPopAnim.value * 0.22f) + (combinedActionProgress * 0.12f)
   val liftScale = 1f + 0.12f * combinedActionProgress
@@ -838,9 +887,35 @@ fun LiquidGlassNavigationDock(
       Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
     }
 
-    // 2. Active Pill Lens Indicator:
-    // Sits at normal size (40dp layout) inside the track at rest with subtle frosted glass anchor;
-    // GPU scales to 50.4dp (1.2dp overhang) with glowing liquid glass when touched/held/tapped without layout remeasure.
+    // 2. Traveling Specular Beam Shine Sweep
+    if (shineProgress.value in 0.001f..0.999f) {
+      val p = shineProgress.value
+      val offset160Px = with(density) { 160.dp.toPx() }
+      val offset80Px = with(density) { 80.dp.toPx() }
+      val offset50Px = with(density) { 50.dp.toPx() }
+      val totalDockWidthPx = indicatorWidthPx * totalSlots
+      val beamX = (totalDockWidthPx + offset160Px) * p - offset80Px
+      val beamAlpha = (if (isDark) 0.35f else 0.25f) * (1f - (p - 0.5f).let { it * it * 3.8f }.coerceIn(0f, 1f))
+      val beamBrush = Brush.linearGradient(
+        colors = listOf(
+          Color.Transparent,
+          Color.White.copy(alpha = beamAlpha),
+          Color.Transparent
+        ),
+        start = Offset(beamX - offset50Px, 0f),
+        end = Offset(beamX + offset50Px, offset50Px)
+      )
+      Box(
+        Modifier
+          .fillMaxWidth()
+          .height(48.dp)
+          .align(Alignment.Center)
+          .clip(controlShape)
+          .background(beamBrush)
+      )
+    }
+
+    // 3. Active Pill Lens Indicator:
     Box(
       Modifier
         .align(Alignment.CenterStart)
@@ -878,11 +953,24 @@ fun LiquidGlassNavigationDock(
               color = selectedColor,
               cornerRadius = androidx.compose.ui.geometry.CornerRadius(basePillHeightPx / 2f)
             )
+            // Tap bloom shine flare on press/tap
+            if (tapShine.value > 0.01f) {
+              drawRoundRect(
+                brush = Brush.radialGradient(
+                  colors = listOf(
+                    Color.White.copy(alpha = (if (isDark) 0.40f else 0.55f) * tapShine.value),
+                    Color.Transparent
+                  ),
+                  radius = size.width * 0.85f
+                ),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(basePillHeightPx / 2f)
+              )
+            }
           }
         )
     )
 
-    // 3. Tab Items & Pointer Input (supports tap and horizontal drag with zero-allocation AGSL lens)
+    // 4. Tab Items & Pointer Input (supports tap and horizontal drag with zero-allocation AGSL lens)
     val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && cachedLensRenderEffect != null && combinedActionProgress > 0.01f) {
       Modifier.graphicsLayer {
         if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
@@ -958,23 +1046,46 @@ fun LiquidGlassNavigationDock(
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               coroutineScope.launch {
-                if (reduceMotion) indicatorPos.snapTo(finalSlot.toFloat()) else indicatorPos.animateTo(
-                  finalSlot.toFloat(),
-                  spring(dampingRatio = 0.72f, stiffness = 480f)
-                )
+                if (reduceMotion) {
+                  indicatorPos.snapTo(finalSlot.toFloat())
+                } else {
+                  indicatorPos.animateTo(
+                    finalSlot.toFloat(),
+                    spring(dampingRatio = 0.72f, stiffness = 480f)
+                  )
+                }
               }
             } else {
-              // Tap selection: triggers pop animation with 1.2px overhang and 1.5 length stretch
+              // Tap selection: instant destination selection + sound & haptics + pop & shine animation
               val tapSlot = ((down.position.x - sideInsetPx) / indicatorWidthPx).toInt().coerceIn(0, totalSlots - 1)
               onDestinationSelected(activeDestinations[tapSlot])
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               coroutineScope.launch {
                 tapPopAnim.snapTo(1f)
-                tapPopAnim.animateTo(
-                  targetValue = 0f,
-                  animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
-                )
+                tapShine.snapTo(1f)
+                val popJob = launch {
+                  tapPopAnim.animateTo(
+                    targetValue = 0f,
+                    animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
+                  )
+                }
+                val shineJob = launch {
+                  tapShine.animateTo(0f, tween(300, easing = LinearOutSlowInEasing))
+                }
+                val beamJob = launch {
+                  shineProgress.snapTo(0f)
+                  shineProgress.animateTo(1f, tween(durationMillis = 440, easing = FastOutSlowInEasing))
+                }
+                if (externalPageOffset == null) {
+                  indicatorPos.animateTo(
+                    tapSlot.toFloat(),
+                    spring(dampingRatio = 0.72f, stiffness = 480f)
+                  )
+                }
+                popJob.join()
+                shineJob.join()
+                beamJob.join()
               }
             }
           }
@@ -985,16 +1096,35 @@ fun LiquidGlassNavigationDock(
           destination = destination,
           isSelected = selectedTab == index,
           onClick = {
+            onDestinationSelected(destination)
             com.example.util.SoundManager.playSwipeNav(context)
             VibrationHelper.tick(context)
             coroutineScope.launch {
               tapPopAnim.snapTo(1f)
-              tapPopAnim.animateTo(
-                targetValue = 0f,
-                animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
-              )
+              tapShine.snapTo(1f)
+              val popJob = launch {
+                tapPopAnim.animateTo(
+                  targetValue = 0f,
+                  animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
+                )
+              }
+              val shineJob = launch {
+                tapShine.animateTo(0f, tween(300, easing = LinearOutSlowInEasing))
+              }
+              val beamJob = launch {
+                shineProgress.snapTo(0f)
+                shineProgress.animateTo(1f, tween(durationMillis = 440, easing = FastOutSlowInEasing))
+              }
+              if (externalPageOffset == null) {
+                indicatorPos.animateTo(
+                  index.toFloat(),
+                  spring(dampingRatio = 0.72f, stiffness = 480f)
+                )
+              }
+              popJob.join()
+              shineJob.join()
+              beamJob.join()
             }
-            onDestinationSelected(destination)
           },
           modifier = Modifier.weight(1f)
         )
@@ -1134,7 +1264,7 @@ fun LiquidGlassNavItem(
   val isDark = LocalAppColors.current.isDark
   val reduceMotion = remember { isReducedMotionEnabled(context) }
   val selectedColor = if (isDark) Color.White else Color(0xFF1C1C1E)
-  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.45f) else Color(0xFF8E8E93)
+  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.48f) else Color(0xFF8E8E93)
 
   val iconColor by animateColorAsState(
     targetValue = if (isSelected) selectedColor else unselectedColor,
@@ -1142,9 +1272,14 @@ fun LiquidGlassNavItem(
     label = "navIconColor"
   )
   val iconScale by animateFloatAsState(
-    targetValue = if (isSelected && !reduceMotion) 1.08f else 1.0f,
-    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 420f),
+    targetValue = if (isSelected && !reduceMotion) 1.14f else 1.0f,
+    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.52f, stiffness = 440f),
     label = "navIconScale"
+  )
+  val labelAlpha by animateFloatAsState(
+    targetValue = if (isSelected) 1.0f else 0.70f,
+    animationSpec = tween(durationMillis = 180),
+    label = "navLabelAlpha"
   )
 
   Box(
@@ -1158,17 +1293,34 @@ fun LiquidGlassNavItem(
       },
     contentAlignment = Alignment.Center
   ) {
-    Icon(
-      imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
-      contentDescription = destination.label,
-      tint = iconColor,
-      modifier = Modifier
-        .size(24.dp)
-        .graphicsLayer {
-          scaleX = iconScale
-          scaleY = iconScale
-        }
-    )
+    Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center
+    ) {
+      Icon(
+        imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
+        contentDescription = null,
+        tint = iconColor,
+        modifier = Modifier
+          .size(21.dp)
+          .graphicsLayer {
+            scaleX = iconScale
+            scaleY = iconScale
+          }
+      )
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = destination.label,
+        style = TextStyle(
+          fontFamily = StrongFontFamily,
+          fontSize = 10.sp,
+          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+          color = iconColor.copy(alpha = labelAlpha)
+        ),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+      )
+    }
   }
 }
 

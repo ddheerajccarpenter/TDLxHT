@@ -27,6 +27,7 @@ import com.example.ui.theme.InnerCornerShape
 import com.example.ui.theme.OuterCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -98,6 +99,8 @@ import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassSegmentedControl
 import com.example.ui.components.GlassSegmented
 import com.example.ui.components.LiquidGlassIconButton
+import com.example.ui.components.LiquidGlassButton
+import com.example.ui.glass.LiquidGlassVariant
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassButtonVariant
@@ -217,22 +220,7 @@ fun SettingsScreen(
       item {
         AppHeader(
           title = "Settings",
-          onBack = onBack,
-          rightContent = {
-            LiquidGlassIconButton(
-              onClick = {},
-              contentDescription = "Settings",
-              size = 40.dp
-            ) {
-              AnimatedIcon(
-                resId = R.raw.anim_settings,
-                isSelected = true,
-                tint = OklchIndigo,
-                size = 20.dp,
-                contentDescription = "Settings Icon"
-              )
-            }
-          }
+          onBack = onBack
         )
         Spacer(modifier = Modifier.height(14.dp))
       }
@@ -307,22 +295,21 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
           ) {
             // Sync to Cloud Button (Liquid Glass)
-            Box(
+            LiquidGlassButton(
+              onClick = {
+                if (isGuest) {
+                  Toast.makeText(context, "Sign in to enable cloud sync", Toast.LENGTH_SHORT).show()
+                } else if (syncState !is SyncStatus.Syncing) {
+                  authViewModel.syncNow()
+                }
+              },
+              shape = RoundedCornerShape(10.dp),
+              variant = if (isGuest) LiquidGlassVariant.Regular else LiquidGlassVariant.Prominent,
+              tint = OklchIndigo,
               modifier = Modifier
                 .weight(1f)
                 .height(48.dp)
-                .fluidLensedGlass(
-                  shape = RoundedCornerShape(10.dp),
-                  elevation = 2.dp,
-                  borderWidth = 0.85.dp,
-                  isElevated = true,
-                  isInteractive = syncState !is SyncStatus.Syncing,
-                  onClick = if (syncState !is SyncStatus.Syncing) {
-                    { authViewModel.syncNow() }
-                  } else null
-                )
-                .semantics { contentDescription = "Sync data to cloud" },
-              contentAlignment = Alignment.Center
+                .semantics { contentDescription = "Sync data to cloud" }
             ) {
               if (syncState is SyncStatus.Syncing) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -337,23 +324,22 @@ fun SettingsScreen(
               }
             }
 
-            // Sign Out Button (Liquid Glass)
-            Box(
+            // Sign Out / Sign In Button (Liquid Glass)
+            LiquidGlassButton(
+              onClick = {
+                showLogoutDialog = true
+              },
+              shape = RoundedCornerShape(10.dp),
+              variant = LiquidGlassVariant.Regular,
               modifier = Modifier
                 .weight(1f)
                 .height(48.dp)
-                .fluidLensedGlass(
-                  shape = RoundedCornerShape(10.dp),
-                  elevation = 1.dp,
-                  borderWidth = 0.75.dp,
-                  isElevated = false,
-                  isInteractive = true,
-                  onClick = { showLogoutDialog = true }
-                )
-                .semantics { contentDescription = "Sign out of account" },
-              contentAlignment = Alignment.Center
+                .semantics { contentDescription = if (isGuest) "Switch account" else "Sign out of account" }
             ) {
-              Text("Sign Out", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
+              Text(
+                text = if (isGuest) "Switch Account" else "Sign Out",
+                style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold)
+              )
             }
           }
         }
@@ -369,7 +355,10 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 1)) {
+        LiquidGlassCard(
+          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 1),
+          cornerRadius = 18.dp
+        ) {
           // Theme selector
           Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
@@ -436,7 +425,10 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 2)) {
+        LiquidGlassCard(
+          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 2),
+          cornerRadius = 18.dp
+        ) {
           Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
             val systemNotificationsEnabled = remember(context) {
               NotificationManagerCompat.from(context).areNotificationsEnabled()
@@ -482,10 +474,12 @@ fun SettingsScreen(
               Spacer(modifier = Modifier.height(10.dp))
             }
 
+            val masterPush = settings.pushNotificationsEnabled
+
             // Push Notifications master
             SettingsToggleRow(
               title = "Push Notifications",
-              checked = settings.pushNotificationsEnabled,
+              checked = masterPush,
               onCheckedChange = { checked ->
                 if (checked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                   val hasPerm = ContextCompat.checkSelfPermission(
@@ -511,35 +505,49 @@ fun SettingsScreen(
 
             GroupedDivider()
 
-            // Task Reminders
-            SettingsToggleRow(
-              title = "Task Reminders",
-              checked = settings.taskRemindersEnabled,
-              onCheckedChange = { checked ->
-                if (checked) {
-                  if (settings.pushNotificationsEnabled) ReminderScheduler.rescheduleAllTaskReminders(context)
-                } else {
-                  ReminderScheduler.cancelAllTaskReminders(context)
+            // Task Reminders (Disabled when masterPush is false)
+            Box(modifier = Modifier.alpha(if (masterPush) 1.0f else 0.45f)) {
+              SettingsToggleRow(
+                title = "Task Reminders",
+                subtitle = if (masterPush) null else "Disabled by master notification setting",
+                checked = settings.taskRemindersEnabled,
+                onCheckedChange = { checked ->
+                  if (masterPush) {
+                    if (checked) {
+                      ReminderScheduler.rescheduleAllTaskReminders(context)
+                    } else {
+                      ReminderScheduler.cancelAllTaskReminders(context)
+                    }
+                    viewModel.updateSettings(settings.copy(taskRemindersEnabled = checked))
+                  } else {
+                    Toast.makeText(context, "Enable Push Notifications first", Toast.LENGTH_SHORT).show()
+                  }
                 }
-                viewModel.updateSettings(settings.copy(taskRemindersEnabled = checked))
-              }
-            )
+              )
+            }
 
             GroupedDivider()
 
-            // Habit Reminders
-            SettingsToggleRow(
-              title = "Habit Reminders",
-              checked = settings.habitRemindersEnabled,
-              onCheckedChange = { checked ->
-                if (checked) {
-                  if (settings.pushNotificationsEnabled) ReminderScheduler.rescheduleAllHabitReminders(context)
-                } else {
-                  ReminderScheduler.cancelAllHabitReminders(context)
+            // Habit Reminders (Disabled when masterPush is false)
+            Box(modifier = Modifier.alpha(if (masterPush) 1.0f else 0.45f)) {
+              SettingsToggleRow(
+                title = "Habit Reminders",
+                subtitle = if (masterPush) null else "Disabled by master notification setting",
+                checked = settings.habitRemindersEnabled,
+                onCheckedChange = { checked ->
+                  if (masterPush) {
+                    if (checked) {
+                      ReminderScheduler.rescheduleAllHabitReminders(context)
+                    } else {
+                      ReminderScheduler.cancelAllHabitReminders(context)
+                    }
+                    viewModel.updateSettings(settings.copy(habitRemindersEnabled = checked))
+                  } else {
+                    Toast.makeText(context, "Enable Push Notifications first", Toast.LENGTH_SHORT).show()
+                  }
                 }
-                viewModel.updateSettings(settings.copy(habitRemindersEnabled = checked))
-              }
-            )
+              )
+            }
 
             GroupedDivider()
 
@@ -547,30 +555,37 @@ fun SettingsScreen(
             val soundSelection by AppPreferences.notificationSoundSelection.collectAsStateWithLifecycle()
 
             // Notification Sounds
-            SettingsToggleRow(
-              title = "Notification Sounds",
-              subtitle = "Enable or disable sounds when application notifications arrive",
-              checked = notificationSounds,
-              onCheckedChange = { checked ->
-                AppPreferences.setNotificationSoundsEnabled(context, checked)
-                viewModel.updateSettings(settings.copy(soundAlertsEnabled = checked))
-              }
-            )
+            Box(modifier = Modifier.alpha(if (masterPush) 1.0f else 0.45f)) {
+              SettingsToggleRow(
+                title = "Notification Sound Alerts",
+                subtitle = "Play audible ringtone when reminders or daily summary alerts trigger",
+                checked = notificationSounds,
+                onCheckedChange = { checked ->
+                  if (masterPush) {
+                    AppPreferences.setNotificationSoundsEnabled(context, checked)
+                    viewModel.updateSettings(settings.copy(soundAlertsEnabled = checked))
+                  } else {
+                    Toast.makeText(context, "Enable Push Notifications first", Toast.LENGTH_SHORT).show()
+                  }
+                }
+              )
+            }
 
             GroupedDivider()
 
-            // Select Notification Sound
+            // Select Notification Sound with Live Audio Preview
             Column(
               modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp)
+                .alpha(if (masterPush && notificationSounds) 1.0f else 0.45f)
             ) {
               Text(
-                text = "Notification Sound",
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = if (notificationSounds) InkPrimary else InkSecondary)
+                text = "Alert Chime Sound",
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = if (masterPush && notificationSounds) InkPrimary else InkSecondary)
               )
               Text(
-                text = "Select sound for incoming reminders",
+                text = "Select ringtone for incoming alerts (tap to preview)",
                 style = TextStyle(fontSize = 12.sp, color = InkSecondary)
               )
               Spacer(modifier = Modifier.height(10.dp))
@@ -578,14 +593,59 @@ fun SettingsScreen(
                 options = listOf("Sound One", "Sound Two"),
                 value = if (soundSelection == "SOUND_TWO") 1 else 0,
                 onChange = { index ->
-                  if (notificationSounds) {
+                  if (masterPush && notificationSounds) {
                     val newSelection = if (index == 1) "SOUND_TWO" else "SOUND_ONE"
                     AppPreferences.setNotificationSoundSelection(context, newSelection)
+                    try {
+                      val soundUri = HabitTaskApplication.getActiveNotificationSoundUri(context)
+                      if (soundUri != null) {
+                        val r = android.media.RingtoneManager.getRingtone(context, soundUri)
+                        r?.play()
+                      }
+                    } catch (_: Throwable) {
+                      com.example.util.SoundManager.playButtonClick(context)
+                    }
                   }
                 },
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .alpha(if (notificationSounds) 1.0f else 0.45f)
+                modifier = Modifier.fillMaxWidth()
+              )
+            }
+
+            GroupedDivider()
+
+            // Default Reminder Time
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp)
+                .alpha(if (masterPush) 1.0f else 0.45f),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(
+                  text = "Default Reminder Time",
+                  style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                )
+                Text(
+                  text = "Early alert before scheduled tasks",
+                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+                )
+              }
+
+              val reminderOptions = listOf(0 to "0m", 5 to "5m", 15 to "15m", 30 to "30m", 60 to "1h")
+              val selectedRemIndex = reminderOptions.indexOfFirst { it.first == settings.defaultReminderMinutesBefore }.coerceAtLeast(2)
+
+              GlassSegmented(
+                options = reminderOptions.map { it.second },
+                value = selectedRemIndex,
+                onChange = { index ->
+                  if (masterPush) {
+                    val mins = reminderOptions[index].first
+                    viewModel.updateSettings(settings.copy(defaultReminderMinutesBefore = mins))
+                  }
+                },
+                modifier = Modifier.width(180.dp)
               )
             }
 
@@ -595,7 +655,8 @@ fun SettingsScreen(
             Row(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(vertical = 10.dp)
+                .alpha(if (masterPush) 1.0f else 0.45f),
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically
             ) {
@@ -608,7 +669,7 @@ fun SettingsScreen(
                   text = "Recap of done/remaining at ${formatTimeDisplay(settings.dailySummaryTime, settings.timeFormat24Hour)}",
                   style = TextStyle(fontSize = 12.sp, color = InkSecondary)
                 )
-                if (settings.dailySummaryEnabled) {
+                if (settings.dailySummaryEnabled && masterPush) {
                   Spacer(modifier = Modifier.height(4.dp))
                   Text(
                     text = "Tap to change time",
@@ -619,15 +680,19 @@ fun SettingsScreen(
               }
 
               GlassSwitch(
-                checked = settings.dailySummaryEnabled,
+                checked = settings.dailySummaryEnabled && masterPush,
                 onCheckedChange = { checked ->
-                  val updated = settings.copy(dailySummaryEnabled = checked)
-                  if (checked && updated.pushNotificationsEnabled) {
-                    ReminderScheduler.scheduleDailySummary(context, updated.dailySummaryTime)
+                  if (masterPush) {
+                    val updated = settings.copy(dailySummaryEnabled = checked)
+                    if (checked) {
+                      ReminderScheduler.scheduleDailySummary(context, updated.dailySummaryTime)
+                    } else {
+                      ReminderScheduler.cancelDailySummary(context)
+                    }
+                    viewModel.updateSettings(updated)
                   } else {
-                    ReminderScheduler.cancelDailySummary(context)
+                    Toast.makeText(context, "Enable Push Notifications first", Toast.LENGTH_SHORT).show()
                   }
-                  viewModel.updateSettings(updated)
                 }
               )
             }
@@ -645,7 +710,10 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 3)) {
+        LiquidGlassCard(
+          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 3),
+          cornerRadius = 18.dp
+        ) {
           Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
             // Default Calendar View
             Row(
@@ -740,7 +808,10 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 4)) {
+        LiquidGlassCard(
+          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 4),
+          cornerRadius = 18.dp
+        ) {
           val currentShakeAction by AppPreferences.shakeAction.collectAsStateWithLifecycle()
           val currentTimerDuration by AppPreferences.shakeTimerDuration.collectAsStateWithLifecycle()
 
@@ -770,8 +841,8 @@ fun SettingsScreen(
             val sounds by AppPreferences.sounds.collectAsStateWithLifecycle()
 
             SettingsToggleRow(
-              title = "Sound Effects",
-              subtitle = "Micro acoustic feedback on task & navigation",
+              title = "In-App UI Sounds",
+              subtitle = "Micro acoustic feedback on task completion, buttons & swipe navigation",
               checked = sounds,
               onCheckedChange = { checked ->
                 AppPreferences.setSoundsEnabled(context, checked)
@@ -809,80 +880,41 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                  listOf(
-                    "CREATE_TASK" to "Task",
-                    "START_TIMER" to "Timer",
-                    "QUICK_CHOOSER" to "Actions",
-                    "DISABLED" to "Off"
-                  ).forEach { (actionKey, label) ->
-                    val isSel = currentShakeAction == actionKey
-                    Box(
-                      modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
-                        .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                        .clip(RoundedCornerShape(10.dp))
-                        .bounceClick {
-                          AppPreferences.setShakeAction(context, actionKey)
-                        },
-                      contentAlignment = Alignment.Center
-                    ) {
-                      Text(
-                        text = label,
-                        style = TextStyle(
-                          fontFamily = StrongFontFamily,
-                          fontSize = 12.sp,
-                          fontWeight = FontWeight.SemiBold,
-                          color = if (isSel) PillTextDark else InkPrimary
-                        )
-                      )
-                    }
-                  }
-                }
+                val shakeActions = listOf(
+                  "CREATE_TASK" to "Task",
+                  "START_TIMER" to "Timer",
+                  "QUICK_CHOOSER" to "Actions"
+                )
+                val selectedActionIndex = shakeActions.indexOfFirst { it.first == currentShakeAction }.coerceAtLeast(0)
+
+                GlassSegmented(
+                  options = shakeActions.map { it.second },
+                  value = selectedActionIndex,
+                  onChange = { index ->
+                    AppPreferences.setShakeAction(context, shakeActions[index].first)
+                  },
+                  modifier = Modifier.fillMaxWidth()
+                )
 
                 if (currentShakeAction == "START_TIMER") {
-                  Spacer(modifier = Modifier.height(10.dp))
+                  Spacer(modifier = Modifier.height(12.dp))
                   Text(
                     text = "DEFAULT TIMER DURATION",
                     style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = InkSecondary)
                   )
                   Spacer(modifier = Modifier.height(8.dp))
 
-                  Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                  ) {
-                    listOf(5, 15, 25, 45, 60).forEach { mins ->
-                      val isSel = currentTimerDuration == mins
-                      Box(
-                        modifier = Modifier
-                          .weight(1f)
-                          .height(48.dp)
-                          .background(if (isSel) PillBackgroundDark else PillBackgroundDark.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
-                        .border(1.dp, CardBorder, RoundedCornerShape(10.dp))
-                        .clip(RoundedCornerShape(10.dp))
-                        .bounceClick {
-                          AppPreferences.setShakeTimerDuration(context, mins)
-                        },
-                        contentAlignment = Alignment.Center
-                      ) {
-                        Text(
-                          text = "${mins}m",
-                          style = TextStyle(
-                            fontFamily = StrongFontFamily,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSel) PillTextDark else InkPrimary
-                          )
-                        )
-                      }
-                    }
-                  }
+                  val durations = listOf(5, 15, 25, 45, 60)
+                  val selectedDurIndex = durations.indexOf(currentTimerDuration).coerceAtLeast(2)
+
+                  GlassSegmented(
+                    options = durations.map { "${it}m" },
+                    value = selectedDurIndex,
+                    onChange = { index ->
+                      AppPreferences.setShakeTimerDuration(context, durations[index])
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                  )
                 }
               }
             }
@@ -900,7 +932,10 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        GroupedInsetCard(modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 5)) {
+        LiquidGlassCard(
+          modifier = Modifier.fillMaxWidth().staggeredEntrance(index = 5),
+          cornerRadius = 18.dp
+        ) {
           Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
               text = "Backup & Restore",
@@ -917,14 +952,9 @@ fun SettingsScreen(
               modifier = Modifier.fillMaxWidth(),
               horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-              Box(
-                modifier = Modifier
-                  .weight(1f)
-                  .height(48.dp)
-                  .background(PillBackgroundDark, RoundedCornerShape(10.dp))
-                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .bounceClick(enabled = !isExporting && !isImporting) {
+              LiquidGlassButton(
+                onClick = {
+                  if (!isExporting && !isImporting) {
                     isExporting = true
                     coroutineScope.launch {
                       val result = exportService.exportToJson(context)
@@ -941,33 +971,38 @@ fun SettingsScreen(
                         Toast.makeText(context, "Unable to export data", Toast.LENGTH_SHORT).show()
                       }
                     }
-                  },
-                contentAlignment = Alignment.Center
+                  }
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
+                modifier = Modifier
+                  .weight(1f)
+                  .height(48.dp)
               ) {
                 if (isExporting) {
-                  CircularProgressIndicator(modifier = Modifier.size(16.dp), color = PillTextDark, strokeWidth = 2.dp)
+                  CircularProgressIndicator(modifier = Modifier.size(16.dp), color = LocalAppColors.current.oklchPrimary, strokeWidth = 2.dp)
                 } else {
                   Text(
                     text = "Export Data",
-                    style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PillTextDark)
+                    style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
                   )
                 }
               }
 
-              Box(
+              LiquidGlassButton(
+                onClick = {
+                  if (!isExporting && !isImporting) {
+                    importLauncher.launch("*/*")
+                  }
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
                 modifier = Modifier
                   .weight(1f)
                   .height(48.dp)
-                  .background(CardBackground, RoundedCornerShape(10.dp))
-                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .bounceClick(enabled = !isExporting && !isImporting) {
-                    importLauncher.launch("*/*")
-                  },
-                contentAlignment = Alignment.Center
               ) {
                 if (isImporting) {
-                  CircularProgressIndicator(modifier = Modifier.size(16.dp), color = InkPrimary, strokeWidth = 2.dp)
+                  CircularProgressIndicator(modifier = Modifier.size(16.dp), color = LocalAppColors.current.oklchPrimary, strokeWidth = 2.dp)
                 } else {
                   Text(
                     text = "Import Data",
@@ -1022,10 +1057,11 @@ fun SettingsScreen(
               .padding(horizontal = 16.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
           ) {
-            GlassButton(
-              variant = GlassButtonVariant.PLAIN,
-              destructive = true,
+            LiquidGlassButton(
               onClick = { showDeleteAccountDialog = true },
+              shape = RoundedCornerShape(10.dp),
+              variant = LiquidGlassVariant.Prominent,
+              tint = AccentRed,
               modifier = Modifier.fillMaxWidth().height(44.dp)
             ) {
               Text(
@@ -1093,11 +1129,9 @@ fun SettingsScreen(
 
             var isCheckingUpdate by remember { mutableStateOf(false) }
 
-            Box(
-              modifier = Modifier
-                .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .bounceClick(enabled = !isCheckingUpdate) {
+            LiquidGlassButton(
+              onClick = {
+                if (!isCheckingUpdate) {
                   isCheckingUpdate = true
                   Toast.makeText(context, "Checking for latest release...", Toast.LENGTH_SHORT).show()
                   com.example.util.AppUpdateManager.checkForUpdates(
@@ -1114,8 +1148,10 @@ fun SettingsScreen(
                     }
                   }
                 }
-                .padding(horizontal = 18.dp, vertical = 9.dp),
-              contentAlignment = Alignment.Center
+              },
+              shape = RoundedCornerShape(10.dp),
+              variant = LiquidGlassVariant.Regular,
+              modifier = Modifier.height(38.dp)
             ) {
               Text(
                 text = if (isCheckingUpdate) "Checking Updates..." else "Check for Updates",
@@ -1253,6 +1289,39 @@ fun SettingsScreen(
                 }
               }
             }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            LiquidGlassButton(
+              onClick = {
+                val parts = settings.dailySummaryTime.split(":")
+                val curH = parts.getOrNull(0)?.toIntOrNull() ?: 20
+                val curM = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                android.app.TimePickerDialog(
+                  context,
+                  { _, hourOfDay, minute ->
+                    val customTime = String.format(java.util.Locale.US, "%02d:%02d", hourOfDay, minute)
+                    val updated = settings.copy(dailySummaryTime = customTime)
+                    if (updated.dailySummaryEnabled && updated.pushNotificationsEnabled) {
+                      ReminderScheduler.scheduleDailySummary(context, customTime)
+                    }
+                    viewModel.updateSettings(updated)
+                    showSummaryTimeDialog = false
+                  },
+                  curH,
+                  curM,
+                  settings.timeFormat24Hour
+                ).show()
+              },
+              shape = RoundedCornerShape(10.dp),
+              variant = LiquidGlassVariant.Regular,
+              modifier = Modifier.fillMaxWidth().height(42.dp)
+            ) {
+              Text(
+                text = "Pick Custom Time…",
+                style = TextStyle(fontFamily = StrongFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.oklchPrimary)
+              )
+            }
           }
         }
       }
@@ -1271,24 +1340,25 @@ fun SettingsScreen(
             )
             Spacer(Modifier.height(20.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-              Box(
+              LiquidGlassButton(
+                onClick = { showLogoutDialog = false },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
                 modifier = Modifier.weight(1f).height(48.dp)
-                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .bounceClick { showLogoutDialog = false },
-                contentAlignment = Alignment.Center
               ) {
                 Text("Cancel", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
               }
-              Box(
+              LiquidGlassButton(
+                onClick = {
+                  showLogoutDialog = false
+                  authViewModel.signOut(context)
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Prominent,
+                tint = AccentRed,
                 modifier = Modifier.weight(1f).height(48.dp)
-                  .background(AccentRed.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
-                  .border(1.2.dp, AccentRed.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .bounceClick { showLogoutDialog = false; authViewModel.signOut(context) },
-                contentAlignment = Alignment.Center
               ) {
-                Text("Sign Out", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = AccentRed, fontWeight = FontWeight.SemiBold))
+                Text("Sign Out", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = AccentRed, fontWeight = FontWeight.Bold))
               }
             }
           }
@@ -1309,24 +1379,23 @@ fun SettingsScreen(
             )
             Spacer(Modifier.height(20.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-              Box(
+              LiquidGlassButton(
+                onClick = { showDeleteAccountDialog = false },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
                 modifier = Modifier.weight(1f).height(48.dp)
-                  .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .bounceClick { showDeleteAccountDialog = false },
-                contentAlignment = Alignment.Center
               ) {
                 Text("Cancel", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = InkPrimary, fontWeight = FontWeight.SemiBold))
               }
-              Box(
+              LiquidGlassButton(
+                onClick = {
+                  showDeleteAccountDialog = false
+                  authViewModel.deleteAccount(context)
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Prominent,
+                tint = AccentRed,
                 modifier = Modifier.weight(1f).height(48.dp)
-                  .background(AccentRed, RoundedCornerShape(10.dp))
-                  .clip(RoundedCornerShape(10.dp))
-                  .bounceClick {
-                    showDeleteAccountDialog = false
-                    authViewModel.deleteAccount(context)
-                  },
-                contentAlignment = Alignment.Center
               ) {
                 Text("Delete", style = TextStyle(fontFamily = StrongFontFamily, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold))
               }
@@ -1348,6 +1417,7 @@ fun SettingsToggleRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
+      .defaultMinSize(minHeight = 48.dp)
       .clickable(
         interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
         indication = null

@@ -1,6 +1,8 @@
 package com.example.ui.screens.tasks
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.window.Dialog
 import com.example.ui.theme.StrongFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -65,6 +67,8 @@ import com.example.data.model.TaskPriority
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.LiquidGlassCard
+import com.example.ui.components.LiquidGlassButton
+import com.example.ui.glass.LiquidGlassVariant
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.GlassButtonVariant
@@ -150,6 +154,36 @@ fun TaskDetailEditScreen(
   val settings by viewModel.settings.collectAsStateWithLifecycle()
   var isSaving by remember { mutableStateOf(false) }
 
+  val isDirty = remember(
+    existingTask?.id, title, notes, isShortTerm, colorTag, selectedCategory,
+    customCategoryText, priority, repeatRule, selectedDate, dueTime,
+    reminderEnabled, reminderOption, subtaskList.size
+  ) {
+    if (existingTask == null) {
+      title.isNotBlank() || notes.isNotBlank() || isShortTerm != initialIsShortTerm ||
+      subtaskList.isNotEmpty() || (selectedCategory != "Work" && selectedCategory.isNotBlank()) ||
+      customCategoryText.isNotBlank() || colorTag != null
+    } else {
+      title != existingTask.title ||
+      notes != existingTask.notes ||
+      isShortTerm != existingTask.isShortTerm ||
+      colorTag != existingTask.colorTag ||
+      (if (selectedCategory == "Other") customCategoryText.trim() else selectedCategory) != existingTask.category ||
+      priority != existingTask.priority ||
+      repeatRule != existingTask.repeatRule ||
+      selectedDate != initialDate ||
+      dueTime != (existingTask.dueTime ?: "10:00") ||
+      reminderEnabled != (existingTask.reminderSetting != null && existingTask.reminderSetting != ReminderOption.NONE) ||
+      subtaskList.toList() != existingSubtasks
+    }
+  }
+
+  var showDiscardDialog by remember { mutableStateOf(false) }
+
+  BackHandler(enabled = isDirty) {
+    showDiscardDialog = true
+  }
+
   LaunchedEffect(existingTask?.id) {
     if (existingTask != null) {
       title = existingTask.title
@@ -190,16 +224,22 @@ fun TaskDetailEditScreen(
       item {
         AppHeader(
           title = if (isEditing) "Edit Task" else "New Task",
-          onBack = onDismiss,
+          onBack = {
+            if (isDirty) {
+              showDiscardDialog = true
+            } else {
+              onDismiss()
+            }
+          },
           rightContent = {
-            GlassButton(
-              variant = GlassButtonVariant.FILLED,
+            LiquidGlassButton(
+              variant = LiquidGlassVariant.Prominent,
               onClick = {
-                if (isSaving) return@GlassButton
+                if (isSaving) return@LiquidGlassButton
                 if (title.isBlank()) {
                   titleError = "Task name is required"
                   Toast.makeText(context, "Please enter a task name", Toast.LENGTH_SHORT).show()
-                  return@GlassButton
+                  return@LiquidGlassButton
                 }
                 titleError = null
                 isSaving = true
@@ -1022,6 +1062,90 @@ fun TaskDetailEditScreen(
         },
         onDismiss = { showDeleteDialog = false }
       )
+    }
+
+    if (showDiscardDialog) {
+      Dialog(onDismissRequest = { showDiscardDialog = false }) {
+        LiquidGlassCard(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+          cornerRadius = 20.dp
+        ) {
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            Text(
+              text = "Discard Unsaved Changes?",
+              style = TextStyle(
+                fontFamily = StrongFontFamily,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = AccentRed
+              )
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+              text = "You have unsaved changes that will be lost if you leave now.",
+              style = TextStyle(
+                fontSize = 13.sp,
+                color = InkSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+              )
+            )
+            Spacer(Modifier.height(20.dp))
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+              LiquidGlassButton(
+                onClick = { showDiscardDialog = false },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Regular,
+                modifier = Modifier
+                  .weight(1f)
+                  .height(48.dp)
+              ) {
+                Text(
+                  text = "Keep Editing",
+                  style = TextStyle(
+                    fontFamily = StrongFontFamily,
+                    fontSize = 14.sp,
+                    color = InkPrimary,
+                    fontWeight = FontWeight.SemiBold
+                  )
+                )
+              }
+              LiquidGlassButton(
+                onClick = {
+                  showDiscardDialog = false
+                  onDismiss()
+                },
+                shape = RoundedCornerShape(10.dp),
+                variant = LiquidGlassVariant.Prominent,
+                tint = AccentRed,
+                modifier = Modifier
+                  .weight(1f)
+                  .height(48.dp)
+              ) {
+                Text(
+                  text = "Discard",
+                  style = TextStyle(
+                    fontFamily = StrongFontFamily,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                  )
+                )
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
