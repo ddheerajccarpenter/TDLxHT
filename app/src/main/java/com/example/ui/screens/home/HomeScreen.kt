@@ -799,15 +799,7 @@ fun HomeScreen(
               LiquidGlassButton(
                 onClick = onQuickAdd ?: onNavigateToAddTask,
                 shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.height(34.dp).testTag("add_task_header_btn"),
-                icon = {
-                  Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = InkPrimary,
-                    modifier = Modifier.size(14.dp)
-                  )
-                }
+                modifier = Modifier.height(34.dp).testTag("add_task_header_btn")
               ) {
                 Text(
                   text = "Add",
@@ -939,15 +931,7 @@ fun HomeScreen(
               LiquidGlassButton(
                 onClick = onQuickAdd ?: onNavigateToAddHabit,
                 shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.height(34.dp).testTag("add_habit_header_btn"),
-                icon = {
-                  Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = InkPrimary,
-                    modifier = Modifier.size(14.dp)
-                  )
-                }
+                modifier = Modifier.height(34.dp).testTag("add_habit_header_btn")
               ) {
                 Text(
                   text = "Add",
@@ -1737,23 +1721,14 @@ fun HabitItemCard(
               .padding(horizontal = 10.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Log Session",
-                tint = InkPrimary,
-                modifier = Modifier.size(14.dp)
+            Text(
+              text = "$currentSessions/${habit.targetValue.toInt()} Session",
+              style = TextStyle(
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = InkPrimary
               )
-              Spacer(modifier = Modifier.width(4.dp))
-              Text(
-                text = "+$currentSessions/${habit.targetValue.toInt()} Session",
-                style = TextStyle(
-                  fontSize = 12.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
-                )
-              )
-            }
+            )
           }
         } else {
           SketchCheckbox(

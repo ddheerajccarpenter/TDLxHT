@@ -899,11 +899,14 @@ fun TaskDetailEditScreen(
             size = 48.dp,
             modifier = Modifier.testTag("add_subtask_btn")
           ) {
-            Icon(
-              imageVector = Icons.Default.Add,
-              contentDescription = null,
-              tint = if (isDark) PrimaryAccentLime else InkPrimary,
-              modifier = Modifier.size(20.dp)
+            Text(
+              text = "Add",
+              style = TextStyle(
+                fontFamily = StrongFontFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDark) PrimaryAccentLime else InkPrimary
+              )
             )
           }
         }

@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.alpha
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -541,14 +542,51 @@ fun SettingsScreen(
 
             GroupedDivider()
 
-            // Sound Alerts
+            val notificationSounds by AppPreferences.notificationSounds.collectAsStateWithLifecycle()
+            val soundSelection by AppPreferences.notificationSoundSelection.collectAsStateWithLifecycle()
+
+            // Notification Sounds
             SettingsToggleRow(
-              title = "Sound Alerts",
-              checked = settings.soundAlertsEnabled,
+              title = "Notification Sounds",
+              subtitle = "Enable or disable sounds when application notifications arrive",
+              checked = notificationSounds,
               onCheckedChange = { checked ->
+                AppPreferences.setNotificationSoundsEnabled(context, checked)
                 viewModel.updateSettings(settings.copy(soundAlertsEnabled = checked))
               }
             )
+
+            GroupedDivider()
+
+            // Select Notification Sound
+            Column(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp)
+            ) {
+              Text(
+                text = "Notification Sound",
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = if (notificationSounds) InkPrimary else InkSecondary)
+              )
+              Text(
+                text = "Select sound for incoming reminders",
+                style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+              )
+              Spacer(modifier = Modifier.height(10.dp))
+              GlassSegmented(
+                options = listOf("Sound One", "Sound Two"),
+                value = if (soundSelection == "SOUND_TWO") 1 else 0,
+                onChange = { index ->
+                  if (notificationSounds) {
+                    val newSelection = if (index == 1) "SOUND_TWO" else "SOUND_ONE"
+                    AppPreferences.setNotificationSoundSelection(context, newSelection)
+                  }
+                },
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .alpha(if (notificationSounds) 1.0f else 0.45f)
+              )
+            }
 
             GroupedDivider()
 
@@ -741,53 +779,6 @@ fun SettingsScreen(
                 }
               }
             )
-
-            if (sounds) {
-              GroupedDivider()
-              Column(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(horizontal = 16.dp, vertical = 10.dp)
-              ) {
-                Text(
-                  text = "AUDITION SOUNDS",
-                  style = TextStyle(
-                    fontFamily = StrongFontFamily,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = InkSecondary
-                  )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                  listOf(
-                    "Task" to { com.example.util.SoundManager.playTaskComplete(context) },
-                    "Habit" to { com.example.util.SoundManager.playHabitTick(context) },
-                    "Click" to { com.example.util.SoundManager.playButtonClick(context) },
-                    "Timer" to { com.example.util.SoundManager.playTimerEnd(context) }
-                  ).forEach { (label, playAction) ->
-                    Box(
-                      modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(InnerCornerShape)
-                        .border(1.dp, CardBorder, InnerCornerShape)
-                        .bounceClick { playAction() },
-                      contentAlignment = Alignment.Center
-                    ) {
-                      Text(
-                        text = label,
-                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-                      )
-                    }
-                  }
-                }
-              }
-            }
 
             GroupedDivider()
 
@@ -1086,6 +1077,16 @@ fun SettingsScreen(
               text = "Version ${com.example.BuildConfig.VERSION_NAME} (Build ${com.example.BuildConfig.VERSION_CODE}) • Liquid Glass Edition",
               style = TextStyle(fontSize = 12.sp, color = InkSecondary)
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+              text = "Author: Dheeraj",
+              style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+              text = "© 2026 Dheeraj. All rights reserved.",
+              style = TextStyle(fontSize = 11.sp, color = InkSecondary)
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -1118,6 +1119,35 @@ fun SettingsScreen(
               Text(
                 text = if (isCheckingUpdate) "Checking Updates..." else "Check for Updates",
                 style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+              )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(12.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Text(
+                text = "Privacy Policy",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, color = LocalAppColors.current.oklchPrimary),
+                modifier = Modifier.bounceClick {
+                  try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://tdlxht.vercel.app/privacy.html"))
+                    context.startActivity(intent)
+                  } catch (_: Throwable) {}
+                }
+              )
+              Text("•", style = TextStyle(fontSize = 12.sp, color = InkSecondary))
+              Text(
+                text = "Account Deletion",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, color = LocalAppColors.current.oklchPrimary),
+                modifier = Modifier.bounceClick {
+                  try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://tdlxht.vercel.app/delete-account.html"))
+                    context.startActivity(intent)
+                  } catch (_: Throwable) {}
+                }
               )
             }
           }

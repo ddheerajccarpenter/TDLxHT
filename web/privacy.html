@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — TDLxHT</title>
+  <meta name="description" content="Official Privacy Policy for TDLxHT by Dheeraj. Fully offline-first, zero third-party trackers, 100% private.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .legal-content {
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 40px 20px 100px;
+      line-height: 1.7;
+    }
+    .legal-card {
+      background: var(--surface-glass, rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.12));
+      border-radius: 20px;
+      padding: 36px 32px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .legal-heading {
+      font-family: var(--font-brand);
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .legal-sub {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+    .legal-card h2 {
+      font-family: var(--font-brand);
+      font-size: 1.35rem;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .legal-card p, .legal-card ul {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+    }
+    .legal-card ul {
+      padding-left: 24px;
+    }
+    .legal-card li {
+      margin-bottom: 8px;
+    }
+    .badge-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(47, 164, 215, 0.15);
+      color: #2FA4D7;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header-strip">
+    <a href="/" class="header-brand">
+      <div class="header-brand-icon">
+        <img src="/app-icon.png" alt="TDLxHT Logo" width="36" height="36">
+      </div>
+      <span>TDLxHT</span>
+    </a>
+    <div class="header-version-note">
+      <span>Official Privacy Policy</span>
+    </div>
+  </header>
+
+  <main class="page-container legal-content">
+    <div class="legal-card">
+      <span class="badge-pill">Privacy & Data Governance</span>
+      <h1 class="legal-heading">Privacy Policy</h1>
+      <p class="legal-sub">Effective Date: November 10, 2026 • Application: TDLxHT (v2.5.41) • Author: Dheeraj</p>
+
+      <h2>1. Overview & Core Privacy Guarantee</h2>
+      <p>
+        TDLxHT is created and maintained by <strong>Dheeraj</strong>. We believe your daily tasks, lifelong habits, focus sessions, and personal notes belong solely to you.
+      </p>
+      <p>
+        TDLxHT is built on an <strong>offline-first architecture</strong>:
+      </p>
+      <ul>
+        <li>You do not need to create an account or provide an email to use the application.</li>
+        <li>Your tasks, habits, categories, reminders, and calculator outputs are stored locally on your device in an encrypted Room SQLite database.</li>
+        <li>We bundle <strong>zero third-party advertising SDKs</strong>, zero analytics trackers, and zero behavioral telemetry tools.</li>
+      </ul>
+
+      <h2>2. Information We Process</h2>
+      <p>
+        Depending on how you use TDLxHT, data processing is classified as follows:
+      </p>
+      <ul>
+        <li><strong>Local Application Data (Offline):</strong> Tasks, subtasks, habit streak history, focus timer logs, and custom category tags. This information is saved exclusively in local device storage and is never uploaded anywhere unless you explicitly sign in.</li>
+        <li><strong>Optional Cloud Continuity Account:</strong> If you choose to enable multi-device sync, you may create an account using your email address and a password. This authenticates via our secure cloud service (Supabase) using industry-standard salted hashing and Row-Level Security (RLS). Only your authenticated account can read or write your synced records.</li>
+        <li><strong>Diagnostics & Hardware Gestures:</strong> Hardware accelerometer readings for the "Shake to Quick Add" gesture are processed purely in real-time memory on your device to detect shake thresholds and are never logged, persisted, or transmitted.</li>
+      </ul>
+
+      <h2>3. Device Permissions & Why They Are Required</h2>
+      <p>
+        TDLxHT requests only the minimum permissions necessary to deliver essential productivity features:
+      </p>
+      <ul>
+        <li><code>POST_NOTIFICATIONS</code>: Required on Android 13+ to deliver scheduled task alarms, habit reminders, and daily productivity summaries. You can toggle reminders on or off at any time in Settings.</li>
+        <li><code>SCHEDULE_EXACT_ALARM</code>: Ensures task due-date alarms fire accurately at the exact time you selected.</li>
+        <li><code>RECEIVE_BOOT_COMPLETED</code>: Re-registers your scheduled alarms and notifications when your device reboots.</li>
+        <li><code>VIBRATE</code>: Delivers subtle micro-haptic feedback during button clicks, slider snaps, and milestone celebrations.</li>
+        <li><code>FOREGROUND_SERVICE (specialUse)</code>: Powers background shake detection when you choose to enable the optional "Shake to Quick Add" setting.</li>
+      </ul>
+
+      <h2>4. Data Sharing & Third Parties</h2>
+      <p>
+        We do not sell, rent, monetize, or trade your personal data under any circumstances.
+      </p>
+      <p>
+        When you choose to enable cloud backup, data is transmitted strictly over TLS/HTTPS to our managed PostgreSQL infrastructure with strict access control. No third parties have access to your personal content.
+      </p>
+
+      <h2>5. Data Retention & Your Rights (GDPR & CCPA)</h2>
+      <p>
+        You have complete control over your data:
+      </p>
+      <ul>
+        <li><strong>Immediate In-App Wipe:</strong> Go to <em>Settings &gt; Danger Zone &gt; Delete Account & Cloud Data</em> to instantly purge all cloud records and local storage.</li>
+        <li><strong>Web-Based Account Deletion Portal:</strong> In compliance with Google Play Developer Policy, you can also request deletion at any time without having the app installed via our <a href="/delete-account.html" style="color: #2FA4D7; text-decoration: underline;">Account Deletion Request Portal</a>.</li>
+        <li><strong>Export & Backup:</strong> You can export your data at any time via Settings.</li>
+      </ul>
+
+      <h2>6. Security</h2>
+      <p>
+        All network communications are strictly enforced over HTTPS (TLS 1.3) via Android's Network Security Configuration (`cleartextTrafficPermitted="false"`). Release builds are obfuscated and hardened using R8 minification and ProGuard rules.
+      </p>
+
+      <h2>7. Developer & Contact Information</h2>
+      <p>
+        If you have any questions, feedback, or privacy inquiries regarding TDLxHT, please contact:
+      </p>
+      <p>
+        <strong>Author & Developer:</strong> Dheeraj<br>
+        <strong>Website:</strong> <a href="https://tdlxht.vercel.app" style="color: #2FA4D7;">https://tdlxht.vercel.app</a><br>
+        <strong>Repository & Releases:</strong> <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener" style="color: #2FA4D7;">GitHub Releases</a><br>
+        <strong>Copyright:</strong> © 2026 Dheeraj. All rights reserved.
+      </p>
+    </div>
+  </main>
+
+  <footer class="footer-strip">
+    <div class="header-brand" style="font-size: 1rem;">TDLxHT</div>
+    <nav class="footer-nav" aria-label="Footer links">
+      <a href="/">Home</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/delete-account.html">Account Deletion</a>
+      <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <div>Author: Dheeraj · © 2026 Dheeraj. All rights reserved.</div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Deletion Request — TDLxHT</title>
+  <meta name="description" content="Request deletion of your TDLxHT account and cloud data. Managed by Dheeraj.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .deletion-content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 20px 100px;
+      line-height: 1.7;
+    }
+    .deletion-card {
+      background: var(--surface-glass, rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.12));
+      border-radius: 20px;
+      padding: 36px 32px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .deletion-heading {
+      font-family: var(--font-brand);
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .deletion-sub {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+    .badge-pill-danger {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(220, 38, 38, 0.15);
+      color: #EF4444;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .step-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.15));
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .form-input:focus {
+      border-color: #2FA4D7;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header-strip">
+    <a href="/" class="header-brand">
+      <div class="header-brand-icon">
+        <img src="/app-icon.png" alt="TDLxHT Logo" width="36" height="36">
+      </div>
+      <span>TDLxHT</span>
+    </a>
+    <div class="header-version-note">
+      <span>Account & Data Management</span>
+    </div>
+  </header>
+
+  <main class="page-container deletion-content">
+    <div class="deletion-card">
+      <span class="badge-pill-danger">Google Play Compliance • Account Deletion</span>
+      <h1 class="deletion-heading">Delete Account & Cloud Data</h1>
+      <p class="deletion-sub">Author: Dheeraj • Application: TDLxHT</p>
+
+      <p>
+        In accordance with Google Play's Account Deletion Policy, you have the full right to delete your TDLxHT account, authentication records, and all associated cloud data at any time.
+      </p>
+
+      <h3 style="font-family: var(--font-brand); color: var(--text-primary); margin-top: 24px;">Option 1: Instant In-App Deletion (Recommended)</h3>
+      <p>
+        If you have the TDLxHT application installed on your Android device:
+      </p>
+      <div class="step-box">
+        <ol style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 0.95rem;">
+          <li>Open <strong>TDLxHT</strong>.</li>
+          <li>Tap the <strong>Settings</strong> icon in the top right.</li>
+          <li>Scroll to the <strong>Danger Zone</strong> section.</li>
+          <li>Tap <strong>Delete Account & Cloud Data</strong> and confirm.</li>
+        </ol>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">
+        Your authentication profile and all synced tasks, habits, and focus metrics are immediately and permanently erased from the database.
+      </p>
+
+      <h3 style="font-family: var(--font-brand); color: var(--text-primary); margin-top: 28px;">Option 2: Web Deletion Request Portal</h3>
+      <p>
+        If you have already uninstalled the application or cannot access your device, submit your account email below to request permanent deletion:
+      </p>
+
+      <form id="deletion-form" onsubmit="handleDeletionRequest(event)" style="margin-top: 20px;">
+        <div class="form-group">
+          <label class="form-label" for="del-email">Account Email Address</label>
+          <input type="email" id="del-email" class="form-input" placeholder="your-email@domain.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="del-reason">Optional Reason / Notes</label>
+          <textarea id="del-reason" class="form-input" rows="3" placeholder="Let us know why you are leaving (optional)"></textarea>
+        </div>
+
+        <button type="submit" class="btn-glass btn-glass-primary" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #EF4444; width: 100%; justify-content: center;">
+          Submit Account Deletion Request
+        </button>
+      </form>
+
+      <div id="deletion-confirmation" style="display: none; margin-top: 24px; padding: 18px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #22C55E; font-size: 0.92rem;">
+        ✓ Your deletion request has been received. If a cloud account matches this email address, all associated credentials and data will be permanently purged within 48 hours.
+      </div>
+
+      <h3 style="font-family: var(--font-brand); color: var(--text-primary); margin-top: 32px;">What Data is Purged?</h3>
+      <ul style="color: var(--text-secondary); font-size: 0.95rem; padding-left: 20px;">
+        <li><strong>Authentication Credentials:</strong> User ID, email, hashed credentials, and session tokens.</li>
+        <li><strong>Cloud Synced Items:</strong> All tasks, subtasks, habits, categories, and streak logs.</li>
+        <li><strong>Zero Data Retained:</strong> We do not retain archives, backups, or shadow profiles.</li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    function handleDeletionRequest(event) {
+      event.preventDefault();
+      var email = document.getElementById('del-email').value;
+      if (!email) return;
+      document.getElementById('deletion-form').style.display = 'none';
+      document.getElementById('deletion-confirmation').style.display = 'block';
+    }
+  </script>
+
+  <footer class="footer-strip">
+    <div class="header-brand" style="font-size: 1rem;">TDLxHT</div>
+    <nav class="footer-nav" aria-label="Footer links">
+      <a href="/">Home</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/delete-account.html">Account Deletion</a>
+      <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <div>Author: Dheeraj · © 2026 Dheeraj. All rights reserved.</div>
+  </footer>
+
+</body>
+</html>

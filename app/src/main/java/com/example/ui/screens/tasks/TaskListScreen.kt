@@ -168,7 +168,7 @@ fun TaskListScreen(
             }
           },
           backLabel = if (isMultiSelectMode) "Done" else "Back",
-          actionIcon = Icons.Default.Add,
+          actionText = "Add",
           actionContentDescription = "Add Task",
           onActionClick = onNavigateToAddTask,
           actionTestTag = "tasks_add_button"

@@ -172,7 +172,7 @@ fun HabitListScreen(
             }
           },
           backLabel = if (isMultiSelectMode) "Done" else "Back",
-          actionIcon = Icons.Default.Add,
+          actionText = "Add",
           actionContentDescription = "Add Habit",
           onActionClick = onNavigateToAddHabit,
           actionTestTag = "habits_add_button"
@@ -638,23 +638,14 @@ fun HabitCardItemWithActions(
               .padding(horizontal = 10.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Log Session",
-                tint = InkPrimary,
-                modifier = Modifier.size(14.dp)
+            Text(
+              text = "$currentSessions/${habit.targetValue.toInt()} Session",
+              style = TextStyle(
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = InkPrimary
               )
-              Spacer(modifier = Modifier.width(4.dp))
-              Text(
-                text = "+$currentSessions/${habit.targetValue.toInt()} Session",
-                style = TextStyle(
-                  fontSize = 12.sp,
-                  fontWeight = FontWeight.Bold,
-                  color = InkPrimary
-                )
-              )
-            }
+            )
           }
         } else {
           SketchCheckbox(

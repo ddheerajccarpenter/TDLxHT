@@ -217,7 +217,7 @@ fun CalendarScreen(
                 )
               }
             },
-            actionIcon = Icons.Default.Add,
+            actionText = "Add",
             onActionClick = onNavigateToAddTask
           )
 

@@ -108,13 +108,24 @@ class AlarmReceiver : BroadcastReceiver() {
       PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
     )
 
-    val notification = NotificationCompat.Builder(context, HabitTaskApplication.CHANNEL_TASKS_ID)
+    val activeChannelId = HabitTaskApplication.getActiveNotificationChannelId(context)
+    val soundUri = HabitTaskApplication.getActiveNotificationSoundUri(context)
+
+    val notification = NotificationCompat.Builder(context, activeChannelId)
       .setSmallIcon(android.R.drawable.ic_popup_reminder)
       .setContentTitle("Task Reminder: ${task.title}")
       .setContentText("Due at ${task.dueTime} (${task.category})")
       .setAutoCancel(true)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
-      .setDefaults(if (settings.soundAlertsEnabled) NotificationCompat.DEFAULT_ALL else NotificationCompat.DEFAULT_VIBRATE)
+      .apply {
+        if (soundUri != null) {
+          setSound(soundUri)
+          setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+        } else {
+          setSound(null)
+          setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+        }
+      }
       .setContentIntent(contentIntent)
       .addAction(android.R.drawable.checkbox_on_background, "Complete", completeIntent)
       .addAction(android.R.drawable.ic_lock_idle_alarm, "Snooze 10m", snoozeIntent)
@@ -210,13 +221,24 @@ class AlarmReceiver : BroadcastReceiver() {
       "Keep your streak alive! Have you checked this in today?"
     }
 
-    val notification = NotificationCompat.Builder(context, HabitTaskApplication.CHANNEL_HABITS_ID)
+    val activeChannelId = HabitTaskApplication.getActiveNotificationChannelId(context)
+    val soundUri = HabitTaskApplication.getActiveNotificationSoundUri(context)
+
+    val notification = NotificationCompat.Builder(context, activeChannelId)
       .setSmallIcon(android.R.drawable.ic_popup_reminder)
       .setContentTitle(title)
       .setContentText(contentText)
       .setAutoCancel(true)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
-      .setDefaults(if (settings.soundAlertsEnabled) NotificationCompat.DEFAULT_ALL else NotificationCompat.DEFAULT_VIBRATE)
+      .apply {
+        if (soundUri != null) {
+          setSound(soundUri)
+          setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+        } else {
+          setSound(null)
+          setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+        }
+      }
       .setContentIntent(contentIntent)
       .addAction(android.R.drawable.checkbox_on_background, "Done", doneIntent)
       .addAction(android.R.drawable.ic_lock_idle_alarm, "Snooze 15m", snoozeIntent)
@@ -289,12 +311,24 @@ class AlarmReceiver : BroadcastReceiver() {
     val streakStr = if (maxStreak > 0) " • $maxStreak-day streak" else ""
     val summaryText = "Tasks: $tasksDone/$tasksTotal done • Habits: $todayCompletedCount/$habitsTotal checked$streakStr"
 
-    val notification = NotificationCompat.Builder(context, HabitTaskApplication.CHANNEL_SUMMARY_ID)
+    val activeChannelId = HabitTaskApplication.getActiveNotificationChannelId(context)
+    val soundUri = HabitTaskApplication.getActiveNotificationSoundUri(context)
+
+    val notification = NotificationCompat.Builder(context, activeChannelId)
       .setSmallIcon(android.R.drawable.ic_popup_reminder)
       .setContentTitle("Daily Productivity Summary")
       .setContentText(summaryText)
       .setAutoCancel(true)
       .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+      .apply {
+        if (soundUri != null) {
+          setSound(soundUri)
+          setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+        } else {
+          setSound(null)
+          setDefaults(NotificationCompat.DEFAULT_VIBRATE)
+        }
+      }
       .setContentIntent(contentIntent)
       .build()
 

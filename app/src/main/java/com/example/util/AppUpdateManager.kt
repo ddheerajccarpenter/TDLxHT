@@ -161,6 +161,11 @@ object AppUpdateManager {
         val isDismissed = !forceShowDismissed && update.versionCode <= dismissedCode
         if (!isDismissed && notifySystem) {
           postUpdateNotification(context, update)
+          val lastNotified = AppPreferences.getLastNotifiedUpdateVersionCode(context)
+          if (update.versionCode > lastNotified) {
+            AppPreferences.setLastNotifiedUpdateVersionCode(context, update.versionCode)
+            SoundManager.playUpdateAvailable(context)
+          }
         }
         withContext(Dispatchers.Main) {
           onResult(update, !isDismissed)

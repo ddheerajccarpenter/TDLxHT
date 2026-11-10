@@ -11,7 +11,8 @@ export default defineConfig({
         main: resolve(__dirname, 'web/index.html'),
         auth: resolve(__dirname, 'web/auth/index.html'),
         callback: resolve(__dirname, 'web/auth/callback/index.html'),
-        adminSounds: resolve(__dirname, 'web/admin/sounds.html')
+        privacy: resolve(__dirname, 'web/privacy.html'),
+        deleteAccount: resolve(__dirname, 'web/delete-account.html')
       }
     }
   }

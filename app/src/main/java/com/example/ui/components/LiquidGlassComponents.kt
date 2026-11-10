@@ -4,6 +4,7 @@ import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.compose.ui.graphics.asComposeRenderEffect
+import com.example.ui.glass.LIQUID_GLASS_SHADER
 import com.example.ui.glass.PILL_LENS_SHADER
 
 import com.kyant.backdrop.Backdrop
@@ -305,23 +306,6 @@ fun LiquidGlassSegmentedControl(
     }
   }
 
-  // 120Hz smooth zero-allocation tracking loop during drag
-  LaunchedEffect(isDragging) {
-    if (!isDragging) return@LaunchedEffect
-    var lastNanos = withFrameNanos { it }
-    while (isDragging) {
-      var nextPos = indicatorPos.value
-      withFrameNanos { now ->
-        val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
-        lastNanos = now
-        val factor = 1f - kotlin.math.exp(-dt * 38f)
-        nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
-      }
-      indicatorPos.snapTo(nextPos)
-    }
-  }
-
-
   val actionProgress by animateFloatAsState(
     targetValue = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f,
     animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f),
@@ -329,6 +313,7 @@ fun LiquidGlassSegmentedControl(
   )
 
   var jiggleOffset by remember { mutableFloatStateOf(0f) }
+  // Unified 120Hz smooth tracking & jiggle ticker
   LaunchedEffect(isDragging, isPressed) {
     if (!isDragging && !isPressed) {
       jiggleOffset = 0f
@@ -337,12 +322,18 @@ fun LiquidGlassSegmentedControl(
     var lastNanos = withFrameNanos { it }
     var elapsed = 0f
     while (isDragging || isPressed) {
+      var nextPos: Float? = null
       withFrameNanos { now ->
         val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastNanos = now
         elapsed += dt
         jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
+        if (isDragging) {
+          val factor = 1f - kotlin.math.exp(-dt * 38f)
+          nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
+        }
       }
+      nextPos?.let { indicatorPos.snapTo(it) }
     }
     jiggleOffset = 0f
   }
@@ -359,11 +350,20 @@ fun LiquidGlassSegmentedControl(
   }
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
   val liftScale = 1f + 0.12f * actionProgress
-  val pillHeight = 40.dp + 10.4.dp * actionProgress
+  val verticalScale = 1f + 0.26f * actionProgress
+  val basePillHeight = 40.dp
+  val basePillHeightPx = with(density) { basePillHeight.toPx() }
 
   val lensShader = remember {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       try { RuntimeShader(PILL_LENS_SHADER) } catch (_: Throwable) { null }
+    } else null
+  }
+  val cachedLensRenderEffect = remember(lensShader) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+      try {
+        RenderEffect.createRuntimeShaderEffect(lensShader, "content").asComposeRenderEffect()
+      } catch (_: Throwable) { null }
     } else null
   }
 
@@ -389,17 +389,17 @@ fun LiquidGlassSegmentedControl(
       Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
     }
 
-    // 2. Active Pill Lens Indicator: normal size (40dp) inside track at rest, expanding to 50.4dp pop-out when touched
+    // 2. Active Pill Lens Indicator: fixed 40dp layout, GPU vertical scaling for zero-allocation pop-out overhang
     Box(
       Modifier
         .align(Alignment.CenterStart)
         .padding(horizontal = sideInset)
-        .height(pillHeight)
+        .height(basePillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
           this.translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
           this.scaleX = liftScale + dynamicStretch
-          this.scaleY = liftScale
+          this.scaleY = liftScale * verticalScale
           this.shape = controlShape
           this.clip = true
           this.shadowElevation = (if (isDark) 8.dp else 4.dp).toPx() * actionProgress
@@ -425,26 +425,24 @@ fun LiquidGlassSegmentedControl(
           onDrawSurface = {
             drawRoundRect(
               color = selectedColor,
-              cornerRadius = androidx.compose.ui.geometry.CornerRadius(pillHeight.toPx() / 2f)
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(basePillHeightPx / 2f)
             )
           }
         )
     )
 
-    // 3. Tab Items & Pointer Input with AGSL chromatic dispersion on API 33+
-    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+    // 3. Tab Items & Pointer Input with zero-allocation AGSL chromatic dispersion
+    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && cachedLensRenderEffect != null) {
       Modifier.graphicsLayer {
         if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
         val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
-        val halfHPx = (pillHeight.toPx() / 2f) * liftScale
+        val halfHPx = (basePillHeightPx / 2f) * (liftScale * verticalScale)
         lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
         lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
         lensShader.setFloatUniform("uZoom", 0.02f + 0.18f * actionProgress)
         lensShader.setFloatUniform("uChroma", actionProgress)
-        renderEffect = RenderEffect
-          .createRuntimeShaderEffect(lensShader, "content")
-          .asComposeRenderEffect()
+        renderEffect = cachedLensRenderEffect
       }
     } else Modifier
 
@@ -704,22 +702,6 @@ fun LiquidGlassNavigationDock(
     }
   }
 
-  // 120Hz smooth tracking loop during drag
-  LaunchedEffect(isDragging) {
-    if (!isDragging) return@LaunchedEffect
-    var lastNanos = withFrameNanos { it }
-    while (isDragging) {
-      var nextPos = indicatorPos.value
-      withFrameNanos { now ->
-        val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
-        lastNanos = now
-        val factor = 1f - kotlin.math.exp(-dt * 38f)
-        nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
-      }
-      indicatorPos.snapTo(nextPos)
-    }
-  }
-
   // "Comes into action" when clicked, held, or tapped: expands from normal resting size to 1.2dp pop-out overhang & frosted fill
   val actionProgress by animateFloatAsState(
     targetValue = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f,
@@ -730,6 +712,7 @@ fun LiquidGlassNavigationDock(
   val combinedActionProgress = if (reduceMotion) 0f else (actionProgress + tapPopAnim.value).coerceIn(0f, 1f)
 
   var jiggleOffset by remember { mutableFloatStateOf(0f) }
+  // Unified 120Hz smooth tracking & jiggle ticker
   LaunchedEffect(isDragging, isPressed) {
     if (!isDragging && !isPressed) {
       jiggleOffset = 0f
@@ -738,12 +721,18 @@ fun LiquidGlassNavigationDock(
     var lastNanos = withFrameNanos { it }
     var elapsed = 0f
     while (isDragging || isPressed) {
+      var nextPos: Float? = null
       withFrameNanos { now ->
         val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastNanos = now
         elapsed += dt
         jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
+        if (isDragging) {
+          val factor = 1f - kotlin.math.exp(-dt * 38f)
+          nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
+        }
       }
+      nextPos?.let { indicatorPos.snapTo(it) }
     }
     jiggleOffset = 0f
   }
@@ -763,12 +752,33 @@ fun LiquidGlassNavigationDock(
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
   val lengthStretch = dynamicStretch + (tapPopAnim.value * 0.22f) + (combinedActionProgress * 0.12f)
   val liftScale = 1f + 0.12f * combinedActionProgress
-  // Height: 40dp at rest (flush inside 48dp track), expanding to 50.4dp in action (1.2dp top/bottom overhang)
-  val pillHeight = 40.dp + 10.4.dp * combinedActionProgress
+  val verticalScale = 1f + 0.26f * combinedActionProgress
+  val basePillHeight = 40.dp
+  val basePillHeightPx = with(density) { basePillHeight.toPx() }
+
+  val refractionShader = remember {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      try { RuntimeShader(LIQUID_GLASS_SHADER) } catch (_: Throwable) { null }
+    } else null
+  }
+  val cachedRefractionRenderEffect = remember(refractionShader) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refractionShader != null) {
+      try {
+        RenderEffect.createRuntimeShaderEffect(refractionShader, "content").asComposeRenderEffect()
+      } catch (_: Throwable) { null }
+    } else null
+  }
 
   val lensShader = remember {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       try { RuntimeShader(PILL_LENS_SHADER) } catch (_: Throwable) { null }
+    } else null
+  }
+  val cachedLensRenderEffect = remember(lensShader) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+      try {
+        RenderEffect.createRuntimeShaderEffect(lensShader, "content").asComposeRenderEffect()
+      } catch (_: Throwable) { null }
     } else null
   }
 
@@ -786,15 +796,40 @@ fun LiquidGlassNavigationDock(
     val trackHazeModifier = if (resolvedHaze != null) {
       Modifier.clip(controlShape).hazeEffect(state = resolvedHaze) {
         blurRadius = 24.dp
+        noiseFactor = if (isDark) 0.03f else 0f
+        tints = buildList {
+          if (isDark) {
+            add(dev.chrisbanes.haze.HazeTint(Color(0xFF0F1015).copy(alpha = 0.28f)))
+          } else {
+            add(dev.chrisbanes.haze.HazeTint(Color.White.copy(alpha = 0.32f)))
+          }
+        }
       }
     } else Modifier
 
-    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 56.dp)
+    val trackRefractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refractionShader != null && cachedRefractionRenderEffect != null) {
+      val bandPx = with(density) { 18.dp.toPx() }
+      val dispPx = with(density) { 9.dp.toPx() }
+      val fresnel = if (isDark) 0.24f else 0.12f
+      Modifier.graphicsLayer {
+        if (size.width > 0f && size.height > 0f) {
+          refractionShader.setFloatUniform("uSize", size.width, size.height)
+          refractionShader.setFloatUniform("uRadius", size.height / 2f)
+          refractionShader.setFloatUniform("uBand", bandPx)
+          refractionShader.setFloatUniform("uDisp", dispPx)
+          refractionShader.setFloatUniform("uFresnel", fresnel)
+          renderEffect = cachedRefractionRenderEffect
+        }
+      }
+    } else Modifier
+
+    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 56.dp) with AGSL optical pass-through refraction
     Box(
       Modifier
         .fillMaxWidth()
         .height(48.dp)
         .align(Alignment.Center)
+        .then(trackRefractionModifier)
         .then(trackHazeModifier)
         .layerBackdrop(trackBackdrop)
         .clip(controlShape)
@@ -804,18 +839,18 @@ fun LiquidGlassNavigationDock(
     }
 
     // 2. Active Pill Lens Indicator:
-    // Sits at normal size (40dp) inside the track at rest with subtle frosted glass anchor;
-    // Expands to 50.4dp (1.2dp overhang) and fills with glowing liquid glass when touched/held/tapped.
+    // Sits at normal size (40dp layout) inside the track at rest with subtle frosted glass anchor;
+    // GPU scales to 50.4dp (1.2dp overhang) with glowing liquid glass when touched/held/tapped without layout remeasure.
     Box(
       Modifier
         .align(Alignment.CenterStart)
         .padding(horizontal = sideInset)
-        .height(pillHeight)
+        .height(basePillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
           this.translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
           this.scaleX = liftScale + lengthStretch
-          this.scaleY = liftScale
+          this.scaleY = liftScale * verticalScale
           this.shape = controlShape
           this.clip = true
           this.shadowElevation = (if (isDark) 8.dp else 5.dp).toPx() * combinedActionProgress
@@ -841,26 +876,24 @@ fun LiquidGlassNavigationDock(
           onDrawSurface = {
             drawRoundRect(
               color = selectedColor,
-              cornerRadius = androidx.compose.ui.geometry.CornerRadius(pillHeight.toPx() / 2f)
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(basePillHeightPx / 2f)
             )
           }
         )
     )
 
-    // 3. Tab Items & Pointer Input (supports tap and horizontal drag with AGSL lens)
-    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && combinedActionProgress > 0.01f) {
+    // 3. Tab Items & Pointer Input (supports tap and horizontal drag with zero-allocation AGSL lens)
+    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && cachedLensRenderEffect != null && combinedActionProgress > 0.01f) {
       Modifier.graphicsLayer {
         if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
         val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + lengthStretch)
-        val halfHPx = (pillHeight.toPx() / 2f) * liftScale
+        val halfHPx = (basePillHeightPx / 2f) * (liftScale * verticalScale)
         lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
         lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
         lensShader.setFloatUniform("uZoom", 0.02f + 0.18f * combinedActionProgress)
         lensShader.setFloatUniform("uChroma", combinedActionProgress)
-        renderEffect = RenderEffect
-          .createRuntimeShaderEffect(lensShader, "content")
-          .asComposeRenderEffect()
+        renderEffect = cachedLensRenderEffect
       }
     } else Modifier
 

@@ -29,3 +29,10 @@
 # Preserve Line Numbers for Crash Reporting without revealing source code structure
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Strip verbose and debug logging in release builds for maximum security (OWASP MASVS-STORAGE-3)
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int d(...);
+}

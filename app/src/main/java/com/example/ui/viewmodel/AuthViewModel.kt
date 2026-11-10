@@ -7,9 +7,11 @@ import com.example.HabitTaskApplication
 import com.example.data.repository.AuthRepository
 import com.example.data.service.SyncService
 import com.example.reminder.ReminderScheduler
+import com.example.util.AppPreferences
 import com.example.util.ErrorMapper
 import com.example.util.SafeAppError
 import com.example.util.SafeLog
+import com.example.util.SoundManager
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -306,12 +308,22 @@ class AuthViewModel : ViewModel() {
     }
 
     private fun syncAfterLogin() {
+        triggerFirstLoginSoundIfApplicable()
         viewModelScope.launch {
             _syncState.value = SyncStatus.Syncing
             syncService.downloadAll().fold(
                 onSuccess = { _syncState.value = SyncStatus.Success("Data loaded from cloud") },
                 onFailure = { _syncState.value = SyncStatus.Idle }
             )
+        }
+    }
+
+    private fun triggerFirstLoginSoundIfApplicable() {
+        val context = HabitTaskApplication.instance
+        val userId = authRepository.currentUserId() ?: "default_account"
+        if (AppPreferences.shouldPlayFirstLoginSound(context, userId)) {
+            AppPreferences.markFirstLoginSoundPlayed(context, userId)
+            SoundManager.playFirstLoginSound(context)
         }
     }
 }

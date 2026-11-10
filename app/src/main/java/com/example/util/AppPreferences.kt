@@ -18,6 +18,10 @@ object AppPreferences {
     private const val KEY_DISMISSED_UPDATE_VERSION_CODE = "dismissed_update_version_code"
     private const val KEY_SHAKE_ACTION = "shake_action" // "CREATE_TASK", "START_TIMER", "QUICK_CHOOSER", "DISABLED"
     private const val KEY_SHAKE_TIMER_DURATION = "shake_timer_duration_minutes"
+    private const val KEY_NOTIFICATION_SOUNDS = "notification_sounds_enabled"
+    private const val KEY_NOTIFICATION_SOUND_SELECTION = "notification_sound_selection"
+    private const val KEY_FIRST_LOGIN_SOUND_PLAYED_PREFIX = "first_login_sound_played_"
+    private const val KEY_LAST_NOTIFIED_UPDATE_VERSION_CODE = "last_notified_update_version_code"
 
     private val _themeMode = MutableStateFlow("SYSTEM")
     val themeMode: StateFlow<String> = _themeMode.asStateFlow()
@@ -36,6 +40,12 @@ object AppPreferences {
 
     private val _sounds = MutableStateFlow(true)
     val sounds: StateFlow<Boolean> = _sounds.asStateFlow()
+
+    private val _notificationSounds = MutableStateFlow(true)
+    val notificationSounds: StateFlow<Boolean> = _notificationSounds.asStateFlow()
+
+    private val _notificationSoundSelection = MutableStateFlow("SOUND_ONE")
+    val notificationSoundSelection: StateFlow<String> = _notificationSoundSelection.asStateFlow()
 
     private val _todayTasksViewMode = MutableStateFlow("LIST")
     val todayTasksViewMode: StateFlow<String> = _todayTasksViewMode.asStateFlow()
@@ -60,6 +70,8 @@ object AppPreferences {
         _shakeTimerDuration.value = prefs.getInt(KEY_SHAKE_TIMER_DURATION, 25)
         _vibrations.value = prefs.getBoolean(KEY_VIBRATIONS, true)
         _sounds.value = prefs.getBoolean(KEY_SOUNDS, true)
+        _notificationSounds.value = prefs.getBoolean(KEY_NOTIFICATION_SOUNDS, true)
+        _notificationSoundSelection.value = prefs.getString(KEY_NOTIFICATION_SOUND_SELECTION, "SOUND_ONE") ?: "SOUND_ONE"
         _todayTasksViewMode.value = prefs.getString(KEY_TODAY_TASKS_VIEW_MODE, "LIST") ?: "LIST"
         _todayHabitsViewMode.value = prefs.getString(KEY_TODAY_HABITS_VIEW_MODE, "LIST") ?: "LIST"
         _favoriteToolIds.value = prefs.getStringSet(KEY_FAVORITE_TOOL_IDS, emptySet())?.toSet() ?: emptySet()
@@ -234,5 +246,60 @@ object AppPreferences {
             .putInt(KEY_SHAKE_TIMER_DURATION, minutes)
             .apply()
         _shakeTimerDuration.value = minutes
+    }
+
+    fun isNotificationSoundsEnabled(context: Context): Boolean {
+        init(context)
+        return _notificationSounds.value
+    }
+
+    fun setNotificationSoundsEnabled(context: Context, enabled: Boolean) {
+        init(context)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_NOTIFICATION_SOUNDS, enabled)
+            .apply()
+        _notificationSounds.value = enabled
+    }
+
+    fun getNotificationSoundSelection(context: Context): String {
+        init(context)
+        return _notificationSoundSelection.value
+    }
+
+    fun setNotificationSoundSelection(context: Context, selection: String) {
+        init(context)
+        val normalized = if (selection.equals("SOUND_TWO", ignoreCase = true)) "SOUND_TWO" else "SOUND_ONE"
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_NOTIFICATION_SOUND_SELECTION, normalized)
+            .apply()
+        _notificationSoundSelection.value = normalized
+    }
+
+    fun shouldPlayFirstLoginSound(context: Context, userId: String?): Boolean {
+        val key = KEY_FIRST_LOGIN_SOUND_PLAYED_PREFIX + (userId ?: "default_account")
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return !prefs.getBoolean(key, false)
+    }
+
+    fun markFirstLoginSoundPlayed(context: Context, userId: String?) {
+        val key = KEY_FIRST_LOGIN_SOUND_PLAYED_PREFIX + (userId ?: "default_account")
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(key, true)
+            .apply()
+    }
+
+    fun getLastNotifiedUpdateVersionCode(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_LAST_NOTIFIED_UPDATE_VERSION_CODE, 0)
+    }
+
+    fun setLastNotifiedUpdateVersionCode(context: Context, versionCode: Int) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_LAST_NOTIFIED_UPDATE_VERSION_CODE, versionCode)
+            .apply()
     }
 }

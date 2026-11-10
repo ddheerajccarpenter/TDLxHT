@@ -593,6 +593,7 @@ fun Modifier.bounceClick(
         } else null,
         onClick = {
           VibrationHelper.click(context)
+          com.example.util.SoundManager.playTapSound(context)
           if (shine && !isReduced) {
             coroutineScope.launch {
               clickShine.snapTo(1f)
@@ -1686,6 +1687,7 @@ fun AppHeader(
   onBack: (() -> Unit)? = null,
   backLabel: String = "Back",
   actionIcon: ImageVector? = null,
+  actionText: String? = null,
   actionContentDescription: String? = null,
   onActionClick: (() -> Unit)? = null,
   actionTestTag: String? = null,
@@ -1745,6 +1747,22 @@ fun AppHeader(
     ) {
       if (rightContent != null) {
         rightContent()
+      } else if (actionText != null && onActionClick != null) {
+        LiquidGlassButton(
+          onClick = onActionClick,
+          shape = RoundedCornerShape(10.dp),
+          modifier = Modifier.height(34.dp).then(if (actionTestTag != null) Modifier.testTag(actionTestTag) else Modifier)
+        ) {
+          Text(
+            text = actionText,
+            style = TextStyle(
+              fontFamily = StrongFontFamily,
+              fontSize = 12.sp,
+              fontWeight = FontWeight.SemiBold,
+              color = InkPrimary
+            )
+          )
+        }
       } else if (actionIcon != null && onActionClick != null) {
         GlassButton(
           onClick = onActionClick,

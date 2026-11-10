@@ -81,7 +81,11 @@ const val LIQUID_GLASS_SHADER = """
         }
 
         float2 disp = -n * bend * uDisp;
-        half3 col = content.eval(fragCoord + disp).rgb;
+        float ca = bend * 0.045;
+        half3 col;
+        col.r = content.eval(fragCoord + disp * (1.0 + ca)).r;
+        col.g = content.eval(fragCoord + disp).g;
+        col.b = content.eval(fragCoord + disp * (1.0 - ca)).b;
 
         float topBias = 0.55 + 0.45 * clamp(-p.y / halfSize.y, -1.0, 1.0);
         float rim = bend * uFresnel * topBias;
@@ -122,29 +126,36 @@ fun LiquidGlassBackdrop(
 
     val refractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val shader = remember { RuntimeShader(LIQUID_GLASS_SHADER) }
+        val cachedRenderEffect = remember(shader) {
+            try {
+                RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
+            } catch (_: Throwable) { null }
+        }
         val bandPx = with(density) { 20.dp.toPx() }
         val dispPx = with(density) { 9.dp.toPx() }
         val fresnel = if (isDark) 0.22f else 0.10f
-        Modifier.graphicsLayer {
-            val outline = shape.createOutline(
-                androidx.compose.ui.geometry.Size(size.width, size.height),
-                layoutDirection,
-                density
-            )
-            val radiusPx = when (outline) {
-                is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
-                is Outline.Rectangle -> 0f
-                is Outline.Generic -> 0f
-            }.coerceIn(0f, min(size.width, size.height) * 0.5f)
-            shader.setFloatUniform("uSize", size.width, size.height)
-            shader.setFloatUniform("uRadius", radiusPx)
-            shader.setFloatUniform("uBand", bandPx)
-            shader.setFloatUniform("uDisp", dispPx)
-            shader.setFloatUniform("uFresnel", fresnel)
-            renderEffect = RenderEffect
-                .createRuntimeShaderEffect(shader, "content")
-                .asComposeRenderEffect()
-            clip = false
+        if (cachedRenderEffect != null) {
+            Modifier.graphicsLayer {
+                val outline = shape.createOutline(
+                    androidx.compose.ui.geometry.Size(size.width, size.height),
+                    layoutDirection,
+                    density
+                )
+                val radiusPx = when (outline) {
+                    is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
+                    is Outline.Rectangle -> 0f
+                    is Outline.Generic -> 0f
+                }.coerceIn(0f, min(size.width, size.height) * 0.5f)
+                shader.setFloatUniform("uSize", size.width, size.height)
+                shader.setFloatUniform("uRadius", radiusPx)
+                shader.setFloatUniform("uBand", bandPx)
+                shader.setFloatUniform("uDisp", dispPx)
+                shader.setFloatUniform("uFresnel", fresnel)
+                renderEffect = cachedRenderEffect
+                clip = false
+            }
+        } else {
+            Modifier.clip(shape)
         }
     } else {
         Modifier.clip(shape)

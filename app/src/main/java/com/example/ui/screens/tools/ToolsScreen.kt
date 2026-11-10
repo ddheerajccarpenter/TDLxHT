@@ -985,19 +985,10 @@ fun ToolRunnerModal(
                       .padding(horizontal = 12.dp),
                     contentAlignment = Alignment.Center
                   ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                      Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add as Task",
-                        tint = InkPrimary,
-                        modifier = Modifier.size(16.dp)
-                      )
-                      Spacer(modifier = Modifier.width(4.dp))
-                      Text(
-                        text = "Add as Task",
-                        style = TextStyle(fontFamily = StrongFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
-                      )
-                    }
+                    Text(
+                      text = "Add as Task",
+                      style = TextStyle(fontFamily = StrongFontFamily, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                    )
                   }
                 }
 

@@ -3,9 +3,13 @@
     <cloud-backup>
         <include domain="sharedpref" path="."/>
         <include domain="database" path="."/>
+        <exclude domain="sharedpref" path="supabase_auth.xml"/>
+        <exclude domain="sharedpref" path="auth_tokens.xml"/>
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="."/>
         <include domain="database" path="."/>
+        <exclude domain="sharedpref" path="supabase_auth.xml"/>
+        <exclude domain="sharedpref" path="auth_tokens.xml"/>
     </device-transfer>
 </data-extraction-rules>

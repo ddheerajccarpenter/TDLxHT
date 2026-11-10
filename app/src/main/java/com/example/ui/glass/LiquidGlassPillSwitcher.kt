@@ -242,7 +242,14 @@ fun LiquidGlassPillSwitcher(
         } else {
             null
         }
-        val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+        val cachedLensRenderEffect = remember(lensShader) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
+                try {
+                    RenderEffect.createRuntimeShaderEffect(lensShader, "content").asComposeRenderEffect()
+                } catch (_: Throwable) { null }
+            } else null
+        }
+        val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && cachedLensRenderEffect != null) {
             Modifier.graphicsLayer {
                 val l = leftEdge.value
                 val r = rightEdge.value
@@ -257,9 +264,7 @@ fun LiquidGlassPillSwitcher(
                 )
                 lensShader.setFloatUniform("uZoom", 0.08f + 0.18f * liftValue)
                 lensShader.setFloatUniform("uChroma", 0.0f)
-                renderEffect = RenderEffect
-                    .createRuntimeShaderEffect(lensShader, "content")
-                    .asComposeRenderEffect()
+                renderEffect = cachedLensRenderEffect
             }
         } else {
             Modifier

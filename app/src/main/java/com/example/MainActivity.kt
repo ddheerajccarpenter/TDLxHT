@@ -533,6 +533,7 @@ fun MainApp(
             }
 
             val pageOffset = pagerState.currentPage + pagerState.currentPageOffsetFraction
+            val dragJobHolder = remember { arrayOfNulls<kotlinx.coroutines.Job>(1) }
 
             Scaffold(
               modifier = Modifier.fillMaxSize(),
@@ -543,7 +544,8 @@ fun MainApp(
                   selectedTab = navController.selectedTab,
                   externalPageOffset = pageOffset,
                   onDragOffset = { slotPos ->
-                    coroutineScope.launch {
+                    dragJobHolder[0]?.cancel()
+                    dragJobHolder[0] = coroutineScope.launch {
                       try {
                         val targetPage = slotPos.roundToInt().coerceIn(0, destinations.size - 1)
                         val offsetFraction = (slotPos - targetPage).coerceIn(-0.5f, 0.5f)
@@ -552,6 +554,7 @@ fun MainApp(
                     }
                   },
                   onDragReleased = { finalSlot ->
+                    dragJobHolder[0]?.cancel()
                     coroutineScope.launch {
                       try {
                         pagerState.animateScrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
@@ -1320,15 +1323,7 @@ fun SketchBottomNavigationBar(
       .padding(bottom = 8.dp),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    // 1. Standalone Floating Quick Add Button (separated & floating above the nav bar with drop shadow)
-    FloatingLiquidGlassActionButton(
-      isOpen = isQuickAddOpen,
-      onClick = onQuickAdd
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // 2. Main 4-Destination Floating Navigation Dock (height 48.dp, flush at rest, 1.2dp pop-out when active)
+    // Main 4-Destination Floating Navigation Dock (height 48.dp, flush at rest, 1.2dp pop-out when active)
     LiquidGlassNavigationDock(
       destinations = destinations.take(4),
       selectedTab = selectedTab.coerceIn(0, 3),

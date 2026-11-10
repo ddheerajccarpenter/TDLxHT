@@ -8,8 +8,8 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%207.0%2B%20(API%2024%2B)-2ea44f?style=flat-square&logo=android)](https://developer.android.com)
 [![Language](https://img.shields.io/badge/Language-Kotlin%20%7C%20Jetpack%20Compose-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org)
 [![Storage](https://img.shields.io/badge/Storage-Room%20SQLite%20(Offline%20First)-4285F4?style=flat-square&logo=sqlite)](https://developer.android.com/training/data-storage/room)
-[![Version](https://img.shields.io/badge/Version-v2.5.30%20(Build%2067)-black?style=flat-square)](version.json)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-v2.5.41%20(Build%2078)-black?style=flat-square)](version.json)
+[![Author](https://img.shields.io/badge/Author-Dheeraj-blue?style=flat-square)](https://github.com/ddheerajccarpenter/TDLxHT)
 
 </div>
 
@@ -150,6 +150,8 @@ Once installed, use the floating stadium navigation bar at the bottom of the scr
 
 ---
 
-## 📄 License
+## 📄 Copyright & Attribution
 
-This project is licensed under the [MIT License](LICENSE).
+- **Author / Developer:** Dheeraj
+- **Copyright:** © 2026 Dheeraj. All rights reserved.
+- **Third-Party Attribution:** All integrated third-party libraries, framework components (AndroidX, Jetpack Compose, Chris Banes Haze, Kyant Backdrop, Ktor, Supabase, GSAP), and typography assets remain the intellectual property of their respective licensors under their applicable open-source and distribution terms.
