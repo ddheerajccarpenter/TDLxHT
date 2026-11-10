@@ -133,8 +133,6 @@ import dev.chrisbanes.haze.rememberHazeState
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.HazeTint
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.example.ui.glass.LocalHazeState
 import com.example.ui.theme.LocalAppColors
 import androidx.compose.ui.Alignment
@@ -496,7 +494,6 @@ fun MainApp(
   }
 
   val hazeState = rememberHazeState()
-  val backdrop = rememberLayerBackdrop()
 
   CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(
@@ -561,15 +558,13 @@ fun MainApp(
                     }
                   },
                   onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
-                  hazeState = hazeState,
-                  backdrop = backdrop
+                  hazeState = hazeState
                 )
               }
             ) { innerPadding ->
               Box(
                 modifier = Modifier
                   .fillMaxSize()
-                  .layerBackdrop(backdrop)
                   .hazeSource(hazeState)
                   .background(PaperBackground)
                   .padding(top = innerPadding.calculateTopPadding())
@@ -1309,8 +1304,7 @@ fun SketchBottomNavigationBar(
   isQuickAddOpen: Boolean = false,
   onDestinationSelected: (AppDestination) -> Unit,
   onQuickAdd: () -> Unit = {},
-  hazeState: dev.chrisbanes.haze.HazeState? = null,
-  backdrop: com.kyant.backdrop.Backdrop? = null
+  hazeState: dev.chrisbanes.haze.HazeState? = null
 ) {
   Column(
     modifier = Modifier
@@ -1319,7 +1313,7 @@ fun SketchBottomNavigationBar(
       .padding(bottom = 8.dp),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    // Main 4-Destination Floating Navigation Dock (height 48.dp, flush at rest, 1.2dp pop-out when active)
+    // Main dock keeps a 48dp glass track and lifts its selected pill while pressed or dragged.
     LiquidGlassNavigationDock(
       destinations = destinations.take(4),
       selectedTab = selectedTab.coerceIn(0, 3),
@@ -1329,7 +1323,6 @@ fun SketchBottomNavigationBar(
       onDragReleased = onDragReleased,
       onDestinationSelected = onDestinationSelected,
       hazeState = hazeState,
-      backdrop = backdrop,
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)

@@ -4,10 +4,8 @@ import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.compose.ui.graphics.asComposeRenderEffect
-import com.example.ui.glass.LIQUID_GLASS_SHADER
 import com.example.ui.glass.PILL_LENS_SHADER
 
-import com.kyant.backdrop.Backdrop
 import com.example.ui.glass.LiquidGlassBackdrop
 import com.example.ui.glass.LiquidGlassHighlight
 import com.example.ui.glass.LiquidGlassVariant
@@ -22,7 +20,6 @@ import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
-import com.kyant.backdrop.highlight.HighlightStyle
 import com.kyant.backdrop.shadow.InnerShadow
 import com.skydoves.cloudy.cloudy
 
@@ -81,8 +78,6 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -367,7 +362,7 @@ fun LiquidGlassSegmentedControl(
   val selectedColor = if (isDark) {
     Color.White.copy(alpha = 0.14f + 0.08f * actionProgress)
   } else {
-    Color.White.copy(alpha = 0.28f + 0.10f * actionProgress)
+    Color.White.copy(alpha = 0.88f + 0.10f * actionProgress)
   }
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
   val liftScale = 1f + 0.12f * actionProgress
@@ -687,10 +682,13 @@ fun LiquidGlassIconButton(
 
 /**
  * 6. LiquidGlassNavigationDock
- * Streamlined 4-destination Apple-style Liquid Glass navigation dock.
- * Matches LiquidGlassSegmentedControl 1:1 in height (48dp), padding (16dp), and dark smoked glass material.
- * Features 120Hz gesture tracking with dynamic pop-out lens physics matching iOS 26 Liquid Glass.
+ * Four-destination dock using the shared pill switcher's live blur, capsule lens,
+ * light/dark tinting, dual-spring glide, and frame-paced drag response.
  */
+private const val NAV_PILL_WIDTH_RATIO = 0.82f
+private const val NAV_PILL_LIFT_SCALE = 0.18f
+private const val NAV_LIFT_HOLD_MS = 160L
+
 @Composable
 fun LiquidGlassNavigationDock(
   destinations: List<AppDestination>,
@@ -698,7 +696,6 @@ fun LiquidGlassNavigationDock(
   onDestinationSelected: (AppDestination) -> Unit,
   modifier: Modifier = Modifier,
   hazeState: HazeState? = null,
-  backdrop: Backdrop? = null,
   externalPageOffsetProvider: (() -> Float)? = null,
   externalPageOffset: Float? = null,
   onDragOffset: ((fraction: Float) -> Unit)? = null,
@@ -711,310 +708,294 @@ fun LiquidGlassNavigationDock(
   val reduceMotion = remember { isReducedMotionEnabled(context) }
   val coroutineScope = rememberCoroutineScope()
   val activeDestinations = destinations.take(4)
-  val totalSlots = activeDestinations.size.coerceAtLeast(1)
+  if (activeDestinations.isEmpty()) return
 
-  val controlShape = RoundedCornerShape(percent = 50)
+  val totalSlots = activeDestinations.size
+  val trackShape = RoundedCornerShape(percent = 50)
+  val pillShape = RoundedCornerShape(percent = 50)
   val resolvedHaze = hazeState ?: LocalHazeState.current
-  val localTrackBackdrop = rememberLayerBackdrop()
-  val indicatorBackdrop = backdrop ?: localTrackBackdrop
+  val trackBackdrop = rememberLayerBackdrop()
 
-  // Indicator animated position
-  val indicatorPos = remember { Animatable(selectedTab.coerceIn(0, totalSlots - 1).toFloat()) }
   var isDragging by remember { mutableStateOf(false) }
   var isPressed by remember { mutableStateOf(false) }
-  var dragTargetPos by remember { mutableFloatStateOf(selectedTab.toFloat()) }
-  var lastHapticIndex by remember { mutableIntStateOf(selectedTab) }
-
-  // Dynamic slot position resolver: uses provider lambda in graphicsLayer to eliminate recompositions
-  val getSlotPos: () -> Float = {
-    when {
-      isDragging -> indicatorPos.value
-      externalPageOffsetProvider != null -> externalPageOffsetProvider().coerceIn(0f, (totalSlots - 1).toFloat())
-      externalPageOffset != null -> externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat())
-      else -> indicatorPos.value
-    }
-  }
-
-  // Keep indicatorPos synced when not dragging
-  LaunchedEffect(selectedTab) {
-    if (!isDragging) {
-      val target = selectedTab.coerceIn(0, totalSlots - 1).toFloat()
-      if (reduceMotion) {
-        indicatorPos.snapTo(target)
-      } else {
-        indicatorPos.animateTo(
-          targetValue = target,
-          animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f)
-        )
-      }
-    }
-  }
-
-  LaunchedEffect(externalPageOffset) {
-    if (externalPageOffset != null && !isDragging) {
-      indicatorPos.snapTo(externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat()))
-    }
-  }
-
-  // Smooth liquid action response (gentle pill stretch/lift without any shining glare)
-  val actionProgressAnim = remember { Animatable(0f) }
-  LaunchedEffect(isDragging, isPressed) {
-    val target = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f
-    actionProgressAnim.animateTo(
-      targetValue = target,
-      animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f)
-    )
-  }
+  var isLifted by remember { mutableStateOf(false) }
+  var dragTargetPos by remember { mutableFloatStateOf(selectedTab.coerceIn(0, totalSlots - 1).toFloat()) }
+  var lastHapticIndex by remember { mutableIntStateOf(selectedTab.coerceIn(0, totalSlots - 1)) }
   val tapPopAnim = remember { Animatable(0f) }
 
-  // Directional momentum velocity tracking inspired by Telegram's liquid physics:
-  // ONLY runs while actively dragging, NEVER spins during click and hold!
-  LaunchedEffect(isDragging) {
-    if (!isDragging) return@LaunchedEffect
-    var lastNanos = withFrameNanos { it }
-    while (isDragging) {
-      var nextPos: Float? = null
-      withFrameNanos { now ->
-        val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
-        lastNanos = now
-        val factor = 1f - kotlin.math.exp(-dt * 42f)
-        nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
-      }
-      nextPos?.let { indicatorPos.snapTo(it) }
-    }
-  }
-
-  val trackBrush = remember(isDark) {
-    if (isDark) {
-      Brush.verticalGradient(listOf(Color(0x28222630), Color(0x1814161C)))
+  LaunchedEffect(isPressed, isDragging) {
+    if (isDragging) {
+      isLifted = true
+    } else if (isPressed) {
+      kotlinx.coroutines.delay(NAV_LIFT_HOLD_MS)
+      if (isPressed) isLifted = true
     } else {
-      Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.25f)))
+      isLifted = false
     }
   }
+  val lift by animateFloatAsState(
+    targetValue = if (!reduceMotion && isLifted) 1f else 0f,
+    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.75f, stiffness = 480f),
+    label = "navigationPillLift"
+  )
 
-  val pillBorder = remember(isDark, colors.oklchPrimary) {
+  // Keep the page visible through the dock, but soften moving card text enough
+  // that the dock remains legible while it floats over long scrolling lists.
+  val trackTint = if (isDark) Color(0x663E2C23) else Color(0x443E2C23)
+  val sideGlowColor = if (isDark) {
+    com.example.ui.theme.CocaNoir.copy(alpha = 0.35f)
+  } else {
+    com.example.ui.theme.CocaNoir.copy(alpha = 0.18f)
+  }
+  val sideGlowBrush = remember(isDark) {
+    Brush.horizontalGradient(
+      0f to sideGlowColor,
+      0.14f to Color.Transparent,
+      0.86f to Color.Transparent,
+      1f to sideGlowColor
+    )
+  }
+  val pillBrush = remember(isDark, colors.oklchPrimary) {
     Brush.verticalGradient(
       colors = if (isDark) {
-        listOf(Color.White.copy(alpha = 0.35f), Color.White.copy(alpha = 0.08f))
+        listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.10f))
       } else {
-        listOf(Color.White.copy(alpha = 0.90f), colors.oklchPrimary.copy(alpha = 0.20f))
+        listOf(colors.oklchPrimary.copy(alpha = 0.22f), colors.oklchPrimary.copy(alpha = 0.13f))
       }
     )
   }
-
-  // Live Layer Backdrop Glass Track (Kyant0/AndroidLiquidGlass + skydoves/Cloudy fallback)
-  val trackModifier = if (backdrop != null) {
-    Modifier.drawBackdrop(
-      backdrop = backdrop,
-      shape = { controlShape },
-      effects = {
-        blur(24f)
-        lens(
-          refractionHeight = 14f,
-          refractionAmount = 20f,
-          depthEffect = true,
-          chromaticAberration = true
-        )
-      },
-      highlight = {
-        Highlight(
-          width = 0.75.dp,
-          blurRadius = 0.5.dp,
-          alpha = if (isDark) 0.80f else 0.90f,
-          style = HighlightStyle.Default
-        )
-      },
-      innerShadow = {
-        InnerShadow(
-          radius = 6.dp,
-          color = if (isDark) Color.Black.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.08f)
-        )
-      },
-      onDrawSurface = {
-        drawRect(brush = trackBrush)
-      }
-    )
-  } else if (resolvedHaze != null) {
-    Modifier
-      .clip(controlShape)
-      .hazeEffect(state = resolvedHaze) {
-        blurRadius = 24.dp
-        noiseFactor = if (isDark) 0.03f else 0f
-        tints = buildList {
-          if (isDark) {
-            add(dev.chrisbanes.haze.HazeTint(Color(0xFF0F1015).copy(alpha = 0.28f)))
-          } else {
-            add(dev.chrisbanes.haze.HazeTint(Color.White.copy(alpha = 0.32f)))
-          }
-        }
-      }
-  } else {
-    Modifier
-      .clip(controlShape)
-      .cloudy(radius = 24)
-  }
-
-  val basePillHeight = 40.dp
+  val liftGlowColor = if (isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.28f)
 
   BoxWithConstraints(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(52.dp),
+    modifier = modifier.fillMaxWidth().height(56.dp),
     contentAlignment = Alignment.CenterStart
   ) {
     val sideInset = 4.dp
-    val indicatorWidth = (maxWidth - sideInset * 2) / totalSlots
-    val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
+    val slotWidth = (maxWidth - sideInset * 2) / totalSlots
+    val slotWidthPx = with(density) { slotWidth.toPx() }.coerceAtLeast(1f)
+    val pillWidthPx = slotWidthPx * NAV_PILL_WIDTH_RATIO
+    val pillWidthDp = with(density) { pillWidthPx.toDp() }
+    val startInsetPx = (slotWidthPx - pillWidthPx) / 2f
+    val initialSlot = selectedTab.coerceIn(0, totalSlots - 1).toFloat()
+    val leftEdge = remember(slotWidthPx) {
+      Animatable(initialSlot * slotWidthPx + startInsetPx)
+    }
+    val rightEdge = remember(slotWidthPx) {
+      Animatable(initialSlot * slotWidthPx + startInsetPx + pillWidthPx)
+    }
+    var dragCenter by remember(slotWidthPx) {
+      mutableFloatStateOf((initialSlot + 0.5f) * slotWidthPx)
+    }
 
-    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 52.dp)
+    val getSlotPos: () -> Float = {
+      when {
+        isDragging -> (((leftEdge.value + rightEdge.value) * 0.5f) / slotWidthPx - 0.5f)
+          .coerceIn(0f, (totalSlots - 1).toFloat())
+        externalPageOffsetProvider != null -> externalPageOffsetProvider().coerceIn(0f, (totalSlots - 1).toFloat())
+        externalPageOffset != null -> externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat())
+        else -> (((leftEdge.value + rightEdge.value) * 0.5f) / slotWidthPx - 0.5f)
+          .coerceIn(0f, (totalSlots - 1).toFloat())
+      }
+    }
+
+    LaunchedEffect(selectedTab, externalPageOffset, isDragging, slotWidthPx) {
+      if (isDragging) return@LaunchedEffect
+      val targetSlot = (externalPageOffset ?: selectedTab.toFloat()).coerceIn(0f, (totalSlots - 1).toFloat())
+      val targetLeft = (targetSlot + 0.5f) * slotWidthPx - pillWidthPx * 0.5f
+      val targetRight = targetLeft + pillWidthPx
+      if (reduceMotion) {
+        leftEdge.snapTo(targetLeft)
+        rightEdge.snapTo(targetRight)
+      } else {
+        val movingRight = targetLeft > leftEdge.value
+        val leadSpring = spring<Float>(dampingRatio = 0.62f, stiffness = 900f)
+        val trailSpring = spring<Float>(dampingRatio = 0.85f, stiffness = 340f)
+        launch { leftEdge.animateTo(targetLeft, if (movingRight) trailSpring else leadSpring) }
+        launch { rightEdge.animateTo(targetRight, if (movingRight) leadSpring else trailSpring) }
+      }
+    }
+
+    LaunchedEffect(isDragging, slotWidthPx, pillWidthPx) {
+      if (!isDragging) return@LaunchedEffect
+      var lastNanos = withFrameNanos { it }
+      while (isDragging) {
+        var nextLeft = leftEdge.value
+        var nextRight = rightEdge.value
+        withFrameNanos { now ->
+          val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
+          lastNanos = now
+          val targetLeft = dragCenter - pillWidthPx * 0.5f
+          val targetRight = targetLeft + pillWidthPx
+          val movingRight = dragCenter > (leftEdge.value + rightEdge.value) * 0.5f
+          val fast = 1f - kotlin.math.exp(-dt * 42f)
+          val slow = 1f - kotlin.math.exp(-dt * 16f)
+          nextLeft = leftEdge.value + (targetLeft - leftEdge.value) * (if (movingRight) slow else fast)
+          nextRight = rightEdge.value + (targetRight - rightEdge.value) * (if (movingRight) fast else slow)
+        }
+        leftEdge.snapTo(nextLeft)
+        rightEdge.snapTo(nextRight)
+      }
+    }
+
     Box(
       Modifier
         .fillMaxWidth()
         .height(48.dp)
         .align(Alignment.Center)
-        .layerBackdrop(localTrackBackdrop)
-        .then(trackModifier)
-        .clip(controlShape)
+        .layerBackdrop(trackBackdrop)
+        .clip(trackShape)
     ) {
-      if (backdrop == null) {
-        Box(Modifier.fillMaxSize().background(trackBrush))
-        Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
+      if (resolvedHaze != null) {
+        LiquidGlassBackdrop(
+          hazeState = resolvedHaze,
+          shape = trackShape,
+          isDark = isDark,
+          variant = LiquidGlassVariant.Prominent,
+          tintColor = trackTint,
+          modifier = Modifier.matchParentSize()
+        )
+      } else {
+        Box(Modifier.matchParentSize().background(trackTint))
       }
+      Box(
+        Modifier
+          .matchParentSize()
+          .background(if (isDark) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.10f))
+      )
+      Box(Modifier.matchParentSize().background(sideGlowBrush))
+      Box(Modifier.matchParentSize().liquidGlassRim(trackShape, isDark, 0.75.dp))
     }
 
-    // 2. Active Pill Lens Indicator (Pure GPU graphicsLayer + gradient glass + specular hairline border)
-    // Clean and fluid with zero shining sweeps or flashes, ZERO recomposition during touches/animations
+    val lensShader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      remember {
+        try { RuntimeShader(PILL_LENS_SHADER) } catch (_: Throwable) { null }
+      }
+    } else null
+    val cachedLensRenderEffect = remember(lensShader) {
+      lensShader?.let {
+        try { RenderEffect.createRuntimeShaderEffect(it, "content").asComposeRenderEffect() }
+        catch (_: Throwable) { null }
+      }
+    }
+    val lensModifier = if (
+      Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+      lensShader != null && cachedLensRenderEffect != null
+    ) {
+      Modifier.graphicsLayer {
+        if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
+        val slotPos = getSlotPos()
+        val visualLeft = if (!isDragging && (externalPageOffsetProvider != null || externalPageOffset != null)) {
+          (slotPos + 0.5f) * slotWidthPx - pillWidthPx * 0.5f
+        } else leftEdge.value
+        val visualRight = if (!isDragging && (externalPageOffsetProvider != null || externalPageOffset != null)) {
+          visualLeft + pillWidthPx
+        } else rightEdge.value
+        val liftValue = if (reduceMotion) 0f else (lift + tapPopAnim.value).coerceIn(0f, 1f)
+        val stretch = ((visualRight - visualLeft) / pillWidthPx).coerceIn(0.75f, 1.5f)
+        val liftScale = 1f + NAV_PILL_LIFT_SCALE * liftValue
+        lensShader.setFloatUniform("uCenter", (visualLeft + visualRight) * 0.5f, size.height * 0.5f)
+        lensShader.setFloatUniform("uHalf", pillWidthPx * stretch * liftScale * 0.5f, size.height * liftScale * 0.5f)
+        lensShader.setFloatUniform("uZoom", 0.08f + 0.18f * liftValue)
+        lensShader.setFloatUniform("uChroma", 0.08f * liftValue)
+        renderEffect = cachedLensRenderEffect
+      }
+    } else Modifier
+
     Box(
-      Modifier
+      modifier = Modifier
         .align(Alignment.CenterStart)
         .padding(horizontal = sideInset)
-        .height(basePillHeight)
-        .width(indicatorWidth)
-        .graphicsLayer {
-          val pos = getSlotPos()
-          val progress = if (reduceMotion) 0f else (actionProgressAnim.value + tapPopAnim.value).coerceIn(0f, 1f)
-          val delta = dragTargetPos - indicatorPos.value
-          val directionalStretch = (delta * 0.12f).coerceIn(-0.18f, 0.18f)
-          val lengthStretch = kotlin.math.abs(directionalStretch) + (tapPopAnim.value * 0.14f) + (progress * 0.08f)
-          val liftScale = 1f + 0.06f * progress
-          val verticalScale = 1f + 0.12f * progress
-
-          this.translationX = indicatorWidthPx * pos + (directionalStretch * indicatorWidthPx * 0.22f)
-          this.scaleX = liftScale + lengthStretch
-          this.scaleY = liftScale * verticalScale
-          this.shape = controlShape
-          this.clip = true
-          this.shadowElevation = if (progress > 0f) (if (isDark) 6.dp else 3.dp).toPx() * progress else 0f
-          this.spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.35f) else Color.Black.copy(alpha = 0.08f)
-          this.ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.03f)
-        }
+        .width(pillWidthDp)
+        .height(42.dp)
         .drawBackdrop(
-          backdrop = indicatorBackdrop,
-          shape = { controlShape },
+          backdrop = trackBackdrop,
+          shape = { pillShape },
           effects = {
             vibrancy()
-            lens(
-              refractionHeight = 10.dp.toPx(),
-              refractionAmount = 22.dp.toPx(),
-              depthEffect = true,
-              chromaticAberration = true
-            )
+            lens(10.dp.toPx(), 18.dp.toPx(), chromaticAberration = false)
           },
-          highlight = {
-            Highlight(
-              width = 0.75.dp,
-              blurRadius = 0.5.dp,
-              alpha = if (isDark) 0.58f else 0.78f,
-              style = HighlightStyle.Default
-            )
-          },
-          innerShadow = {
-            InnerShadow(
-              radius = 5.dp,
-              color = if (isDark) Color.Black.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.07f)
-            )
-          },
-          onDrawSurface = {
-            val progress = if (reduceMotion) 0f else (actionProgressAnim.value + tapPopAnim.value).coerceIn(0f, 1f)
-            val surfaceBrush = if (isDark) {
-              Brush.verticalGradient(
-                0f to Color.White.copy(alpha = 0.20f + 0.06f * progress),
-                0.48f to Color.White.copy(alpha = 0.12f + 0.04f * progress),
-                1f to Color.White.copy(alpha = 0.08f + 0.03f * progress)
-              )
-            } else {
-              Brush.verticalGradient(
-                0f to Color.White.copy(alpha = 0.34f + 0.08f * progress),
-                0.48f to colors.oklchPrimary.copy(alpha = 0.10f + 0.04f * progress),
-                1f to Color.White.copy(alpha = 0.18f + 0.06f * progress)
-              )
+          highlight = { Highlight.Default.copy(alpha = 0.22f + 0.55f * lift) },
+          innerShadow = { InnerShadow(radius = 4.dp, alpha = 0.12f) },
+          layerBlock = {
+            val externalPosition = when {
+              externalPageOffsetProvider != null -> externalPageOffsetProvider().coerceIn(0f, (totalSlots - 1).toFloat())
+              externalPageOffset != null -> externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat())
+              else -> null
             }
-            drawRoundRect(
-              brush = surfaceBrush,
-              cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f)
-            )
-          }
-        )
-        .border(1.dp, pillBorder, controlShape)
-    )
+            val useExternalPosition = !isDragging && externalPosition != null
+            val visualLeft = if (useExternalPosition) {
+              (externalPosition!! + 0.5f) * slotWidthPx - pillWidthPx * 0.5f
+            } else leftEdge.value
+            val visualRight = if (useExternalPosition) visualLeft + pillWidthPx else rightEdge.value
+            val liftValue = if (reduceMotion) 0f else (lift + tapPopAnim.value).coerceIn(0f, 1f)
+            val stretch = ((visualRight - visualLeft) / pillWidthPx).coerceIn(0.75f, 1.5f)
+            val liftScale = 1f + NAV_PILL_LIFT_SCALE * liftValue
+            translationX = visualLeft
+            scaleX = stretch * liftScale
+            scaleY = liftScale
+            shadowElevation = 14.dp.toPx() * liftValue
+            spotShadowColor = Color.Black.copy(alpha = 0.30f)
+            ambientShadowColor = Color.Black.copy(alpha = 0.10f)
+            shape = pillShape
+            clip = true
+          },
+          onDrawSurface = { drawRect(brush = pillBrush) }
+        ),
+      contentAlignment = Alignment.Center
+    ) {
+      Box(
+        Modifier
+          .fillMaxSize()
+          .graphicsLayer { alpha = lift }
+          .background(liftGlowColor)
+      )
+      Box(Modifier.fillMaxSize().liquidGlassRim(pillShape, isDark, 0.75.dp))
+    }
 
-    // 3. Tab Items Row (Icons Only, pure GPU, no shining)
     Row(
       Modifier
         .fillMaxWidth()
         .height(48.dp)
         .align(Alignment.Center)
         .padding(horizontal = sideInset)
-        .pointerInput(totalSlots) {
-          if (totalSlots <= 0) return@pointerInput
+        .then(lensModifier)
+        .pointerInput(totalSlots, slotWidthPx) {
           val touchSlop = viewConfiguration.touchSlop
           awaitEachGesture {
-            val slotWidth = size.width / totalSlots.toFloat()
-            if (slotWidth <= 0f) return@awaitEachGesture
-
             val down = awaitFirstDown(requireUnconsumed = false)
             isPressed = true
-
-            // Snap indicator to current position on touch down to guarantee zero jumps
-            val currentPos = externalPageOffsetProvider?.invoke()?.coerceIn(0f, (totalSlots - 1).toFloat())
-              ?: selectedTab.coerceIn(0, totalSlots - 1).toFloat()
-            coroutineScope.launch { indicatorPos.snapTo(currentPos) }
-            dragTargetPos = currentPos
-            lastHapticIndex = currentPos.roundToInt().coerceIn(0, totalSlots - 1)
+            val currentSlot = getSlotPos()
+            val currentCenter = (currentSlot + 0.5f) * slotWidthPx
+            dragCenter = currentCenter
+            dragTargetPos = currentSlot
+            coroutineScope.launch {
+              leftEdge.snapTo(currentCenter - pillWidthPx * 0.5f)
+              rightEdge.snapTo(currentCenter + pillWidthPx * 0.5f)
+            }
+            lastHapticIndex = currentSlot.roundToInt().coerceIn(0, totalSlots - 1)
 
             var dragStarted = false
             var totalDx = 0f
             var totalDy = 0f
-
             do {
               val event = awaitPointerEvent()
               val change = event.changes.firstOrNull { it.id == down.id } ?: break
-
-              val dx = change.position.x - change.previousPosition.x
-              val dy = change.position.y - change.previousPosition.y
-              totalDx += dx
-              totalDy += dy
-
-              if (!dragStarted) {
-                if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
-                  dragStarted = true
-                  isDragging = true
-                  val slotPos = (change.position.x / slotWidth - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
-                  dragTargetPos = slotPos
-                  onDragOffset?.invoke(slotPos)
-                  change.consume()
-                }
+              totalDx += change.position.x - change.previousPosition.x
+              totalDy += change.position.y - change.previousPosition.y
+              if (!dragStarted && abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
+                dragStarted = true
+                isDragging = true
+                change.consume()
               }
-
               if (dragStarted) {
                 change.consume()
-                val slotPos = (change.position.x / slotWidth - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
+                val slotPos = (change.position.x / slotWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
                 dragTargetPos = slotPos
+                dragCenter = (slotPos + 0.5f) * slotWidthPx
                 onDragOffset?.invoke(slotPos)
-
-                val currentSlot = slotPos.roundToInt().coerceIn(0, totalSlots - 1)
-                if (currentSlot != lastHapticIndex) {
-                  lastHapticIndex = currentSlot
+                val currentIndex = slotPos.roundToInt().coerceIn(0, totalSlots - 1)
+                if (currentIndex != lastHapticIndex) {
+                  lastHapticIndex = currentIndex
                   VibrationHelper.tick(context)
                   com.example.util.SoundManager.playSwipeNav(context)
                 }
@@ -1024,41 +1005,22 @@ fun LiquidGlassNavigationDock(
             isPressed = false
             if (dragStarted) {
               isDragging = false
-              val finalSlot = indicatorPos.value.roundToInt().coerceIn(0, totalSlots - 1)
+              val finalSlot = dragTargetPos.roundToInt().coerceIn(0, totalSlots - 1)
               onDragReleased?.invoke(finalSlot)
               onDestinationSelected(activeDestinations[finalSlot])
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
-              coroutineScope.launch {
-                if (reduceMotion) {
-                  indicatorPos.snapTo(finalSlot.toFloat())
-                } else {
-                  indicatorPos.animateTo(
-                    finalSlot.toFloat(),
-                    spring(dampingRatio = 0.72f, stiffness = 480f)
-                  )
-                }
-              }
             } else {
-              // Tap selection: instant destination selection + sound & haptics (no shining glare)
-              val tapSlot = (down.position.x / slotWidth).toInt().coerceIn(0, totalSlots - 1)
+              val tapSlot = (down.position.x / slotWidthPx).toInt().coerceIn(0, totalSlots - 1)
               onDestinationSelected(activeDestinations[tapSlot])
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               coroutineScope.launch {
                 tapPopAnim.snapTo(1f)
-                launch {
-                  tapPopAnim.animateTo(
-                    targetValue = 0f,
-                    animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
-                  )
-                }
-                if (externalPageOffset == null && externalPageOffsetProvider == null) {
-                  indicatorPos.animateTo(
-                    tapSlot.toFloat(),
-                    spring(dampingRatio = 0.72f, stiffness = 480f)
-                  )
-                }
+                tapPopAnim.animateTo(
+                  targetValue = 0f,
+                  animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
+                )
               }
             }
           }
@@ -1074,18 +1036,10 @@ fun LiquidGlassNavigationDock(
             VibrationHelper.tick(context)
             coroutineScope.launch {
               tapPopAnim.snapTo(1f)
-              launch {
-                tapPopAnim.animateTo(
-                  targetValue = 0f,
-                  animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
-                )
-              }
-              if (externalPageOffset == null && externalPageOffsetProvider == null) {
-                indicatorPos.animateTo(
-                  index.toFloat(),
-                  spring(dampingRatio = 0.72f, stiffness = 480f)
-                )
-              }
+              tapPopAnim.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
+              )
             }
           },
           modifier = Modifier.weight(1f)
