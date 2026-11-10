@@ -29,7 +29,11 @@ import com.example.ui.theme.InnerCornerShape
 import com.example.ui.theme.InkWashIvoryElevated
 import com.example.ui.theme.LightGlassSpecular
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -37,6 +41,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -82,6 +88,7 @@ import androidx.compose.ui.draw.shadow
 import kotlinx.coroutines.launch
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -494,6 +501,7 @@ fun Modifier.bounceClick(
   level: InteractionLevel = InteractionLevel.SMALL,
   scaleDown: Float = level.scaleDown,
   shine: Boolean = true,
+  shape: Shape? = null,
   enabled: Boolean = true,
   onLongClick: (() -> Unit)? = null,
   onClick: (() -> Unit)? = null
@@ -501,6 +509,7 @@ fun Modifier.bounceClick(
   if (!enabled || (onClick == null && onLongClick == null)) return this
   return composed {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val isReduced = remember { isReducedMotionEnabled(context) }
     val effectiveScale = if (isReduced) 1.0f else scaleDown
     val effectiveAlpha = level.pressedAlpha
@@ -525,27 +534,28 @@ fun Modifier.bounceClick(
       label = "springAlpha"
     )
     val isDark = LocalAppColors.current.isDark
-    val shineAmount by animateFloatAsState(
-      targetValue = if (shine && isPressed) 0.24f else if (shine && isHovered) 0.08f else 0f,
-      animationSpec = if (isReduced) androidx.compose.animation.core.snap() else tween(120),
-      label = "glassPressShine"
-    )
+
+    // On-click shine with exact 0.3s fade-out (white for dark mode, dark for light mode)
+    val clickShine = remember { Animatable(0f) }
 
     val shineBrush = remember(isDark) {
       if (isDark) {
         Brush.linearGradient(
-          colors = listOf(Color.White.copy(alpha = 0.90f), Color.White.copy(alpha = 0.35f), Color.Transparent),
+          colors = listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.20f), Color.Transparent),
           start = Offset(0f, 0f),
-          end = Offset(1000f, 1000f)
+          end = Offset(600f, 600f)
         )
       } else {
         Brush.linearGradient(
-          colors = listOf(Color.Black.copy(alpha = 0.40f), Color.Black.copy(alpha = 0.15f), Color.Transparent),
+          colors = listOf(Color.Black.copy(alpha = 0.25f), Color.Black.copy(alpha = 0.08f), Color.Transparent),
           start = Offset(0f, 0f),
-          end = Offset(1000f, 1000f)
+          end = Offset(600f, 600f)
         )
       }
     }
+
+    val pressShine = if (shine && isPressed) 0.18f else if (shine && isHovered) 0.04f else 0f
+    val totalShine = (clickShine.value * 0.40f) + pressShine
 
     this
       .graphicsLayer {
@@ -556,11 +566,19 @@ fun Modifier.bounceClick(
       .alpha(alpha)
       .drawWithContent {
         drawContent()
-        if (shineAmount > 0.001f) {
-          drawRect(
-            brush = shineBrush,
-            alpha = shineAmount
-          )
+        if (shine && totalShine > 0.001f) {
+          if (shape != null) {
+            val outline = shape.createOutline(size, layoutDirection, this)
+            drawOutline(outline, brush = shineBrush, alpha = totalShine)
+          } else {
+            // Default to rounded pill or rounded rectangle matching element size (never sharp 90-degree rectangle!)
+            val cornerRadius = CornerRadius(minOf(size.width, size.height) * 0.25f)
+            drawRoundRect(
+              brush = shineBrush,
+              alpha = totalShine,
+              cornerRadius = cornerRadius
+            )
+          }
         }
       }
       .combinedClickable(
@@ -575,6 +593,15 @@ fun Modifier.bounceClick(
         } else null,
         onClick = {
           VibrationHelper.click(context)
+          if (shine && !isReduced) {
+            coroutineScope.launch {
+              clickShine.snapTo(1f)
+              clickShine.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+              )
+            }
+          }
           onClick?.invoke()
         }
       )
@@ -1131,9 +1158,149 @@ fun GlassButton(
   }
 }
 
+enum class GlassButtonVariant {
+  FILLED, TINTED, PLAIN
+}
+
 /**
- * Apple-Style Liquid Glass Menu Popup.
- * Provides a translucent floating glass context menu with checkmark states.
+ * Apple-Style Liquid Glass Button (@zakisheriff/liquid-glass).
+ * Mandatory pattern: <GlassButton variant="filled" onClick={() => save()} disabled={saving}>Save</GlassButton>
+ */
+@Composable
+fun GlassButton(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  variant: GlassButtonVariant = GlassButtonVariant.FILLED,
+  enabled: Boolean = true,
+  destructive: Boolean = false,
+  icon: (@Composable () -> Unit)? = null,
+  content: @Composable () -> Unit
+) {
+  val isDark = LocalAppColors.current.isDark
+  val shape = RoundedCornerShape(12.dp)
+  val colors = LocalAppColors.current
+
+  val surfaceModifier = when (variant) {
+    GlassButtonVariant.FILLED -> {
+      val fillBg = if (destructive) {
+        AccentRed.copy(alpha = if (isDark) 0.85f else 0.90f)
+      } else if (isDark) {
+        Color.White.copy(alpha = 0.18f)
+      } else {
+        Color.White.copy(alpha = 0.88f)
+      }
+      Modifier
+        .clip(shape)
+        .background(fillBg)
+        .border(0.75.dp, if (isDark) Color.White.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.12f), shape)
+    }
+    GlassButtonVariant.TINTED -> {
+      val tintBg = if (destructive) {
+        AccentRed.copy(alpha = 0.15f)
+      } else {
+        colors.oklchPrimary.copy(alpha = 0.15f)
+      }
+      Modifier
+        .clip(shape)
+        .background(tintBg)
+        .border(0.75.dp, colors.oklchPrimary.copy(alpha = 0.35f), shape)
+    }
+    GlassButtonVariant.PLAIN -> {
+      Modifier
+        .clip(shape)
+        .border(0.75.dp, if (isDark) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.10f), shape)
+    }
+  }
+
+  Box(
+    modifier = modifier
+      .defaultMinSize(minHeight = 44.dp)
+      .then(surfaceModifier)
+      .bounceClick(
+        shape = shape,
+        enabled = enabled,
+        onClick = onClick
+      )
+      .padding(horizontal = 16.dp, vertical = 10.dp),
+    contentAlignment = Alignment.Center
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      if (icon != null) {
+        icon()
+      }
+      androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.material3.LocalContentColor provides when {
+          destructive -> AccentRed
+          variant == GlassButtonVariant.FILLED && isDark -> Color.White
+          variant == GlassButtonVariant.FILLED && !isDark -> Color(0xFF1C1C1E)
+          else -> InkPrimary
+        }
+      ) {
+        content()
+      }
+    }
+  }
+}
+
+/**
+ * Data item for declarative GlassMenu.
+ */
+data class GlassMenuItemData(
+  val label: String,
+  val icon: (@Composable () -> Unit)? = null,
+  val checked: Boolean = false,
+  val destructive: Boolean = false,
+  val onSelect: () -> Unit
+)
+
+/**
+ * Declarative Apple-Style Liquid Glass Menu Popup (@zakisheriff/liquid-glass).
+ * Anchored directly to trigger icon, floating beneath it without full-screen modal dimming.
+ */
+@Composable
+fun GlassMenu(
+  icon: @Composable () -> Unit,
+  items: List<GlassMenuItemData>,
+  modifier: Modifier = Modifier,
+  contentDescription: String = "More",
+  buttonSize: Dp = 40.dp
+) {
+  var expanded by remember { mutableStateOf(false) }
+
+  Box(modifier = modifier) {
+    LiquidGlassIconButton(
+      onClick = { expanded = true },
+      contentDescription = contentDescription,
+      size = buttonSize
+    ) {
+      icon()
+    }
+
+    GlassMenu(
+      expanded = expanded,
+      onDismissRequest = { expanded = false }
+    ) {
+      items.forEach { item ->
+        GlassMenuItem(
+          label = item.label,
+          checked = item.checked,
+          destructive = item.destructive,
+          icon = item.icon,
+          onSelect = {
+            expanded = false
+            item.onSelect()
+          }
+        )
+      }
+    }
+  }
+}
+
+/**
+ * Anchored Floating Glass Menu Container.
  */
 @Composable
 fun GlassMenu(
@@ -1142,27 +1309,20 @@ fun GlassMenu(
   modifier: Modifier = Modifier,
   content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
-  if (expanded) {
-    Dialog(onDismissRequest = onDismissRequest) {
-      Box(
-        modifier = modifier
-          .widthIn(min = 180.dp, max = 280.dp)
-          .fluidLensedGlass(
-            shape = OuterCornerShape,
-            elevation = 8.dp,
-            borderWidth = 0.75.dp,
-            isElevated = true
-          )
-          .padding(8.dp)
-      ) {
-        Column(
-          modifier = Modifier.fillMaxWidth(),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
-          content = content
-        )
-      }
-    }
-  }
+  DropdownMenu(
+    expanded = expanded,
+    onDismissRequest = onDismissRequest,
+    modifier = modifier
+      .widthIn(min = 180.dp, max = 280.dp)
+      .fluidLensedGlass(
+        shape = RoundedCornerShape(16.dp),
+        elevation = 12.dp,
+        borderWidth = 0.75.dp,
+        isElevated = false
+      )
+      .padding(4.dp),
+    content = content
+  )
 }
 
 /**
@@ -1182,9 +1342,9 @@ fun GlassMenuItem(
     modifier = modifier
       .fillMaxWidth()
       .clip(RoundedCornerShape(10.dp))
-      .defaultMinSize(minHeight = 48.dp)
+      .defaultMinSize(minHeight = 44.dp)
       .bounceClick(shine = true) { onSelect() }
-      .padding(horizontal = 12.dp, vertical = 10.dp),
+      .padding(horizontal = 12.dp, vertical = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
   ) {
@@ -1198,7 +1358,6 @@ fun GlassMenuItem(
       Text(
         text = label,
         style = TextStyle(
-          fontFamily = StrongFontFamily,
           fontSize = 15.sp,
           fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
           color = when {
@@ -1213,7 +1372,6 @@ fun GlassMenuItem(
       Text(
         text = "✓",
         style = TextStyle(
-          fontFamily = StrongFontFamily,
           fontSize = 15.sp,
           fontWeight = FontWeight.Bold,
           color = InkPrimary
@@ -1224,16 +1382,17 @@ fun GlassMenuItem(
 }
 
 /**
- * Apple-Style Liquid Glass Switch Toggle.
- * Features a translucent rounded track with a hairline glass border
- * and a spring-animated white glass thumb.
+ * Apple-Style Liquid Glass Switch Toggle (@zakisheriff/liquid-glass).
+ * Synced to app dark & light theme colors, with elastic sliding white glass thumb pill.
  */
 @Composable
 fun GlassSwitch(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
-  enabled: Boolean = true
+  tint: Color? = null,
+  enabled: Boolean = true,
+  ariaLabel: String? = null
 ) {
   val isDark = LocalAppColors.current.isDark
   val context = LocalContext.current
@@ -1242,10 +1401,17 @@ fun GlassSwitch(
   val interactionSource = remember { MutableInteractionSource() }
   val isPressed by interactionSource.collectIsPressedAsState()
 
-  val trackWidth = 50.dp
-  val trackHeight = 28.dp
-  val thumbSize = 22.dp
-  val thumbPadding = 3.dp
+  val appThemeTint = if (isDark) {
+    Color(0xFFE5A93C) // Warm Gold / PrimaryAccent in dark mode
+  } else {
+    Color(0xFF2C2C2E) // Deep Ink in light mode
+  }
+  val activeTint = tint ?: appThemeTint
+
+  val trackWidth = 51.dp
+  val trackHeight = 31.dp
+  val thumbSize = 27.dp
+  val thumbPadding = 2.dp
 
   val maxThumbOffset = with(density) { (trackWidth - thumbSize - (thumbPadding * 2)).toPx() }
   val targetOffset = if (checked) maxThumbOffset else 0f
@@ -1253,53 +1419,40 @@ fun GlassSwitch(
   val animatedOffset by animateFloatAsState(
     targetValue = targetOffset,
     animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else spring(
-      dampingRatio = 0.75f,
-      stiffness = 500f
+      dampingRatio = 0.72f,
+      stiffness = 520f
     ),
     label = "glassSwitchOffset"
   )
 
   val trackBgColor by animateColorAsState(
     targetValue = if (checked) {
-      com.example.ui.theme.BlueHorizon
+      activeTint
     } else {
-      if (isDark) Color(0x28303038) else Color(0x1F71717A)
+      if (isDark) Color(0x38353A45) else Color(0x33000000)
     },
     animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else tween(180),
     label = "glassSwitchTrackBg"
   )
+
+  val trackBorderColor = if (checked) {
+    activeTint.copy(alpha = 0.95f)
+  } else {
+    if (isDark) Color.White.copy(alpha = 0.22f) else Color.Black.copy(alpha = 0.20f)
+  }
+
   val pressScale by animateFloatAsState(
-    targetValue = if (isPressed && !reduceMotion) 0.985f else 1f,
-    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else spring(dampingRatio = 0.62f, stiffness = 650f),
+    targetValue = if (isPressed && !reduceMotion) 0.96f else 1f,
+    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else spring(dampingRatio = 0.65f, stiffness = 650f),
     label = "glassSwitchPressScale"
-  )
-  val shineAmount by animateFloatAsState(
-    targetValue = if (isPressed) 0.16f else 0f,
-    animationSpec = if (reduceMotion) androidx.compose.animation.core.snap() else tween(120),
-    label = "glassSwitchPressShine"
   )
 
   Box(
     modifier = modifier
       .size(width = trackWidth, height = 48.dp)
-      .clip(CircleShape)
       .graphicsLayer {
         scaleX = pressScale
         scaleY = pressScale
-      }
-      .drawWithContent {
-        drawContent()
-        if (shineAmount > 0.001f) {
-          drawRoundRect(
-            brush = Brush.linearGradient(
-              colors = listOf(Color.White, Color.White.copy(alpha = 0.3f), Color.Transparent),
-              start = Offset.Zero,
-              end = Offset(size.width, size.height)
-            ),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f),
-            alpha = shineAmount
-          )
-        }
       }
       .toggleable(
         value = checked,
@@ -1310,32 +1463,54 @@ fun GlassSwitch(
       ) { newValue ->
         VibrationHelper.tick(context)
         onCheckedChange(newValue)
+      }
+      .semantics {
+        if (ariaLabel != null) {
+          contentDescription = ariaLabel
+        }
       },
     contentAlignment = Alignment.Center
   ) {
+    // 1. Outer Pill Track with Hairline Specular Border
     Box(
       modifier = Modifier
         .size(trackWidth, trackHeight)
-        .fluidLensedGlass(
-          shape = CircleShape,
-          elevation = if (checked) 2.dp else 1.dp,
-          borderWidth = 0.75.dp,
-          isElevated = checked,
-          customBackgroundColor = trackBgColor
-        )
+        .clip(CircleShape)
+        .background(trackBgColor)
+        .border(1.dp, trackBorderColor, CircleShape)
         .padding(thumbPadding),
       contentAlignment = Alignment.CenterStart
     ) {
+      // 2. High-specular white rounded glass thumb with drop shadow
       Box(
         modifier = Modifier
-          .graphicsLayer { translationX = animatedOffset }
+          .graphicsLayer {
+            translationX = animatedOffset
+            shadowElevation = if (checked) with(density) { 3.dp.toPx() } else with(density) { 1.5.dp.toPx() }
+            shape = CircleShape
+            clip = false
+            spotShadowColor = Color.Black.copy(alpha = 0.40f)
+            ambientShadowColor = Color.Black.copy(alpha = 0.18f)
+          }
           .size(thumbSize)
-          .fluidLensedGlass(
-            shape = CircleShape,
-            elevation = if (checked) 3.dp else 1.5.dp,
-            borderWidth = 0.6.dp,
-            isElevated = true,
-            customBackgroundColor = Color.White
+          .clip(CircleShape)
+          .background(
+            Brush.verticalGradient(
+              listOf(
+                Color.White,
+                Color(0xFFF2F2F7)
+              )
+            )
+          )
+          .border(
+            0.5.dp,
+            Brush.verticalGradient(
+              listOf(
+                Color.White.copy(alpha = 0.95f),
+                Color.White.copy(alpha = 0.50f)
+              )
+            ),
+            CircleShape
           )
       )
     }
@@ -1343,21 +1518,29 @@ fun GlassSwitch(
 }
 
 /**
- * Apple-Style Liquid Glass Input Field.
+ * Apple-Style Liquid Glass Input Field (@zakisheriff/liquid-glass).
  * Supports text, search, and form inputs with a translucent glass background,
- * subtle hairline specular bevel, and clear focus state.
+ * trailing action support (clear / mic), and clear focus state without dark smudges.
  */
 @Composable
 fun GlassInput(
-  value: String,
-  onValueChange: (String) -> Unit,
+  value: String = "",
+  onValueChange: (String) -> Unit = {},
   modifier: Modifier = Modifier,
-  placeholder: String = "",
-  isSearch: Boolean = false,
+  query: String = value,
+  onQueryChange: ((String) -> Unit)? = null,
+  placeholder: String = "Search",
+  type: String = "search",
+  isSearch: Boolean = type == "search",
   leadingIcon: (@Composable () -> Unit)? = null,
-  trailingIcon: (@Composable () -> Unit)? = null,
+  trailing: (@Composable () -> Unit)? = null,
+  trailingIcon: (@Composable () -> Unit)? = trailing,
+  ariaLabel: String? = null,
+  enabled: Boolean = true,
   onClear: (() -> Unit)? = null
 ) {
+  val activeValue = if (onQueryChange != null) query else value
+  val activeChange: (String) -> Unit = onQueryChange ?: onValueChange
   val isDark = LocalAppColors.current.isDark
   var isFocused by remember { mutableStateOf(false) }
 
@@ -1369,9 +1552,14 @@ fun GlassInput(
         shape = RoundedCornerShape(14.dp),
         elevation = 1.dp,
         borderWidth = if (isFocused) 1.dp else 0.75.dp,
-        isElevated = isFocused
+        isElevated = false
       )
-      .padding(horizontal = 14.dp),
+      .padding(horizontal = 14.dp)
+      .semantics {
+        if (ariaLabel != null) {
+          contentDescription = ariaLabel
+        }
+      },
     contentAlignment = Alignment.CenterStart
   ) {
     Row(
@@ -1391,21 +1579,20 @@ fun GlassInput(
       }
 
       Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-        if (value.isEmpty()) {
+        if (activeValue.isEmpty()) {
           Text(
             text = placeholder,
             style = TextStyle(
-              fontFamily = StrongFontFamily,
               fontSize = 15.sp,
               color = InkMuted
             )
           )
         }
         BasicTextField(
-          value = value,
-          onValueChange = onValueChange,
+          value = activeValue,
+          onValueChange = activeChange,
+          enabled = enabled,
           textStyle = TextStyle(
-            fontFamily = StrongFontFamily,
             fontSize = 15.sp,
             color = InkPrimary
           ),
@@ -1417,10 +1604,10 @@ fun GlassInput(
         )
       }
 
-      if (value.isNotEmpty() && onClear != null) {
+      if (activeValue.isNotEmpty() && onClear != null) {
         Box(
           modifier = Modifier
-            .size(48.dp)
+            .size(36.dp)
             .bounceClick { onClear() },
           contentAlignment = Alignment.Center
         ) {
@@ -1431,6 +1618,8 @@ fun GlassInput(
             modifier = Modifier.size(18.dp)
           )
         }
+      } else if (trailing != null) {
+        trailing()
       } else if (trailingIcon != null) {
         trailingIcon()
       }
@@ -1617,7 +1806,7 @@ fun SketchFilterChip(
     Text(
       text = label,
       style = TextStyle(
-        fontFamily = StrongFontFamily,
+        fontFamily = FontFamily.Default,
         fontSize = 13.sp,
         fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
         color = textCol
@@ -2244,6 +2433,122 @@ fun BentoHeroCard(
   ) {
     content()
   }
+}
+
+/**
+ * Color cycle picker matching user specification (Red, Yellow, Green, Blue, Purple, None).
+ */
+@Composable
+fun ColorCyclePicker(
+  selectedColorTag: String? = null,
+  onColorTagSelected: (String?) -> Unit = {},
+  selectedTag: String? = selectedColorTag,
+  onTagSelected: ((String?) -> Unit)? = null,
+  modifier: Modifier = Modifier
+) {
+  val activeTag = selectedTag ?: selectedColorTag
+  val activeCallback: (String?) -> Unit = onTagSelected ?: onColorTagSelected
+  val isDark = LocalAppColors.current.isDark
+  Row(
+    modifier = modifier
+      .fillMaxWidth()
+      .horizontalScroll(rememberScrollState()),
+    horizontalArrangement = Arrangement.spacedBy(10.dp),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    // None / Default option
+    val isNoneSelected = activeTag == null
+    Box(
+      modifier = Modifier
+        .size(34.dp)
+        .clip(CircleShape)
+        .background(
+          if (isDark) Color(0x33FFFFFF) else Color(0x1F000000)
+        )
+        .border(
+          width = if (isNoneSelected) 2.dp else 0.75.dp,
+          color = if (isNoneSelected) (if (isDark) Color.White else Color.Black) else Color.Transparent,
+          shape = CircleShape
+        )
+        .bounceClick(shape = CircleShape) {
+          activeCallback(null)
+        },
+      contentAlignment = Alignment.Center
+    ) {
+      if (isNoneSelected) {
+        Box(
+          Modifier
+            .size(8.dp)
+            .clip(CircleShape)
+            .background(if (isDark) Color.White else Color.Black)
+        )
+      }
+    }
+
+    // Color options
+    com.example.data.model.AppColorTag.entries.forEach { tag ->
+      val isSelected = tag.id.equals(activeTag, ignoreCase = true)
+      Box(
+        modifier = Modifier
+          .size(34.dp)
+          .clip(CircleShape)
+          .background(tag.color)
+          .border(
+            width = if (isSelected) 2.5.dp else 0.75.dp,
+            color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.20f),
+            shape = CircleShape
+          )
+          .graphicsLayer {
+            if (isSelected) {
+              scaleX = 1.12f
+              scaleY = 1.12f
+            }
+          }
+          .bounceClick(shape = CircleShape) {
+            activeCallback(tag.id)
+          },
+        contentAlignment = Alignment.Center
+      ) {
+        if (isSelected) {
+          Icon(
+            imageVector = Icons.Default.Check,
+            contentDescription = tag.displayName,
+            tint = Color.White,
+            modifier = Modifier.size(16.dp)
+          )
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Tap-to-cycle color tag badge for task and habit list cards.
+ */
+@Composable
+fun ColorTagBadge(
+  colorTag: String?,
+  onCycleNext: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  val tag = com.example.data.model.AppColorTag.fromId(colorTag)
+  val isDark = LocalAppColors.current.isDark
+  val tagColor = tag?.color ?: if (isDark) Color(0x33FFFFFF) else Color(0x22000000)
+
+  Box(
+    modifier = modifier
+      .size(12.dp)
+      .clip(CircleShape)
+      .background(tagColor)
+      .border(
+        0.5.dp,
+        if (isDark) Color.White.copy(alpha = 0.40f) else Color.Black.copy(alpha = 0.20f),
+        CircleShape
+      )
+      .bounceClick(scaleDown = 0.85f, shape = CircleShape) {
+        onCycleNext()
+      }
+  )
 }
 
 /**

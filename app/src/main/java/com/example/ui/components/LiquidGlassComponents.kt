@@ -397,9 +397,14 @@ fun LiquidGlassSegmentedControl(
         .height(pillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
-          shadowElevation = (if (isDark) 8.dp else 4.dp).toPx() * actionProgress
-          spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.10f)
-          ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.04f)
+          this.translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
+          this.scaleX = liftScale + dynamicStretch
+          this.scaleY = liftScale
+          this.shape = controlShape
+          this.clip = true
+          this.shadowElevation = (if (isDark) 8.dp else 4.dp).toPx() * actionProgress
+          this.spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.10f)
+          this.ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.04f)
         }
         .drawBackdrop(
           backdrop = trackBackdrop,
@@ -416,12 +421,13 @@ fun LiquidGlassSegmentedControl(
               InnerShadow(radius = 1.dp, alpha = 0.04f * actionProgress)
             }
           },
-          layerBlock = {
-            translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
-            scaleX = liftScale + dynamicStretch
-            scaleY = liftScale
-          },
-          onDrawSurface = { drawRect(selectedColor) }
+          layerBlock = {},
+          onDrawSurface = {
+            drawRoundRect(
+              color = selectedColor,
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(pillHeight.toPx() / 2f)
+            )
+          }
         )
     )
 
@@ -546,6 +552,30 @@ fun LiquidGlassSegmentedControl(
       }
     }
   }
+}
+
+/**
+ * GlassSegmented matching @zakisheriff/liquid-glass specification.
+ * <GlassSegmented options={['Chat', 'Work', 'Study']} value={mode} onChange={setMode} aria-label="Mode" />
+ */
+@Composable
+fun GlassSegmented(
+  options: List<String>,
+  value: Int,
+  onChange: (Int) -> Unit,
+  modifier: Modifier = Modifier,
+  contentDescription: String? = "Segmented control"
+) {
+  LiquidGlassSegmentedControl(
+    items = options,
+    selectedIndex = value,
+    onItemSelected = onChange,
+    modifier = modifier.semantics {
+      if (contentDescription != null) {
+        this.contentDescription = contentDescription
+      }
+    }
+  )
 }
 
 /**
@@ -718,19 +748,19 @@ fun LiquidGlassNavigationDock(
   }
 
   val trackBrush = if (isDark) {
-    Brush.verticalGradient(listOf(Color(0x38222630), Color(0x2814161C)))
+    Brush.verticalGradient(listOf(Color(0x28222630), Color(0x1814161C)))
   } else {
     // Subtle, low-gradient effect with high translucency matching user request
-    Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.52f), Color.White.copy(alpha = 0.36f)))
+    Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.25f)))
   }
-  // At rest: completely un-filled (alpha = 0f). In action: frosted liquid glass fill.
+  // Resting: subtle translucent frosted pill. In action: glowing liquid glass fill.
   val selectedColor = if (isDark) {
-    Color.White.copy(alpha = 0.18f * combinedActionProgress)
+    Color.White.copy(alpha = 0.08f + 0.14f * combinedActionProgress)
   } else {
-    Color.White.copy(alpha = 0.85f * combinedActionProgress)
+    Color.White.copy(alpha = 0.25f + 0.65f * combinedActionProgress)
   }
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
-  val lengthStretch = dynamicStretch + (tapPopAnim.value * 0.18f) + (combinedActionProgress * 0.08f)
+  val lengthStretch = dynamicStretch + (tapPopAnim.value * 0.22f) + (combinedActionProgress * 0.12f)
   val liftScale = 1f + 0.12f * combinedActionProgress
   // Height: 40dp at rest (flush inside 48dp track), expanding to 50.4dp in action (1.2dp top/bottom overhang)
   val pillHeight = 40.dp + 10.4.dp * combinedActionProgress
@@ -773,44 +803,48 @@ fun LiquidGlassNavigationDock(
     }
 
     // 2. Active Pill Lens Indicator:
-    // Sits at normal size (40dp) inside the track at rest without fill, shadow or distortion;
-    // Expands to 50.4dp (1.2dp overhang) and fills with frosted glass when touched/held/tapped.
-    if (combinedActionProgress > 0.01f) {
-      Box(
-        Modifier
-          .align(Alignment.CenterStart)
-          .padding(horizontal = sideInset)
-          .height(pillHeight)
-          .width(indicatorWidth)
-          .graphicsLayer {
-            shadowElevation = (if (isDark) 8.dp else 5.dp).toPx() * combinedActionProgress
-            spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.12f)
-            ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.05f)
+    // Sits at normal size (40dp) inside the track at rest with subtle frosted glass anchor;
+    // Expands to 50.4dp (1.2dp overhang) and fills with glowing liquid glass when touched/held/tapped.
+    Box(
+      Modifier
+        .align(Alignment.CenterStart)
+        .padding(horizontal = sideInset)
+        .height(pillHeight)
+        .width(indicatorWidth)
+        .graphicsLayer {
+          this.translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
+          this.scaleX = liftScale + lengthStretch
+          this.scaleY = liftScale
+          this.shape = controlShape
+          this.clip = true
+          this.shadowElevation = (if (isDark) 8.dp else 5.dp).toPx() * combinedActionProgress
+          this.spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.12f)
+          this.ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.05f)
+        }
+        .drawBackdrop(
+          backdrop = trackBackdrop,
+          shape = { controlShape },
+          effects = {
+            vibrancy()
+            lens((11f * combinedActionProgress).dp.toPx(), (21f * combinedActionProgress).dp.toPx(), chromaticAberration = false)
+          },
+          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.12f + 0.38f * combinedActionProgress) else (0.15f + 0.25f * combinedActionProgress)) },
+          innerShadow = {
+            if (isDark) {
+              InnerShadow(radius = 3.dp, alpha = 0.05f + 0.17f * combinedActionProgress)
+            } else {
+              InnerShadow(radius = 1.dp, alpha = 0.02f + 0.04f * combinedActionProgress)
+            }
+          },
+          layerBlock = {},
+          onDrawSurface = {
+            drawRoundRect(
+              color = selectedColor,
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(pillHeight.toPx() / 2f)
+            )
           }
-          .drawBackdrop(
-            backdrop = trackBackdrop,
-            shape = { controlShape },
-            effects = {
-              vibrancy()
-              lens((11f * combinedActionProgress).dp.toPx(), (21f * combinedActionProgress).dp.toPx(), chromaticAberration = false)
-            },
-            highlight = { Highlight.Default.copy(alpha = if (isDark) (0.50f * combinedActionProgress) else (0.40f * combinedActionProgress)) },
-            innerShadow = {
-              if (isDark) {
-                InnerShadow(radius = 3.dp, alpha = 0.22f * combinedActionProgress)
-              } else {
-                InnerShadow(radius = 1.dp, alpha = 0.04f * combinedActionProgress)
-              }
-            },
-            layerBlock = {
-              translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
-              scaleX = liftScale + lengthStretch
-              scaleY = liftScale
-            },
-            onDrawSurface = { drawRect(selectedColor) }
-          )
-      )
-    }
+        )
+    )
 
     // 3. Tab Items & Pointer Input (supports tap and horizontal drag with AGSL lens)
     val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && combinedActionProgress > 0.01f) {

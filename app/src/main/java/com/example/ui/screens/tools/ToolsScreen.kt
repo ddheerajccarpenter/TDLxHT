@@ -98,6 +98,8 @@ import com.example.ui.components.GlassButton
 import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.GlassMenu
 import com.example.ui.components.GlassMenuItem
+import com.example.ui.components.GlassMenuItemData
+import com.example.ui.components.GlassInput
 import com.example.ui.components.SketchFilterChip
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.SketchSearchBar
@@ -218,19 +220,26 @@ fun ToolsScreen(
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-              // GlassMenu Trigger Button (<GlassMenu icon={<SortIcon />} aria-label="Sort by" />)
-              GlassButton(
-                onClick = { showSortMenu = true },
+              // Declarative GlassMenu (<GlassMenu icon={<SortIcon />} aria-label="Sort by" />)
+              GlassMenu(
+                icon = {
+                  Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                    contentDescription = null,
+                    tint = InkPrimary,
+                    modifier = Modifier.size(18.dp)
+                  )
+                },
                 contentDescription = "Sort by",
-                size = 36.dp
-              ) {
-                Icon(
-                  imageVector = Icons.AutoMirrored.Filled.Sort,
-                  contentDescription = null,
-                  tint = InkPrimary,
-                  modifier = Modifier.size(18.dp)
-                )
-              }
+                buttonSize = 36.dp,
+                items = listOf("Date", "Name", "Size").map { sort ->
+                  GlassMenuItemData(
+                    label = sort,
+                    checked = sort == sortCriterion,
+                    onSelect = { sortCriterion = sort }
+                  )
+                }
+              )
 
               GlassButton(
                 onClick = { isReorderMode = !isReorderMode },
@@ -239,9 +248,8 @@ fun ToolsScreen(
                 Text(
                   text = if (isReorderMode) "Done" else "Reorder",
                   style = TextStyle(
-                    fontFamily = StrongFontFamily,
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = InkPrimary
                   )
                 )
@@ -250,30 +258,16 @@ fun ToolsScreen(
           }
         )
 
-        // GlassMenu Context Dropdown
-        GlassMenu(
-          expanded = showSortMenu,
-          onDismissRequest = { showSortMenu = false }
-        ) {
-          listOf("Date", "Name", "Size").forEach { sort ->
-            GlassMenuItem(
-              label = sort,
-              checked = sort == sortCriterion,
-              onSelect = {
-                sortCriterion = sort
-                showSortMenu = false
-              }
-            )
-          }
-        }
-
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Search Bar (Pinned)
-        SketchSearchBar(
-          query = searchQuery,
-          onQueryChange = { searchQuery = it },
+        // Search Bar (Pinned @zakisheriff/liquid-glass GlassInput)
+        GlassInput(
+          type = "search",
+          value = searchQuery,
+          onValueChange = { searchQuery = it },
           placeholder = "Search tools...",
+          ariaLabel = "Search tools",
+          onClear = { searchQuery = "" },
           modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -581,7 +575,7 @@ fun ToolRunnerModal(
         primaryLabel = "Result",
         primaryValue = "—",
         secondaryDetails = emptyList(),
-        summaryNotes = "Enter your values below to calculate."
+        summaryNotes = "Enter values above to calculate."
       )
     }
     try {
@@ -694,7 +688,7 @@ fun ToolRunnerModal(
             shape = RoundedCornerShape(22.dp),
             elevation = 16.dp,
             borderWidth = 0.75.dp,
-            isElevated = true
+            isElevated = false
           )
           .clickable(
             interactionSource = remember { MutableInteractionSource() },
@@ -724,7 +718,7 @@ fun ToolRunnerModal(
                   shape = CircleShape,
                   elevation = 2.dp,
                   borderWidth = 0.75.dp,
-                  isElevated = true
+                  isElevated = false
                 ),
               contentAlignment = Alignment.Center
             ) {

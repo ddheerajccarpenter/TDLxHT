@@ -35,6 +35,7 @@ fun TaskEntity.toDomainModel(): Task {
     repeatDays = repeatDayList,
     isShortTerm = isShortTerm,
     completedDate = completedDate,
+    colorTag = colorTag,
     creationTimestamp = creationTimestamp,
     updatedTimestamp = updatedTimestamp
   )
@@ -57,6 +58,7 @@ fun Task.toEntity(): TaskEntity {
     repeatDaysJson = repeatDays.joinToString(",") { it.name },
     isShortTerm = isShortTerm,
     completedDate = completedDate,
+    colorTag = colorTag,
     creationTimestamp = creationTimestamp,
     updatedTimestamp = updatedTimestamp
   )
@@ -104,6 +106,7 @@ fun HabitEntity.toDomainModel(): Habit {
     isActive = isActive,
     isPaused = isPaused,
     isArchived = isArchived,
+    colorTag = colorTag,
     creationTimestamp = creationTimestamp,
     updatedTimestamp = updatedTimestamp
   )
@@ -125,6 +128,7 @@ fun Habit.toEntity(): HabitEntity {
     isActive = isActive,
     isPaused = isPaused,
     isArchived = isArchived,
+    colorTag = colorTag,
     creationTimestamp = creationTimestamp,
     updatedTimestamp = updatedTimestamp
   )

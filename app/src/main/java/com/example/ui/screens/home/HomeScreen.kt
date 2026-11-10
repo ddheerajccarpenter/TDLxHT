@@ -96,6 +96,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
+import com.example.data.model.TaskPriority
+import com.example.ui.theme.AccentRed
 import com.example.ui.components.AppEmptyState
 import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
@@ -107,6 +109,8 @@ import com.example.ui.components.GlassMenuItem
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassCapsule
 import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.GlassSegmented
+import com.example.ui.components.ColorTagBadge
 import com.example.ui.components.LiquidGlassButton
 import com.example.ui.components.LiquidGlassIconButton
 import com.example.ui.components.LiquidGlassProgressIndicator
@@ -737,10 +741,10 @@ fun HomeScreen(
 
       // Filter Segment: [All] [Tasks] [Habits] - Unified Liquid Glass Segmented Control
       item {
-        LiquidGlassSegmentedControl(
-          items = listOf("All", "Tasks", "Habits"),
-          selectedIndex = selectedTab,
-          onItemSelected = { selectedTab = it },
+        GlassSegmented(
+          options = listOf("All", "Tasks", "Habits"),
+          value = selectedTab,
+          onChange = { selectedTab = it },
           modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
@@ -1200,15 +1204,29 @@ fun TaskItemCard(
       verticalAlignment = Alignment.CenterVertically
     ) {
       Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-        Text(
-          text = task.title,
-          style = TextStyle(
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = textColor,
-            textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          if (task.colorTag != null) {
+            val tag = com.example.data.model.AppColorTag.fromId(task.colorTag)
+            if (tag != null) {
+              Box(
+                modifier = Modifier
+                  .padding(end = 6.dp)
+                  .size(10.dp)
+                  .clip(CircleShape)
+                  .background(tag.color)
+              )
+            }
+          }
+          Text(
+            text = task.title,
+            style = TextStyle(
+              fontSize = 16.sp,
+              fontWeight = FontWeight.SemiBold,
+              color = textColor,
+              textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+            )
           )
-        )
+        }
 
         Spacer(modifier = Modifier.height(4.dp))
 
@@ -1237,13 +1255,20 @@ fun TaskItemCard(
             }
           }
 
-          if (task.priority.name == "HIGH") {
+          if (task.priority == TaskPriority.HIGH) {
             Spacer(modifier = Modifier.width(6.dp))
             Box(
               modifier = Modifier
-                .size(6.dp)
-                .background(AccentTerracotta, CircleShape)
-            )
+                .clip(RoundedCornerShape(4.dp))
+                .background(AccentRed.copy(alpha = 0.15f))
+                .border(0.8.dp, AccentRed.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                .padding(horizontal = 6.dp, vertical = 1.dp)
+            ) {
+              Text(
+                text = "High",
+                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AccentRed)
+              )
+            }
           }
 
           if (task.isShortTerm) {
@@ -1602,6 +1627,18 @@ fun HabitItemCard(
     ) {
       Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+          if (habit.colorTag != null) {
+            val tag = com.example.data.model.AppColorTag.fromId(habit.colorTag)
+            if (tag != null) {
+              Box(
+                modifier = Modifier
+                  .padding(end = 6.dp)
+                  .size(10.dp)
+                  .clip(CircleShape)
+                  .background(tag.color)
+              )
+            }
+          }
           Text(
             text = habit.name,
             style = TextStyle(

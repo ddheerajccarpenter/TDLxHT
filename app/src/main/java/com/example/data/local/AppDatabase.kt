@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
     HabitCompletionRecordEntity::class,
     SettingsEntity::class
   ],
-  version = 4,
+  version = 5,
   exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -51,6 +51,17 @@ abstract class AppDatabase : RoomDatabase() {
       }
     }
 
+    val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+      override fun migrate(db: SupportSQLiteDatabase) {
+        try {
+          db.execSQL("ALTER TABLE tasks ADD COLUMN colorTag TEXT DEFAULT NULL")
+          db.execSQL("ALTER TABLE habits ADD COLUMN colorTag TEXT DEFAULT NULL")
+        } catch (e: Exception) {
+          com.example.util.SafeLog.w("AppDatabase", "MIGRATION_4_5: colorTag column already exists or error", e)
+        }
+      }
+    }
+
     fun getDatabase(context: Context): AppDatabase {
       return INSTANCE ?: synchronized(this) {
         val instance = Room.databaseBuilder(
@@ -59,7 +70,7 @@ abstract class AppDatabase : RoomDatabase() {
           "habit_task_database"
         )
           .addCallback(DatabaseCallback())
-          .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+          .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
           .fallbackToDestructiveMigration(true)
           .build()
         INSTANCE = instance

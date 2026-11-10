@@ -83,6 +83,7 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.GlassSegmented
 import com.example.ui.components.bounceClick
 import com.example.ui.components.heroEntrance
 import com.example.ui.components.isReducedMotionEnabled
@@ -132,7 +133,7 @@ fun ReportsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 48.dp)
+            contentPadding = PaddingValues(top = 16.dp, bottom = FloatingNavContentBottomPadding + 56.dp)
         ) {
             // Header
             item {
@@ -192,10 +193,10 @@ fun ReportsScreen(
 
             // Period selector - Canonical Liquid Glass Segmented
             item {
-                LiquidGlassSegmentedControl(
-                    items = listOf("Weekly", "Monthly"),
-                    selectedIndex = if (state.period == ReportPeriod.WEEKLY) 0 else 1,
-                    onItemSelected = {
+                GlassSegmented(
+                    options = listOf("Weekly", "Monthly"),
+                    value = if (state.period == ReportPeriod.WEEKLY) 0 else 1,
+                    onChange = {
                         viewModel.setPeriod(if (it == 0) ReportPeriod.WEEKLY else ReportPeriod.MONTHLY)
                     },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
@@ -324,7 +325,7 @@ fun ReportsScreen(
                             Icon(
                                 imageVector = Icons.Default.Share,
                                 contentDescription = null,
-                                tint = PrimaryAccentLime,
+                                tint = if (isDark) PrimaryAccentLime else InkPrimary,
                                 modifier = Modifier.size(17.dp)
                             )
                             Text(
@@ -333,7 +334,7 @@ fun ReportsScreen(
                                     fontFamily = StrongFontFamily,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = PrimaryAccentLime
+                                    color = if (isDark) PrimaryAccentLime else InkPrimary
                                 )
                             )
                         }

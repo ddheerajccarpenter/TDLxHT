@@ -95,9 +95,11 @@ import com.example.ui.components.GroupedInsetCard
 import com.example.ui.components.InteractionLevel
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.GlassSegmented
 import com.example.ui.components.LiquidGlassIconButton
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassButtonVariant
 import com.example.ui.components.fluidLensedGlass
 import com.example.ui.components.GlassSwitch
 import com.example.ui.components.SketchInputField
@@ -379,10 +381,10 @@ fun SettingsScreen(
             val themeModes = listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark")
             val selectedThemeIndex = themeModes.indexOfFirst { it.first.equals(effectiveTheme, ignoreCase = true) }.coerceAtLeast(0)
 
-            LiquidGlassSegmentedControl(
-              items = themeModes.map { it.second },
-              selectedIndex = selectedThemeIndex,
-              onItemSelected = { index ->
+            GlassSegmented(
+              options = themeModes.map { it.second },
+              value = selectedThemeIndex,
+              onChange = { index ->
                 val mode = themeModes[index].first
                 com.example.util.AppPreferences.setThemeMode(context, mode)
                 viewModel.updateSettings(settings.copy(themeMode = mode))
@@ -409,10 +411,10 @@ fun SettingsScreen(
             val timeFormats = listOf(false to "12h", true to "24h")
             val selectedTimeIndex = if (settings.timeFormat24Hour) 1 else 0
 
-            LiquidGlassSegmentedControl(
-              items = timeFormats.map { it.second },
-              selectedIndex = selectedTimeIndex,
-              onItemSelected = { index ->
+            GlassSegmented(
+              options = timeFormats.map { it.second },
+              value = selectedTimeIndex,
+              onChange = { index ->
                 val is24 = timeFormats[index].first
                 viewModel.updateSettings(settings.copy(timeFormat24Hour = is24))
               },
@@ -620,10 +622,10 @@ fun SettingsScreen(
               val views = listOf("MONTH" to "Month", "WEEK" to "Week", "DAY" to "Day")
               val selectedViewIndex = views.indexOfFirst { it.first.equals(settings.calendarDefaultView, ignoreCase = true) }.coerceAtLeast(0)
 
-              LiquidGlassSegmentedControl(
-                items = views.map { it.second },
-                selectedIndex = selectedViewIndex,
-                onItemSelected = { index ->
+              GlassSegmented(
+                options = views.map { it.second },
+                value = selectedViewIndex,
+                onChange = { index ->
                   viewModel.updateSettings(settings.copy(calendarDefaultView = views[index].first))
                 },
                 modifier = Modifier.width(190.dp)
@@ -646,10 +648,10 @@ fun SettingsScreen(
               val days = listOf("MONDAY" to "Monday", "SUNDAY" to "Sunday")
               val selectedDayIndex = days.indexOfFirst { it.first.equals(settings.startOfWeek, ignoreCase = true) }.coerceAtLeast(0)
 
-              LiquidGlassSegmentedControl(
-                items = days.map { it.second },
-                selectedIndex = selectedDayIndex,
-                onItemSelected = { index ->
+              GlassSegmented(
+                options = days.map { it.second },
+                value = selectedDayIndex,
+                onChange = { index ->
                   viewModel.updateSettings(settings.copy(startOfWeek = days[index].first))
                 },
                 modifier = Modifier.width(160.dp)
@@ -1025,14 +1027,20 @@ fun SettingsScreen(
           Box(
             modifier = Modifier
               .fillMaxWidth()
-              .bounceClick { showDeleteAccountDialog = true }
-              .padding(16.dp),
+              .padding(horizontal = 16.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
           ) {
-            Text(
-              text = "Delete Account & Cloud Data",
-              style = TextStyle(fontSize = 13.sp, color = AccentRed, fontWeight = FontWeight.SemiBold)
-            )
+            GlassButton(
+              variant = GlassButtonVariant.PLAIN,
+              destructive = true,
+              onClick = { showDeleteAccountDialog = true },
+              modifier = Modifier.fillMaxWidth().height(44.dp)
+            ) {
+              Text(
+                text = "Delete Account & Cloud Data",
+                style = TextStyle(fontSize = 13.sp, color = AccentRed, fontWeight = FontWeight.SemiBold)
+              )
+            }
           }
         }
 

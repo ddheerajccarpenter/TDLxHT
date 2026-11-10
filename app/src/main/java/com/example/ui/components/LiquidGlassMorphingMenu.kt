@@ -186,47 +186,27 @@ fun LiquidGlassQuickCreateMenu(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Header Row: Title & Close Button
+            // Header Row: Clean Title
             Row(
               modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
+              horizontalArrangement = Arrangement.Start,
               verticalAlignment = Alignment.CenterVertically
             ) {
               Text(
-                text = "QUICK CREATE",
-                fontFamily = StrongFontFamily,
+                text = "Quick Create",
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 color = if (isDark) Color.White else Color(0xFF1C1C1E)
               )
-
-              Box(
-                modifier = Modifier
-                  .size(36.dp)
-                  .clip(CircleShape)
-                  .background(if (isDark) Color.White.copy(alpha = 0.10f) else Color.Black.copy(alpha = 0.05f))
-                  .liquidGlassRim(CircleShape, isDark, 0.75.dp)
-                  .bounceClick {
-                    VibrationHelper.click(context)
-                    onDismissRequest()
-                  },
-                contentAlignment = Alignment.Center
-              ) {
-                Icon(
-                  imageVector = Icons.Default.Close,
-                  contentDescription = "Close",
-                  tint = if (isDark) Color.White.copy(alpha = 0.85f) else Color(0xFF1C1C1E),
-                  modifier = Modifier.size(18.dp)
-                )
-              }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Action 1: New Task
             LiquidGlassMenuItem(
               icon = Icons.Rounded.Checklist,
-              title = "NEW TASK",
+              title = "New Task",
               subtitle = "Actionable to-do with due dates & subtasks",
               isDark = isDark,
               onClick = {
@@ -240,7 +220,7 @@ fun LiquidGlassQuickCreateMenu(
             // Action 2: New Habit
             LiquidGlassMenuItem(
               icon = Icons.Default.CalendarToday,
-              title = "NEW HABIT",
+              title = "New Habit",
               subtitle = "Track daily routines & maintain momentum",
               isDark = isDark,
               onClick = {
@@ -254,7 +234,7 @@ fun LiquidGlassQuickCreateMenu(
             // Action 3: Short-Term Task
             LiquidGlassMenuItem(
               icon = Icons.Default.Check,
-              title = "SHORT-TERM TASK",
+              title = "Short-term Task",
               subtitle = "Stored locally • Auto-clears when complete",
               isDark = isDark,
               onClick = {
@@ -317,14 +297,15 @@ private fun LiquidGlassMenuItem(
       Column(modifier = Modifier.weight(1f)) {
         Text(
           text = title,
-          fontFamily = StrongFontFamily,
-          fontWeight = FontWeight.Bold,
+          fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
+          fontWeight = FontWeight.SemiBold,
           fontSize = 15.sp,
           color = if (isDark) Color.White else Color(0xFF1C1C1E)
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
           text = subtitle,
+          fontFamily = androidx.compose.ui.text.font.FontFamily.Default,
           fontSize = 12.sp,
           color = if (isDark) Color.White.copy(alpha = 0.55f) else Color(0xFF6B6E76),
           lineHeight = 16.sp

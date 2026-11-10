@@ -296,7 +296,8 @@ class MainViewModel(
     repeatRule: RepeatRule,
     repeatDays: List<DayOfWeek>,
     subtaskTitles: List<String>,
-    isShortTerm: Boolean = false
+    isShortTerm: Boolean = false,
+    colorTag: String? = null
   ) {
     if (title.isBlank()) return
     viewModelScope.launch {
@@ -316,6 +317,7 @@ class MainViewModel(
         repeatRule = repeatRule,
         repeatDays = repeatDays,
         isShortTerm = isShortTerm,
+        colorTag = colorTag,
         creationTimestamp = System.currentTimeMillis(),
         updatedTimestamp = System.currentTimeMillis()
       )
@@ -400,7 +402,8 @@ class MainViewModel(
     targetUnit: String,
     startDate: String,
     reminderTime: String,
-    reminderEnabled: Boolean
+    reminderEnabled: Boolean,
+    colorTag: String? = null
   ) {
     if (name.isBlank()) return
     viewModelScope.launch {
@@ -419,6 +422,7 @@ class MainViewModel(
         isActive = true,
         isPaused = false,
         isArchived = false,
+        colorTag = colorTag,
         creationTimestamp = System.currentTimeMillis(),
         updatedTimestamp = System.currentTimeMillis()
       )

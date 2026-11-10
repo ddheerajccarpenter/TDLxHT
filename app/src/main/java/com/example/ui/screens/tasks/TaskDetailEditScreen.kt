@@ -67,7 +67,9 @@ import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassButtonVariant
 import com.example.ui.components.GlassSwitch
+import com.example.ui.components.ColorCyclePicker
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.bounceClick
@@ -106,6 +108,7 @@ fun TaskDetailEditScreen(
   var titleError by remember(existingTask?.id) { mutableStateOf<String?>(null) }
   var notes by remember(existingTask?.id) { mutableStateOf(existingTask?.notes ?: initialNotes) }
   var isShortTerm by remember(existingTask?.id) { mutableStateOf(existingTask?.isShortTerm ?: initialIsShortTerm) }
+  var colorTag by remember(existingTask?.id) { mutableStateOf(existingTask?.colorTag) }
 
   val defaultCategories = listOf("Work", "Personal", "Urgent!", "Study", "Shopping", "College")
   val initialIsCustom = existingTask != null && !defaultCategories.contains(existingTask.category)
@@ -153,6 +156,7 @@ fun TaskDetailEditScreen(
       titleError = null
       notes = existingTask.notes
       isShortTerm = existingTask.isShortTerm
+      colorTag = existingTask.colorTag
       val isCustom = !defaultCategories.contains(existingTask.category)
       selectedCategory = if (isCustom) "Other" else existingTask.category
       customCategoryText = if (isCustom) existingTask.category else ""
@@ -189,6 +193,7 @@ fun TaskDetailEditScreen(
           onBack = onDismiss,
           rightContent = {
             GlassButton(
+              variant = GlassButtonVariant.FILLED,
               onClick = {
                 if (isSaving) return@GlassButton
                 if (title.isBlank()) {
@@ -220,7 +225,8 @@ fun TaskDetailEditScreen(
                     reminderSetting = finalReminder,
                     customReminderMinutes = 15,
                     repeatRule = repeatRule,
-                    isShortTerm = isShortTerm
+                    isShortTerm = isShortTerm,
+                    colorTag = colorTag
                   )
                   viewModel.updateTask(updated, subtaskList.toList())
                 } else {
@@ -237,7 +243,8 @@ fun TaskDetailEditScreen(
                     repeatRule = repeatRule,
                     repeatDays = emptyList(),
                     subtaskTitles = subtaskList.map { it.title },
-                    isShortTerm = isShortTerm
+                    isShortTerm = isShortTerm,
+                    colorTag = colorTag
                   )
                 }
                 onDismiss()
@@ -337,12 +344,33 @@ fun TaskDetailEditScreen(
                 style = TextStyle(fontSize = 11.5.sp, color = InkSecondary)
               )
             }
-            SketchCheckbox(
+            GlassSwitch(
               checked = isShortTerm,
               onCheckedChange = { isShortTerm = it }
             )
           }
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+      }
+
+      // COLOR TAG
+      item {
+        Text(
+          text = "COLOR TAG",
+          style = TextStyle(
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            color = InkSecondary
+          )
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ColorCyclePicker(
+          selectedTag = colorTag,
+          onTagSelected = { colorTag = it }
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
       }
@@ -639,18 +667,19 @@ fun TaskDetailEditScreen(
 
                 Box(
                   modifier = Modifier
-                    .border(1.2.dp, CardBorder, RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.2.dp, CardBorder, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .bounceClick(scaleDown = 0.92f) {
                       displayMonth = YearMonth.now()
                       selectedDate = LocalDate.now()
                     }
-                    .height(48.dp)
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                    .height(32.dp)
+                    .padding(horizontal = 10.dp),
+                  contentAlignment = Alignment.Center
                 ) {
                   Text(
                     text = "Today",
-                    style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
+                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = InkPrimary)
                   )
                 }
               }

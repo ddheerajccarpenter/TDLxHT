@@ -58,9 +58,12 @@ import com.example.ui.components.AppHeader
 import com.example.ui.components.DeleteConfirmationDialog
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassSegmentedControl
+import com.example.ui.components.GlassSegmented
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassButton
+import com.example.ui.components.GlassButtonVariant
 import com.example.ui.components.GlassSwitch
+import com.example.ui.components.ColorCyclePicker
 import com.example.ui.components.SketchInputField
 import com.example.ui.components.bounceClick
 import com.example.ui.components.paperDotBackground
@@ -92,6 +95,7 @@ fun HabitDetailEditScreen(
   var name by remember { mutableStateOf(existingHabit?.name ?: "") }
   var nameError by remember { mutableStateOf<String?>(null) }
   var description by remember { mutableStateOf(existingHabit?.description ?: "") }
+  var colorTag by remember { mutableStateOf(existingHabit?.colorTag) }
 
   val defaultCategoryTags = listOf("Study", "Health", "Fitness", "Mindfulness", "Personal", "Productivity")
   val initialIsCustomHabit = existingHabit != null && !defaultCategoryTags.contains(existingHabit.category)
@@ -173,6 +177,7 @@ fun HabitDetailEditScreen(
           onBack = onDismiss,
           rightContent = {
             GlassButton(
+              variant = GlassButtonVariant.FILLED,
               onClick = {
                 if (isSaving) return@GlassButton
                 if (name.isBlank()) {
@@ -201,7 +206,8 @@ fun HabitDetailEditScreen(
                     targetValue = targetValue,
                     targetUnit = targetUnit,
                     reminderTime = finalReminderTime,
-                    reminderEnabled = reminderEnabled
+                    reminderEnabled = reminderEnabled,
+                    colorTag = colorTag
                   )
                   viewModel.updateHabit(updated)
                 } else {
@@ -215,7 +221,8 @@ fun HabitDetailEditScreen(
                     targetUnit = targetUnit,
                     startDate = todayStr,
                     reminderTime = finalReminderTime,
-                    reminderEnabled = reminderEnabled
+                    reminderEnabled = reminderEnabled,
+                    colorTag = colorTag
                   )
                 }
                 onDismiss()
@@ -285,6 +292,27 @@ fun HabitDetailEditScreen(
         Spacer(modifier = Modifier.height(18.dp))
       }
 
+      // COLOR TAG
+      item {
+        Text(
+          text = "COLOR TAG",
+          style = TextStyle(
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            color = InkSecondary
+          )
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ColorCyclePicker(
+          selectedTag = colorTag,
+          onTagSelected = { colorTag = it }
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+      }
+
       // FREQUENCY & GOALS (Matching screenshot 7)
       item {
         Text(
@@ -299,10 +327,10 @@ fun HabitDetailEditScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         val selectedFreqIndex = frequencies.indexOfFirst { it.first == frequency }.coerceAtLeast(0)
-        LiquidGlassSegmentedControl(
-          items = frequencies.map { it.second },
-          selectedIndex = selectedFreqIndex,
-          onItemSelected = { index -> frequency = frequencies[index].first },
+        GlassSegmented(
+          options = frequencies.map { it.second },
+          value = selectedFreqIndex,
+          onChange = { index -> frequency = frequencies[index].first },
           modifier = Modifier.fillMaxWidth()
         )
 
@@ -737,6 +765,7 @@ fun HabitDetailEditScreen(
       // SAVE HABIT BUTTON — Apple Liquid Glass Button
       item {
         GlassButton(
+          variant = GlassButtonVariant.FILLED,
           onClick = {
             if (isSaving) return@GlassButton
             if (name.isBlank()) {
@@ -765,7 +794,8 @@ fun HabitDetailEditScreen(
                 targetValue = targetValue,
                 targetUnit = targetUnit,
                 reminderTime = finalReminderTime,
-                reminderEnabled = reminderEnabled
+                reminderEnabled = reminderEnabled,
+                colorTag = colorTag
               )
               viewModel.updateHabit(updated)
             } else {
@@ -779,7 +809,8 @@ fun HabitDetailEditScreen(
                 targetUnit = targetUnit,
                 startDate = todayStr,
                 reminderTime = finalReminderTime,
-                reminderEnabled = reminderEnabled
+                reminderEnabled = reminderEnabled,
+                colorTag = colorTag
               )
             }
             onDismiss()

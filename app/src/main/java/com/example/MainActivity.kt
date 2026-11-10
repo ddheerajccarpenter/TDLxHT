@@ -609,7 +609,7 @@ fun MainApp(
                     }
                     AppDestination.INSIGHTS -> {
                       ReportsScreen(
-                        onBack = { navController.switchTab(0) },
+                        onBack = null,
                         onNavigateToAddTask = { navController.navigate(AppNavDestination.TaskDetail()) }
                       )
                     }

@@ -35,9 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.Habit
 import com.example.data.model.Task
-import com.example.ui.components.FloatingLiquidGlassActionButton
-import com.example.ui.components.LiquidGlassSegmentedControl
-import com.example.ui.components.SketchSearchBar
+import com.example.ui.components.GlassSegmented
+import com.example.ui.components.GlassInput
 import com.example.ui.components.isReducedMotionEnabled
 import com.example.ui.components.paperDotBackground
 import com.example.ui.navigation.horizontalSwipeNavigation
@@ -95,10 +94,10 @@ fun ProductivityScreen(
       )
   ) {
     // 1. Top Sub-Navbar ("Tasks", "Habits", "Calendar")
-    LiquidGlassSegmentedControl(
-      items = listOf("Tasks", "Habits", "Calendar"),
-      selectedIndex = selectedTab,
-      onItemSelected = { selectedTab = it },
+    GlassSegmented(
+      options = listOf("Tasks", "Habits", "Calendar"),
+      value = selectedTab,
+      onChange = { selectedTab = it },
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
@@ -106,46 +105,26 @@ fun ProductivityScreen(
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    // 2. Search & Plus Action Row: Search Bar on left + Quick Add (+) button on right
-    Row(
+    // 2. Liquid Glass Search Bar
+    GlassInput(
+      query = currentSearchQuery,
+      onQueryChange = { q ->
+        if (isHabits) {
+          viewModel.setHabitSearchQuery(q)
+        } else {
+          viewModel.setTaskSearchQuery(q)
+        }
+      },
+      placeholder = when (selectedTab) {
+        1 -> "Search habits..."
+        2 -> "Search calendar tasks..."
+        else -> "Search tasks, tags..."
+      },
+      isSearch = true,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 16.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-      SketchSearchBar(
-        query = currentSearchQuery,
-        onQueryChange = { q ->
-          if (isHabits) {
-            viewModel.setHabitSearchQuery(q)
-          } else {
-            viewModel.setTaskSearchQuery(q)
-          }
-        },
-        placeholder = when (selectedTab) {
-          1 -> "Search habits..."
-          2 -> "Search calendar tasks..."
-          else -> "Search tasks, tags..."
-        },
-        modifier = Modifier.weight(1f)
-      )
-
-      FloatingLiquidGlassActionButton(
-        isOpen = false,
-        onClick = {
-          if (onQuickAdd != null) {
-            onQuickAdd()
-          } else {
-            when (selectedTab) {
-              0 -> onNavigateToAddTask()
-              1 -> onNavigateToAddHabit()
-              else -> onNavigateToAddTask()
-            }
-          }
-        }
-      )
-    }
+        .padding(horizontal = 16.dp)
+    )
 
     Spacer(modifier = Modifier.height(8.dp))
 

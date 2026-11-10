@@ -21,6 +21,7 @@ data class TaskEntity(
   val repeatDaysJson: String,
   val isShortTerm: Boolean = false,
   val completedDate: String? = null, // YYYY-MM-DD
+  val colorTag: String? = null, // RED, YELLOW, GREEN, BLUE, PURPLE
   val creationTimestamp: Long,
   val updatedTimestamp: Long
 )
@@ -53,6 +54,7 @@ data class HabitEntity(
   val isActive: Boolean,
   val isPaused: Boolean,
   val isArchived: Boolean,
+  val colorTag: String? = null, // RED, YELLOW, GREEN, BLUE, PURPLE
   val creationTimestamp: Long,
   val updatedTimestamp: Long
 )

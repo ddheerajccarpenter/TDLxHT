@@ -5,6 +5,24 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import androidx.compose.ui.graphics.Color
+
+enum class AppColorTag(val id: String, val displayName: String, val colorHex: String, val color: Color) {
+  RED("RED", "Urgent", "#E53935", Color(0xFFE53935)),
+  YELLOW("YELLOW", "Moderate", "#FBC02D", Color(0xFFFBC02D)),
+  GREEN("GREEN", "Normal", "#43A047", Color(0xFF43A047)),
+  BLUE("BLUE", "Work", "#1E88E5", Color(0xFF1E88E5)),
+  PURPLE("PURPLE", "Creative", "#8E24AA", Color(0xFF8E24AA));
+
+  companion object {
+    fun fromId(id: String?): AppColorTag? = entries.firstOrNull { it.id.equals(id, ignoreCase = true) }
+    fun nextColorTag(current: String?): String? {
+      val currentTag = fromId(current) ?: return RED.id
+      val nextIndex = (currentTag.ordinal + 1) % (entries.size + 1)
+      return if (nextIndex < entries.size) entries[nextIndex].id else null
+    }
+  }
+}
 
 enum class TaskPriority(val displayName: String) {
   LOW("Low"),
@@ -113,6 +131,7 @@ data class Task(
   val repeatDays: List<DayOfWeek> = emptyList(),
   val isShortTerm: Boolean = false,
   val completedDate: String? = null, // Format: YYYY-MM-DD
+  val colorTag: String? = null,
   val creationTimestamp: Long = System.currentTimeMillis(),
   val updatedTimestamp: Long = System.currentTimeMillis()
 ) {
@@ -166,6 +185,7 @@ data class Habit(
   val isActive: Boolean = true,
   val isPaused: Boolean = false,
   val isArchived: Boolean = false,
+  val colorTag: String? = null,
   val creationTimestamp: Long = System.currentTimeMillis(),
   val updatedTimestamp: Long = System.currentTimeMillis()
 ) {
