@@ -463,7 +463,7 @@ fun PredictiveNavigationHost(
                 animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
               ) + fadeIn(
                 animationSpec = tween(200, easing = FastOutSlowInEasing),
-                initialAlpha = 0f
+                initialAlpha = 0.45f
               )).togetherWith(
                 slideOutHorizontally(
                   targetOffsetX = { fullWidth -> -fullWidth / 6 },
@@ -473,7 +473,7 @@ fun PredictiveNavigationHost(
                   animationSpec = tween(180, easing = FastOutSlowInEasing)
                 ) + fadeOut(
                   animationSpec = tween(160, easing = FastOutSlowInEasing),
-                  targetAlpha = 0f
+                  targetAlpha = 0.35f
                 )
               ).apply { targetContentZIndex = zIndex }
             } else {
@@ -486,7 +486,7 @@ fun PredictiveNavigationHost(
                 animationSpec = spring(dampingRatio = 0.85f, stiffness = 420f)
               ) + fadeIn(
                 animationSpec = tween(200, easing = FastOutSlowInEasing),
-                initialAlpha = 0f
+                initialAlpha = 0.45f
               )).togetherWith(
                 slideOutHorizontally(
                   targetOffsetX = { fullWidth -> fullWidth / 4 },
@@ -496,7 +496,7 @@ fun PredictiveNavigationHost(
                   animationSpec = tween(180, easing = FastOutSlowInEasing)
                 ) + fadeOut(
                   animationSpec = tween(160, easing = FastOutSlowInEasing),
-                  targetAlpha = 0f
+                  targetAlpha = 0.35f
                 )
               ).apply { targetContentZIndex = zIndex }
             }

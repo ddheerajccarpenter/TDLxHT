@@ -1,5 +1,7 @@
 package com.example.ui.components
 
+import com.skydoves.cloudy.cloudy
+
 import android.content.Context
 import android.os.Build
 import androidx.compose.ui.graphics.StrokeCap
@@ -510,7 +512,7 @@ fun Modifier.shimmerBadge(
 fun Modifier.bounceClick(
   level: InteractionLevel = InteractionLevel.SMALL,
   scaleDown: Float = level.scaleDown,
-  shine: Boolean = true,
+  shine: Boolean = false,
   shape: Shape? = null,
   enabled: Boolean = true,
   onLongClick: (() -> Unit)? = null,
@@ -1369,8 +1371,8 @@ fun GlassMenu(
       )
     ) {
       val progress = animProgress.value
-      val scale = 0.78f + 0.22f * progress
-      val alpha = (progress / 0.35f).coerceIn(0f, 1f)
+      val scale = 0.35f + 0.65f * progress
+      val alpha = (progress / 0.22f).coerceIn(0f, 1f)
       val cornerRadius = (16.dp + (6.dp * progress)).coerceIn(16.dp, 22.dp)
       val menuShape = RoundedCornerShape(cornerRadius)
 
@@ -1386,7 +1388,9 @@ fun GlassMenu(
             }
           }
         }
-      } else Modifier
+      } else {
+        Modifier.clip(menuShape).cloudy(radius = 24)
+      }
 
       val fallbackBg = if (isDark) {
         Brush.verticalGradient(listOf(Color(0xF0181A22), Color(0xF2121319)))
@@ -1455,7 +1459,7 @@ fun GlassMenuItem(
       .fillMaxWidth()
       .clip(itemShape)
       .defaultMinSize(minHeight = 44.dp)
-      .bounceClick(shine = true) {
+      .bounceClick(shine = false) {
         VibrationHelper.tick(context)
         onSelect()
       }

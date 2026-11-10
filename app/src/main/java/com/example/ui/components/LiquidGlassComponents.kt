@@ -22,7 +22,9 @@ import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
+import com.kyant.backdrop.highlight.HighlightStyle
 import com.kyant.backdrop.shadow.InnerShadow
+import com.skydoves.cloudy.cloudy
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -193,7 +195,7 @@ fun LiquidGlassSurface(
 ) {
   val isDark = LocalAppColors.current.isDark
   val clickModifier = if (onClick != null) {
-    Modifier.bounceClick(shine = true, onClick = onClick)
+    Modifier.bounceClick(shine = false, onClick = onClick)
   } else Modifier
   val resolvedHaze = hazeState ?: LocalHazeState.current
   val fallbackColor = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated
@@ -232,6 +234,7 @@ fun LiquidGlassSurface(
       Box(
         modifier = Modifier
           .matchParentSize()
+          .cloudy(radius = 20)
           .background(solidBg)
       )
     }
@@ -333,25 +336,23 @@ fun LiquidGlassSegmentedControl(
   )
 
   var jiggleOffset by remember { mutableFloatStateOf(0f) }
-  // Unified 120Hz smooth tracking & jiggle ticker
-  LaunchedEffect(isDragging, isPressed) {
-    if (!isDragging && !isPressed) {
+  // Unified 120Hz smooth tracking & jiggle ticker: ONLY run when actively dragging
+  LaunchedEffect(isDragging) {
+    if (!isDragging) {
       jiggleOffset = 0f
       return@LaunchedEffect
     }
     var lastNanos = withFrameNanos { it }
     var elapsed = 0f
-    while (isDragging || isPressed) {
+    while (isDragging) {
       var nextPos: Float? = null
       withFrameNanos { now ->
         val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastNanos = now
         elapsed += dt
         jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
-        if (isDragging) {
-          val factor = 1f - kotlin.math.exp(-dt * 38f)
-          nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
-        }
+        val factor = 1f - kotlin.math.exp(-dt * 38f)
+        nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
       }
       nextPos?.let { indicatorPos.snapTo(it) }
     }
@@ -366,7 +367,7 @@ fun LiquidGlassSegmentedControl(
   val selectedColor = if (isDark) {
     Color.White.copy(alpha = 0.14f + 0.08f * actionProgress)
   } else {
-    Color.White.copy(alpha = 0.88f + 0.10f * actionProgress)
+    Color.White.copy(alpha = 0.28f + 0.10f * actionProgress)
   }
   val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
   val liftScale = 1f + 0.12f * actionProgress
@@ -697,6 +698,8 @@ fun LiquidGlassNavigationDock(
   onDestinationSelected: (AppDestination) -> Unit,
   modifier: Modifier = Modifier,
   hazeState: HazeState? = null,
+  backdrop: Backdrop? = null,
+  externalPageOffsetProvider: (() -> Float)? = null,
   externalPageOffset: Float? = null,
   onDragOffset: ((fraction: Float) -> Unit)? = null,
   onDragReleased: ((targetIndex: Int) -> Unit)? = null
@@ -711,8 +714,9 @@ fun LiquidGlassNavigationDock(
   val totalSlots = activeDestinations.size.coerceAtLeast(1)
 
   val controlShape = RoundedCornerShape(percent = 50)
-  val trackBackdrop = rememberLayerBackdrop()
   val resolvedHaze = hazeState ?: LocalHazeState.current
+  val localTrackBackdrop = rememberLayerBackdrop()
+  val indicatorBackdrop = backdrop ?: localTrackBackdrop
 
   // Indicator animated position
   val indicatorPos = remember { Animatable(selectedTab.coerceIn(0, totalSlots - 1).toFloat()) }
@@ -721,14 +725,24 @@ fun LiquidGlassNavigationDock(
   var dragTargetPos by remember { mutableFloatStateOf(selectedTab.toFloat()) }
   var lastHapticIndex by remember { mutableIntStateOf(selectedTab) }
 
-  // Sync indicator when not dragging
-  LaunchedEffect(externalPageOffset, selectedTab, isDragging) {
+  // Dynamic slot position resolver: uses provider lambda in graphicsLayer to eliminate recompositions
+  val getSlotPos: () -> Float = {
+    when {
+      isDragging -> indicatorPos.value
+      externalPageOffsetProvider != null -> externalPageOffsetProvider().coerceIn(0f, (totalSlots - 1).toFloat())
+      externalPageOffset != null -> externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat())
+      else -> indicatorPos.value
+    }
+  }
+
+  // Keep indicatorPos synced when not dragging
+  LaunchedEffect(selectedTab) {
     if (!isDragging) {
-      if (externalPageOffset != null) {
-        indicatorPos.snapTo(externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat()))
+      val target = selectedTab.coerceIn(0, totalSlots - 1).toFloat()
+      if (reduceMotion) {
+        indicatorPos.snapTo(target)
       } else {
-        val target = selectedTab.coerceIn(0, totalSlots - 1).toFloat()
-        if (reduceMotion) indicatorPos.snapTo(target) else indicatorPos.animateTo(
+        indicatorPos.animateTo(
           targetValue = target,
           animationSpec = spring(dampingRatio = 0.72f, stiffness = 480f)
         )
@@ -736,114 +750,94 @@ fun LiquidGlassNavigationDock(
     }
   }
 
-  // Traveling specular beam shine sweep across the dock
-  val shineProgress = remember { Animatable(0f) }
-  LaunchedEffect(selectedTab) {
-    if (!reduceMotion) {
-      shineProgress.snapTo(0f)
-      shineProgress.animateTo(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing)
-      )
+  LaunchedEffect(externalPageOffset) {
+    if (externalPageOffset != null && !isDragging) {
+      indicatorPos.snapTo(externalPageOffset.coerceIn(0f, (totalSlots - 1).toFloat()))
     }
   }
 
-  // Instantaneous tap bloom shine
-  val tapShine = remember { Animatable(0f) }
-
-  // "Comes into action" when clicked, held, or tapped: expands with liquid fill
-  val actionProgress by animateFloatAsState(
-    targetValue = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f,
-    animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f),
-    label = "dockActionProgress"
-  )
-  val tapPopAnim = remember { Animatable(0f) }
-  val combinedActionProgress = if (reduceMotion) 0f else (actionProgress + tapPopAnim.value).coerceIn(0f, 1f)
-
-  var jiggleOffset by remember { mutableFloatStateOf(0f) }
-  // Unified 120Hz smooth tracking & jiggle ticker
+  // Smooth liquid action response (gentle pill stretch/lift without any shining glare)
+  val actionProgressAnim = remember { Animatable(0f) }
   LaunchedEffect(isDragging, isPressed) {
-    if (!isDragging && !isPressed) {
-      jiggleOffset = 0f
-      return@LaunchedEffect
-    }
+    val target = if (!reduceMotion && (isDragging || isPressed)) 1f else 0f
+    actionProgressAnim.animateTo(
+      targetValue = target,
+      animationSpec = spring(dampingRatio = 0.72f, stiffness = 500f)
+    )
+  }
+  val tapPopAnim = remember { Animatable(0f) }
+
+  // Directional momentum velocity tracking inspired by Telegram's liquid physics:
+  // ONLY runs while actively dragging, NEVER spins during click and hold!
+  LaunchedEffect(isDragging) {
+    if (!isDragging) return@LaunchedEffect
     var lastNanos = withFrameNanos { it }
-    var elapsed = 0f
-    while (isDragging || isPressed) {
+    while (isDragging) {
       var nextPos: Float? = null
       withFrameNanos { now ->
         val dt = ((now - lastNanos) / 1_000_000_000f).coerceIn(0f, 0.05f)
         lastNanos = now
-        elapsed += dt
-        jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
-        if (isDragging) {
-          val factor = 1f - kotlin.math.exp(-dt * 38f)
-          nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
-        }
+        val factor = 1f - kotlin.math.exp(-dt * 42f)
+        nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
       }
       nextPos?.let { indicatorPos.snapTo(it) }
     }
-    jiggleOffset = 0f
   }
 
-  val trackBrush = if (isDark) {
-    Brush.verticalGradient(listOf(Color(0x28222630), Color(0x1814161C)))
-  } else {
-    Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.25f)))
+  val trackBrush = remember(isDark) {
+    if (isDark) {
+      Brush.verticalGradient(listOf(Color(0x28222630), Color(0x1814161C)))
+    } else {
+      Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.25f)))
+    }
   }
 
-  val selectedColor = if (isDark) {
-    Color.White.copy(alpha = 0.08f + 0.14f * combinedActionProgress)
-  } else {
-    Color.White.copy(alpha = 0.25f + 0.65f * combinedActionProgress)
+  val pillBorder = remember(isDark, colors.oklchPrimary) {
+    Brush.verticalGradient(
+      colors = if (isDark) {
+        listOf(Color.White.copy(alpha = 0.35f), Color.White.copy(alpha = 0.08f))
+      } else {
+        listOf(Color.White.copy(alpha = 0.90f), colors.oklchPrimary.copy(alpha = 0.20f))
+      }
+    )
   }
 
-  val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
-  val lengthStretch = dynamicStretch + (tapPopAnim.value * 0.22f) + (combinedActionProgress * 0.12f)
-  val liftScale = 1f + 0.12f * combinedActionProgress
-  val verticalScale = 1f + 0.26f * combinedActionProgress
-  val basePillHeight = 40.dp
-  val basePillHeightPx = with(density) { basePillHeight.toPx() }
-
-  val refractionShader = remember {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      try { RuntimeShader(LIQUID_GLASS_SHADER) } catch (_: Throwable) { null }
-    } else null
-  }
-  val cachedRefractionRenderEffect = remember(refractionShader) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refractionShader != null) {
-      try {
-        RenderEffect.createRuntimeShaderEffect(refractionShader, "content").asComposeRenderEffect()
-      } catch (_: Throwable) { null }
-    } else null
-  }
-
-  val lensShader = remember {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      try { RuntimeShader(PILL_LENS_SHADER) } catch (_: Throwable) { null }
-    } else null
-  }
-  val cachedLensRenderEffect = remember(lensShader) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
-      try {
-        RenderEffect.createRuntimeShaderEffect(lensShader, "content").asComposeRenderEffect()
-      } catch (_: Throwable) { null }
-    } else null
-  }
-
-  BoxWithConstraints(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(56.dp),
-    contentAlignment = Alignment.CenterStart
-  ) {
-    val sideInset = 4.dp
-    val indicatorWidth = (maxWidth - sideInset * 2) / totalSlots
-    val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
-    val sideInsetPx = with(density) { sideInset.toPx() }
-
-    val trackHazeModifier = if (resolvedHaze != null) {
-      Modifier.clip(controlShape).hazeEffect(state = resolvedHaze) {
+  // Live Layer Backdrop Glass Track (Kyant0/AndroidLiquidGlass + skydoves/Cloudy fallback)
+  val trackModifier = if (backdrop != null) {
+    Modifier.drawBackdrop(
+      backdrop = backdrop,
+      shape = { controlShape },
+      effects = {
+        blur(24f)
+        lens(
+          refractionHeight = 14f,
+          refractionAmount = 20f,
+          depthEffect = true,
+          chromaticAberration = true
+        )
+      },
+      highlight = {
+        Highlight(
+          width = 0.75.dp,
+          blurRadius = 0.5.dp,
+          alpha = if (isDark) 0.80f else 0.90f,
+          style = HighlightStyle.Default
+        )
+      },
+      innerShadow = {
+        InnerShadow(
+          radius = 6.dp,
+          color = if (isDark) Color.Black.copy(alpha = 0.20f) else Color.Black.copy(alpha = 0.08f)
+        )
+      },
+      onDrawSurface = {
+        drawRect(brush = trackBrush)
+      }
+    )
+  } else if (resolvedHaze != null) {
+    Modifier
+      .clip(controlShape)
+      .hazeEffect(state = resolvedHaze) {
         blurRadius = 24.dp
         noiseFactor = if (isDark) 0.03f else 0f
         tints = buildList {
@@ -854,68 +848,42 @@ fun LiquidGlassNavigationDock(
           }
         }
       }
-    } else Modifier
+  } else {
+    Modifier
+      .clip(controlShape)
+      .cloudy(radius = 24)
+  }
 
-    val trackRefractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refractionShader != null && cachedRefractionRenderEffect != null) {
-      val bandPx = with(density) { 18.dp.toPx() }
-      val dispPx = with(density) { 9.dp.toPx() }
-      val fresnel = if (isDark) 0.24f else 0.12f
-      Modifier.graphicsLayer {
-        if (size.width > 0f && size.height > 0f) {
-          refractionShader.setFloatUniform("uSize", size.width, size.height)
-          refractionShader.setFloatUniform("uRadius", size.height / 2f)
-          refractionShader.setFloatUniform("uBand", bandPx)
-          refractionShader.setFloatUniform("uDisp", dispPx)
-          refractionShader.setFloatUniform("uFresnel", fresnel)
-          renderEffect = cachedRefractionRenderEffect
-        }
-      }
-    } else Modifier
+  val basePillHeight = 40.dp
 
-    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 56.dp) with AGSL optical pass-through refraction
+  BoxWithConstraints(
+    modifier = modifier
+      .fillMaxWidth()
+      .height(52.dp),
+    contentAlignment = Alignment.CenterStart
+  ) {
+    val sideInset = 4.dp
+    val indicatorWidth = (maxWidth - sideInset * 2) / totalSlots
+    val indicatorWidthPx = with(density) { indicatorWidth.toPx() }
+
+    // 1. Live Layer Backdrop Glass Track (height 48.dp, centered inside 52.dp)
     Box(
       Modifier
         .fillMaxWidth()
         .height(48.dp)
         .align(Alignment.Center)
-        .then(trackRefractionModifier)
-        .then(trackHazeModifier)
-        .layerBackdrop(trackBackdrop)
+        .layerBackdrop(localTrackBackdrop)
+        .then(trackModifier)
         .clip(controlShape)
     ) {
-      Box(Modifier.fillMaxSize().background(trackBrush))
-      Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
+      if (backdrop == null) {
+        Box(Modifier.fillMaxSize().background(trackBrush))
+        Box(Modifier.matchParentSize().liquidGlassRim(controlShape, isDark, 0.75.dp))
+      }
     }
 
-    // 2. Traveling Specular Beam Shine Sweep
-    if (shineProgress.value in 0.001f..0.999f) {
-      val p = shineProgress.value
-      val offset160Px = with(density) { 160.dp.toPx() }
-      val offset80Px = with(density) { 80.dp.toPx() }
-      val offset50Px = with(density) { 50.dp.toPx() }
-      val totalDockWidthPx = indicatorWidthPx * totalSlots
-      val beamX = (totalDockWidthPx + offset160Px) * p - offset80Px
-      val beamAlpha = (if (isDark) 0.35f else 0.25f) * (1f - (p - 0.5f).let { it * it * 3.8f }.coerceIn(0f, 1f))
-      val beamBrush = Brush.linearGradient(
-        colors = listOf(
-          Color.Transparent,
-          Color.White.copy(alpha = beamAlpha),
-          Color.Transparent
-        ),
-        start = Offset(beamX - offset50Px, 0f),
-        end = Offset(beamX + offset50Px, offset50Px)
-      )
-      Box(
-        Modifier
-          .fillMaxWidth()
-          .height(48.dp)
-          .align(Alignment.Center)
-          .clip(controlShape)
-          .background(beamBrush)
-      )
-    }
-
-    // 3. Active Pill Lens Indicator:
+    // 2. Active Pill Lens Indicator (Pure GPU graphicsLayer + gradient glass + specular hairline border)
+    // Clean and fluid with zero shining sweeps or flashes, ZERO recomposition during touches/animations
     Box(
       Modifier
         .align(Alignment.CenterStart)
@@ -923,81 +891,97 @@ fun LiquidGlassNavigationDock(
         .height(basePillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
-          this.translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
+          val pos = getSlotPos()
+          val progress = if (reduceMotion) 0f else (actionProgressAnim.value + tapPopAnim.value).coerceIn(0f, 1f)
+          val delta = dragTargetPos - indicatorPos.value
+          val directionalStretch = (delta * 0.12f).coerceIn(-0.18f, 0.18f)
+          val lengthStretch = kotlin.math.abs(directionalStretch) + (tapPopAnim.value * 0.14f) + (progress * 0.08f)
+          val liftScale = 1f + 0.06f * progress
+          val verticalScale = 1f + 0.12f * progress
+
+          this.translationX = indicatorWidthPx * pos + (directionalStretch * indicatorWidthPx * 0.22f)
           this.scaleX = liftScale + lengthStretch
           this.scaleY = liftScale * verticalScale
           this.shape = controlShape
           this.clip = true
-          this.shadowElevation = (if (isDark) 8.dp else 5.dp).toPx() * combinedActionProgress
-          this.spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.50f) else Color.Black.copy(alpha = 0.12f)
-          this.ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.05f)
+          this.shadowElevation = if (progress > 0f) (if (isDark) 6.dp else 3.dp).toPx() * progress else 0f
+          this.spotShadowColor = if (isDark) Color.Black.copy(alpha = 0.35f) else Color.Black.copy(alpha = 0.08f)
+          this.ambientShadowColor = if (isDark) Color.Black.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.03f)
         }
         .drawBackdrop(
-          backdrop = trackBackdrop,
+          backdrop = indicatorBackdrop,
           shape = { controlShape },
           effects = {
             vibrancy()
-            lens((11f * combinedActionProgress).dp.toPx(), (21f * combinedActionProgress).dp.toPx(), chromaticAberration = false)
-          },
-          highlight = { Highlight.Default.copy(alpha = if (isDark) (0.12f + 0.38f * combinedActionProgress) else (0.15f + 0.25f * combinedActionProgress)) },
-          innerShadow = {
-            if (isDark) {
-              InnerShadow(radius = 3.dp, alpha = 0.05f + 0.17f * combinedActionProgress)
-            } else {
-              InnerShadow(radius = 1.dp, alpha = 0.02f + 0.04f * combinedActionProgress)
-            }
-          },
-          layerBlock = {},
-          onDrawSurface = {
-            drawRoundRect(
-              color = selectedColor,
-              cornerRadius = androidx.compose.ui.geometry.CornerRadius(basePillHeightPx / 2f)
+            lens(
+              refractionHeight = 10.dp.toPx(),
+              refractionAmount = 22.dp.toPx(),
+              depthEffect = true,
+              chromaticAberration = true
             )
-            // Tap bloom shine flare on press/tap
-            if (tapShine.value > 0.01f) {
-              drawRoundRect(
-                brush = Brush.radialGradient(
-                  colors = listOf(
-                    Color.White.copy(alpha = (if (isDark) 0.40f else 0.55f) * tapShine.value),
-                    Color.Transparent
-                  ),
-                  radius = size.width * 0.85f
-                ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(basePillHeightPx / 2f)
+          },
+          highlight = {
+            Highlight(
+              width = 0.75.dp,
+              blurRadius = 0.5.dp,
+              alpha = if (isDark) 0.58f else 0.78f,
+              style = HighlightStyle.Default
+            )
+          },
+          innerShadow = {
+            InnerShadow(
+              radius = 5.dp,
+              color = if (isDark) Color.Black.copy(alpha = 0.18f) else Color.Black.copy(alpha = 0.07f)
+            )
+          },
+          onDrawSurface = {
+            val progress = if (reduceMotion) 0f else (actionProgressAnim.value + tapPopAnim.value).coerceIn(0f, 1f)
+            val surfaceBrush = if (isDark) {
+              Brush.verticalGradient(
+                0f to Color.White.copy(alpha = 0.20f + 0.06f * progress),
+                0.48f to Color.White.copy(alpha = 0.12f + 0.04f * progress),
+                1f to Color.White.copy(alpha = 0.08f + 0.03f * progress)
+              )
+            } else {
+              Brush.verticalGradient(
+                0f to Color.White.copy(alpha = 0.34f + 0.08f * progress),
+                0.48f to colors.oklchPrimary.copy(alpha = 0.10f + 0.04f * progress),
+                1f to Color.White.copy(alpha = 0.18f + 0.06f * progress)
               )
             }
+            drawRoundRect(
+              brush = surfaceBrush,
+              cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height / 2f)
+            )
           }
         )
+        .border(1.dp, pillBorder, controlShape)
     )
 
-    // 4. Tab Items & Pointer Input (supports tap and horizontal drag with zero-allocation AGSL lens)
-    val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && cachedLensRenderEffect != null && combinedActionProgress > 0.01f) {
-      Modifier.graphicsLayer {
-        if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
-        val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
-        val halfWPx = (indicatorWidthPx / 2f) * (liftScale + lengthStretch)
-        val halfHPx = (basePillHeightPx / 2f) * (liftScale * verticalScale)
-        lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
-        lensShader.setFloatUniform("uHalf", halfWPx, halfHPx)
-        lensShader.setFloatUniform("uZoom", 0.02f + 0.18f * combinedActionProgress)
-        lensShader.setFloatUniform("uChroma", combinedActionProgress)
-        renderEffect = cachedLensRenderEffect
-      }
-    } else Modifier
-
+    // 3. Tab Items Row (Icons Only, pure GPU, no shining)
     Row(
       Modifier
         .fillMaxWidth()
         .height(48.dp)
         .align(Alignment.Center)
-        .then(lensModifier)
         .padding(horizontal = sideInset)
-        .pointerInput(totalSlots, indicatorWidthPx) {
-          if (indicatorWidthPx <= 0f) return@pointerInput
+        .pointerInput(totalSlots) {
+          if (totalSlots <= 0) return@pointerInput
           val touchSlop = viewConfiguration.touchSlop
           awaitEachGesture {
+            val slotWidth = size.width / totalSlots.toFloat()
+            if (slotWidth <= 0f) return@awaitEachGesture
+
             val down = awaitFirstDown(requireUnconsumed = false)
             isPressed = true
+
+            // Snap indicator to current position on touch down to guarantee zero jumps
+            val currentPos = externalPageOffsetProvider?.invoke()?.coerceIn(0f, (totalSlots - 1).toFloat())
+              ?: selectedTab.coerceIn(0, totalSlots - 1).toFloat()
+            coroutineScope.launch { indicatorPos.snapTo(currentPos) }
+            dragTargetPos = currentPos
+            lastHapticIndex = currentPos.roundToInt().coerceIn(0, totalSlots - 1)
+
             var dragStarted = false
             var totalDx = 0f
             var totalDy = 0f
@@ -1015,7 +999,7 @@ fun LiquidGlassNavigationDock(
                 if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
                   dragStarted = true
                   isDragging = true
-                  val slotPos = ((change.position.x - sideInsetPx) / indicatorWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
+                  val slotPos = (change.position.x / slotWidth - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
                   dragTargetPos = slotPos
                   onDragOffset?.invoke(slotPos)
                   change.consume()
@@ -1024,7 +1008,7 @@ fun LiquidGlassNavigationDock(
 
               if (dragStarted) {
                 change.consume()
-                val slotPos = ((change.position.x - sideInsetPx) / indicatorWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
+                val slotPos = (change.position.x / slotWidth - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
                 dragTargetPos = slotPos
                 onDragOffset?.invoke(slotPos)
 
@@ -1056,36 +1040,25 @@ fun LiquidGlassNavigationDock(
                 }
               }
             } else {
-              // Tap selection: instant destination selection + sound & haptics + pop & shine animation
-              val tapSlot = ((down.position.x - sideInsetPx) / indicatorWidthPx).toInt().coerceIn(0, totalSlots - 1)
+              // Tap selection: instant destination selection + sound & haptics (no shining glare)
+              val tapSlot = (down.position.x / slotWidth).toInt().coerceIn(0, totalSlots - 1)
               onDestinationSelected(activeDestinations[tapSlot])
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
               coroutineScope.launch {
                 tapPopAnim.snapTo(1f)
-                tapShine.snapTo(1f)
-                val popJob = launch {
+                launch {
                   tapPopAnim.animateTo(
                     targetValue = 0f,
                     animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
                   )
                 }
-                val shineJob = launch {
-                  tapShine.animateTo(0f, tween(300, easing = LinearOutSlowInEasing))
-                }
-                val beamJob = launch {
-                  shineProgress.snapTo(0f)
-                  shineProgress.animateTo(1f, tween(durationMillis = 440, easing = FastOutSlowInEasing))
-                }
-                if (externalPageOffset == null) {
+                if (externalPageOffset == null && externalPageOffsetProvider == null) {
                   indicatorPos.animateTo(
                     tapSlot.toFloat(),
                     spring(dampingRatio = 0.72f, stiffness = 480f)
                   )
                 }
-                popJob.join()
-                shineJob.join()
-                beamJob.join()
               }
             }
           }
@@ -1101,29 +1074,18 @@ fun LiquidGlassNavigationDock(
             VibrationHelper.tick(context)
             coroutineScope.launch {
               tapPopAnim.snapTo(1f)
-              tapShine.snapTo(1f)
-              val popJob = launch {
+              launch {
                 tapPopAnim.animateTo(
                   targetValue = 0f,
                   animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
                 )
               }
-              val shineJob = launch {
-                tapShine.animateTo(0f, tween(300, easing = LinearOutSlowInEasing))
-              }
-              val beamJob = launch {
-                shineProgress.snapTo(0f)
-                shineProgress.animateTo(1f, tween(durationMillis = 440, easing = FastOutSlowInEasing))
-              }
-              if (externalPageOffset == null) {
+              if (externalPageOffset == null && externalPageOffsetProvider == null) {
                 indicatorPos.animateTo(
                   index.toFloat(),
                   spring(dampingRatio = 0.72f, stiffness = 480f)
                 )
               }
-              popJob.join()
-              shineJob.join()
-              beamJob.join()
             }
           },
           modifier = Modifier.weight(1f)
@@ -1251,7 +1213,7 @@ fun LiquidGlassFloatingActionButton(
 
 /**
  * Isolated destination item for LiquidGlassNavigationDock with stable parameters.
- * Active destination features crisp high-contrast icon matching Image 2.
+ * Icons Only design matching liquidglass.theatom.lk/docs with full accessibility semantics.
  */
 @Composable
 fun LiquidGlassNavItem(
@@ -1261,25 +1223,26 @@ fun LiquidGlassNavItem(
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val isDark = LocalAppColors.current.isDark
+  val colors = LocalAppColors.current
+  val isDark = colors.isDark
   val reduceMotion = remember { isReducedMotionEnabled(context) }
-  val selectedColor = if (isDark) Color.White else Color(0xFF1C1C1E)
-  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.48f) else Color(0xFF8E8E93)
+  val selectedColor = if (isDark) Color.White else colors.oklchPrimary
+  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.45f) else Color(0xFF8E8E93)
 
   val iconColor by animateColorAsState(
     targetValue = if (isSelected) selectedColor else unselectedColor,
-    animationSpec = if (reduceMotion) snap() else tween(durationMillis = 180),
+    animationSpec = if (reduceMotion) snap() else tween(durationMillis = 200),
     label = "navIconColor"
   )
   val iconScale by animateFloatAsState(
     targetValue = if (isSelected && !reduceMotion) 1.14f else 1.0f,
-    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.52f, stiffness = 440f),
+    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.58f, stiffness = 420f),
     label = "navIconScale"
   )
-  val labelAlpha by animateFloatAsState(
-    targetValue = if (isSelected) 1.0f else 0.70f,
-    animationSpec = tween(durationMillis = 180),
-    label = "navLabelAlpha"
+  val fillAlpha by animateFloatAsState(
+    targetValue = if (isSelected) 1f else 0f,
+    animationSpec = if (reduceMotion) snap() else tween(durationMillis = 180),
+    label = "navIconFillAlpha"
   )
 
   Box(
@@ -1290,36 +1253,42 @@ fun LiquidGlassNavItem(
         role = Role.Tab
         selected = isSelected
         contentDescription = destination.label
+        onClick {
+          onClick()
+          true
+        }
       },
     contentAlignment = Alignment.Center
   ) {
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center
+    Box(
+      modifier = Modifier
+        .size(24.dp)
+        .graphicsLayer {
+          scaleX = iconScale
+          scaleY = iconScale
+        },
+      contentAlignment = Alignment.Center
     ) {
-      Icon(
-        imageVector = if (isSelected) destination.iconFilled else destination.iconOutlined,
-        contentDescription = null,
-        tint = iconColor,
-        modifier = Modifier
-          .size(21.dp)
-          .graphicsLayer {
-            scaleX = iconScale
-            scaleY = iconScale
-          }
-      )
-      Spacer(modifier = Modifier.height(2.dp))
-      Text(
-        text = destination.label,
-        style = TextStyle(
-          fontFamily = StrongFontFamily,
-          fontSize = 10.sp,
-          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-          color = iconColor.copy(alpha = labelAlpha)
-        ),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-      )
+      if (fillAlpha < 0.99f) {
+        Icon(
+          imageVector = destination.iconOutlined,
+          contentDescription = null,
+          tint = iconColor,
+          modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = 1f - fillAlpha }
+        )
+      }
+      if (fillAlpha > 0.01f) {
+        Icon(
+          imageVector = destination.iconFilled,
+          contentDescription = null,
+          tint = iconColor,
+          modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = fillAlpha }
+        )
+      }
     }
   }
 }

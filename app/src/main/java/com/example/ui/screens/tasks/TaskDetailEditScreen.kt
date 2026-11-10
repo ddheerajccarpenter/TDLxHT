@@ -173,7 +173,7 @@ fun TaskDetailEditScreen(
       repeatRule != existingTask.repeatRule ||
       selectedDate != initialDate ||
       dueTime != (existingTask.dueTime ?: "10:00") ||
-      reminderEnabled != (existingTask.reminderSetting != null && existingTask.reminderSetting != ReminderOption.NONE) ||
+      reminderEnabled != (existingTask.reminderSetting != ReminderOption.NONE) ||
       subtaskList.toList() != existingSubtasks
     }
   }

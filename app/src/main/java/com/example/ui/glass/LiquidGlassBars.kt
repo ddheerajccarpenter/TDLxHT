@@ -1,5 +1,7 @@
 package com.example.ui.glass
 
+import com.skydoves.cloudy.cloudy
+
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -86,7 +88,7 @@ fun LiquidGlassTopAppBar(
                         borderWidth = 0.5.dp
                     )
                 } else {
-                    Modifier.background(
+                    Modifier.cloudy(radius = 24).background(
                         if (isDark) Color(0xD90B0C10) else Color(0xEBFFFFFF)
                     )
                 }

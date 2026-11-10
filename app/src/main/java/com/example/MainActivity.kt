@@ -496,6 +496,7 @@ fun MainApp(
   }
 
   val hazeState = rememberHazeState()
+  val backdrop = rememberLayerBackdrop()
 
   CompositionLocalProvider(LocalHazeState provides hazeState) {
     Box(
@@ -514,10 +515,12 @@ fun MainApp(
               pageCount = { destinations.size }
             )
 
-            // Keep pager and navController in sync when page settles
-            LaunchedEffect(pagerState.currentPage) {
-              if (navController.selectedTab != pagerState.currentPage) {
-                navController.switchTab(pagerState.currentPage)
+            // Keep pager and navController in sync ONLY when page settles, preventing mid-animation cancellation
+            LaunchedEffect(pagerState) {
+              androidx.compose.runtime.snapshotFlow { pagerState.settledPage }.collect { settled ->
+                if (navController.selectedTab != settled) {
+                  navController.switchTab(settled)
+                }
               }
             }
             LaunchedEffect(navController.selectedTab) {
@@ -532,8 +535,9 @@ fun MainApp(
               }
             }
 
-            val pageOffset = pagerState.currentPage + pagerState.currentPageOffsetFraction
-            val dragJobHolder = remember { arrayOfNulls<kotlinx.coroutines.Job>(1) }
+            val pageOffsetProvider = remember(pagerState) {
+              { pagerState.currentPage + pagerState.currentPageOffsetFraction }
+            }
 
             Scaffold(
               modifier = Modifier.fillMaxSize(),
@@ -542,27 +546,11 @@ fun MainApp(
                 SketchBottomNavigationBar(
                   destinations = destinations,
                   selectedTab = navController.selectedTab,
-                  externalPageOffset = pageOffset,
-                  onDragOffset = { slotPos ->
-                    dragJobHolder[0]?.cancel()
-                    dragJobHolder[0] = coroutineScope.launch {
-                      try {
-                        val targetPage = slotPos.roundToInt().coerceIn(0, destinations.size - 1)
-                        val offsetFraction = (slotPos - targetPage).coerceIn(-0.5f, 0.5f)
-                        pagerState.scrollToPage(targetPage, offsetFraction)
-                      } catch (_: Throwable) {}
-                    }
-                  },
+                  externalPageOffsetProvider = pageOffsetProvider,
+                  onDragOffset = null,
                   onDragReleased = { finalSlot ->
-                    dragJobHolder[0]?.cancel()
-                    coroutineScope.launch {
-                      try {
-                        if (reduceMotion) {
-                          pagerState.scrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
-                        } else {
-                          pagerState.animateScrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
-                        }
-                      } catch (_: Throwable) {}
+                    if (finalSlot in destinations.indices) {
+                      navController.switchTab(finalSlot)
                     }
                   },
                   isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
@@ -570,25 +558,18 @@ fun MainApp(
                     val targetIndex = destinations.indexOf(dest)
                     if (targetIndex >= 0) {
                       navController.switchTab(targetIndex)
-                      coroutineScope.launch {
-                        try {
-                          if (reduceMotion) {
-                            pagerState.scrollToPage(targetIndex)
-                          } else {
-                            pagerState.animateScrollToPage(targetIndex)
-                          }
-                        } catch (_: Throwable) {}
-                      }
                     }
                   },
                   onQuickAdd = { navController.navigate(AppNavDestination.QuickCreate) },
-                  hazeState = hazeState
+                  hazeState = hazeState,
+                  backdrop = backdrop
                 )
               }
             ) { innerPadding ->
               Box(
                 modifier = Modifier
                   .fillMaxSize()
+                  .layerBackdrop(backdrop)
                   .hazeSource(hazeState)
                   .background(PaperBackground)
                   .padding(top = innerPadding.calculateTopPadding())
@@ -1321,6 +1302,7 @@ class CenterFabScoopedShape(
 fun SketchBottomNavigationBar(
   destinations: List<AppDestination> = AppDestination.entries,
   selectedTab: Int,
+  externalPageOffsetProvider: (() -> Float)? = null,
   externalPageOffset: Float? = null,
   onDragOffset: ((Float) -> Unit)? = null,
   onDragReleased: ((Int) -> Unit)? = null,
@@ -1341,11 +1323,13 @@ fun SketchBottomNavigationBar(
     LiquidGlassNavigationDock(
       destinations = destinations.take(4),
       selectedTab = selectedTab.coerceIn(0, 3),
+      externalPageOffsetProvider = externalPageOffsetProvider,
       externalPageOffset = externalPageOffset,
       onDragOffset = onDragOffset,
       onDragReleased = onDragReleased,
       onDestinationSelected = onDestinationSelected,
       hazeState = hazeState,
+      backdrop = backdrop,
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)

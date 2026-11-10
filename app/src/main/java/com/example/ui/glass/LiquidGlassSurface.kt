@@ -173,13 +173,26 @@ fun LiquidGlassBackdrop(
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
 
-    val refractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val shader = remember { RuntimeShader(LIQUID_GLASS_SHADER) }
-        val cachedRenderEffect = remember(shader) {
+    val shader = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        remember {
             try {
-                RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
-            } catch (_: Throwable) { null }
+                RuntimeShader(LIQUID_GLASS_SHADER)
+            } catch (_: Throwable) {
+                null
+            }
         }
+    } else null
+    val cachedRenderEffect = remember(shader) {
+        shader?.let {
+            try {
+                RenderEffect.createRuntimeShaderEffect(it, "content").asComposeRenderEffect()
+            } catch (_: Throwable) {
+                null
+            }
+        }
+    }
+
+    val refractionModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val bandPx = with(density) { (20.dp - 3.dp * interactiveProgress).toPx() }
         val dispPx = with(density) { (9.dp + 2.dp * interactiveProgress).toPx() }
         val baseFresnel = when (variant) {
@@ -188,7 +201,7 @@ fun LiquidGlassBackdrop(
             LiquidGlassVariant.Regular -> if (isDark) 0.22f else 0.10f
         }
         val fresnel = baseFresnel + 0.08f * interactiveProgress
-        if (cachedRenderEffect != null) {
+        if (shader != null && cachedRenderEffect != null) {
             Modifier.graphicsLayer {
                 val outline = shape.createOutline(
                     androidx.compose.ui.geometry.Size(size.width, size.height),

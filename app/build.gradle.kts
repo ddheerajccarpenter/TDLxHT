@@ -43,8 +43,8 @@ android {
     applicationId = "com.aistudio.habittask.wvnk"
     minSdk = 24
     targetSdk = 35
-    versionCode = 82
-    versionName = "2.5.45"
+    versionCode = 87
+    versionName = "2.5.50"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -134,6 +134,8 @@ dependencies {
   implementation(libs.androidx.core.ktx)
   // Kyant0's upstream Compose Liquid Glass renderer (blur, lens refraction and highlights)
   implementation("io.github.kyant0:backdrop:1.0.0")
+  // Skydoves Cloudy hardware-accelerated blur & glassmorphism
+  implementation("com.github.skydoves:cloudy:0.2.6")
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)

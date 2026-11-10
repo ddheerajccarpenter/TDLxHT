@@ -1,5 +1,7 @@
 package com.example.ui.components
 
+import com.skydoves.cloudy.cloudy
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -150,7 +152,9 @@ fun LiquidGlassQuickCreateMenu(
           Modifier.clip(menuShape).hazeEffect(state = hazeState) {
             blurRadius = 20.dp
           }
-        } else Modifier
+        } else {
+          Modifier.clip(menuShape).cloudy(radius = 20)
+        }
 
         Box(
           modifier = Modifier

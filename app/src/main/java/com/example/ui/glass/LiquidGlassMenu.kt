@@ -1,5 +1,7 @@
 package com.example.ui.glass
 
+import com.skydoves.cloudy.cloudy
+
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -297,8 +299,8 @@ fun LiquidGlassMenu(
         TransformOrigin(0f, 0f)
       }
 
-      val scale = 0.76f + 0.24f * progress
-      val alpha = (progress / 0.35f).coerceIn(0f, 1f)
+      val scale = 0.35f + 0.65f * progress
+      val alpha = (progress / 0.22f).coerceIn(0f, 1f)
       val cornerRadius = (16.dp + (6.dp * progress)).coerceIn(16.dp, 22.dp)
       val menuShape = RoundedCornerShape(cornerRadius)
 
@@ -320,7 +322,9 @@ fun LiquidGlassMenu(
             }
           }
         }
-      } else Modifier
+      } else {
+        Modifier.clip(menuShape).cloudy(radius = 24)
+      }
 
       val fallbackBg = if (isDark) {
         Brush.verticalGradient(listOf(Color(0xF0181A22), Color(0xF2121319)))
