@@ -434,6 +434,7 @@ fun LiquidGlassSegmentedControl(
     // 3. Tab Items & Pointer Input with AGSL chromatic dispersion on API 33+
     val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null) {
       Modifier.graphicsLayer {
+        if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
         val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
         val halfHPx = (pillHeight.toPx() / 2f) * liftScale
@@ -849,6 +850,7 @@ fun LiquidGlassNavigationDock(
     // 3. Tab Items & Pointer Input (supports tap and horizontal drag with AGSL lens)
     val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && combinedActionProgress > 0.01f) {
       Modifier.graphicsLayer {
+        if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
         val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + lengthStretch)
         val halfHPx = (pillHeight.toPx() / 2f) * liftScale

@@ -566,7 +566,7 @@ fun Modifier.bounceClick(
       .alpha(alpha)
       .drawWithContent {
         drawContent()
-        if (shine && totalShine > 0.001f) {
+        if (shine && totalShine > 0.001f && size.width > 0f && size.height > 0f) {
           if (shape != null) {
             val outline = shape.createOutline(size, layoutDirection, this)
             drawOutline(outline, brush = shineBrush, alpha = totalShine)

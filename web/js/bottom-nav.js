@@ -34,16 +34,18 @@ export function initBottomNav() {
 
   dock.addEventListener('pointerdown', (e) => {
     // Only drag on primary pointer and avoid theme button
-    if (e.button !== 0 || e.target.closest('.dock-theme-btn')) return;
+    if (!navTabs || navTabs.length === 0 || e.button !== 0 || e.target.closest('.dock-theme-btn')) return;
     isDragging = true;
     startX = e.clientX;
     dock.classList.add('active-pop');
     dock.classList.add('dragging');
-    dock.setPointerCapture(e.pointerId);
+    try {
+      dock.setPointerCapture(e.pointerId);
+    } catch (_) {}
   });
 
   dock.addEventListener('pointermove', (e) => {
-    if (!isDragging) return;
+    if (!isDragging || !navTabs || navTabs.length === 0) return;
     const deltaX = e.clientX - startX;
     dock.style.setProperty('--lg-drag-x', `${deltaX}px`);
 

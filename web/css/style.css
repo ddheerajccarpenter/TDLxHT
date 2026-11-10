@@ -1093,7 +1093,7 @@ button {
 .cold-launch-loader {
   position: fixed;
   inset: 0;
-  background: #000000;
+  background: var(--bg-primary, #090A0F);
   z-index: 99999;
   display: flex;
   align-items: center;
@@ -1101,6 +1101,14 @@ button {
   opacity: 1;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s;
   pointer-events: all;
+}
+
+[data-theme="light"] .cold-launch-loader {
+  background: #FAF7F2;
+}
+
+[data-theme="dark"] .cold-launch-loader {
+  background: #090A0F;
 }
 
 .cold-launch-loader.fade-out {
@@ -1118,6 +1126,10 @@ button {
 
 .loader-logo {
   border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .loader-logo {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
 }
 
@@ -1133,10 +1145,18 @@ button {
   top: 10%;
   width: 8%;
   height: 25%;
-  background-color: #FFFFFF;
+  background-color: var(--text-primary, #FFFFFF);
   border-radius: 4px;
   transform-origin: 50% 160%;
   animation: spinner-blade-fade 1s linear infinite;
+}
+
+[data-theme="light"] .spinner-blade {
+  background-color: #1C1C1E;
+}
+
+[data-theme="dark"] .spinner-blade {
+  background-color: #FFFFFF;
 }
 
 .spinner-blade:nth-child(1) { transform: rotate(0deg); animation-delay: 0s; }

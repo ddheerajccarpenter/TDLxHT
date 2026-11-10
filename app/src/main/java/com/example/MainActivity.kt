@@ -312,10 +312,13 @@ class MainActivity : ComponentActivity() {
               animationSpec = androidx.compose.animation.core.tween(durationMillis = 350)
             )
           ) {
+            val colors = LocalAppColors.current
+            val launchBg = if (isDark) colors.paperBackground else PaperBackground
+            val spinnerColor = if (isDark) Color.White else InkPrimary
             Box(
               modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black),
+                .background(launchBg),
               contentAlignment = Alignment.Center
             ) {
               Column(
@@ -332,7 +335,7 @@ class MainActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.height(32.dp))
                 ClassicLoadingSpinner(
                   size = 40.dp,
-                  color = Color.White
+                  color = spinnerColor
                 )
               }
             }
@@ -519,11 +522,13 @@ fun MainApp(
             }
             LaunchedEffect(navController.selectedTab) {
               if (pagerState.currentPage != navController.selectedTab) {
-                if (reduceMotion) {
-                  pagerState.scrollToPage(navController.selectedTab)
-                } else {
-                  pagerState.animateScrollToPage(navController.selectedTab)
-                }
+                try {
+                  if (reduceMotion) {
+                    pagerState.scrollToPage(navController.selectedTab.coerceIn(0, destinations.size - 1))
+                  } else {
+                    pagerState.animateScrollToPage(navController.selectedTab.coerceIn(0, destinations.size - 1))
+                  }
+                } catch (_: Throwable) {}
               }
             }
 
@@ -539,14 +544,18 @@ fun MainApp(
                   externalPageOffset = pageOffset,
                   onDragOffset = { slotPos ->
                     coroutineScope.launch {
-                      val targetPage = slotPos.toInt().coerceIn(0, destinations.size - 1)
-                      val offsetFraction = (slotPos - targetPage).coerceIn(0f, 0.999f)
-                      pagerState.scrollToPage(targetPage, offsetFraction)
+                      try {
+                        val targetPage = slotPos.roundToInt().coerceIn(0, destinations.size - 1)
+                        val offsetFraction = (slotPos - targetPage).coerceIn(-0.5f, 0.5f)
+                        pagerState.scrollToPage(targetPage, offsetFraction)
+                      } catch (_: Throwable) {}
                     }
                   },
                   onDragReleased = { finalSlot ->
                     coroutineScope.launch {
-                      pagerState.animateScrollToPage(finalSlot)
+                      try {
+                        pagerState.animateScrollToPage(finalSlot.coerceIn(0, destinations.size - 1))
+                      } catch (_: Throwable) {}
                     }
                   },
                   isQuickAddOpen = navController.activeOverlay is AppNavOverlay.QuickCreate,
