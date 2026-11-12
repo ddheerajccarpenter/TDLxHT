@@ -739,13 +739,14 @@ fun LiquidGlassNavigationDock(
     label = "navigationPillLift"
   )
 
-  // Keep the page visible through the dock, but soften moving card text enough
-  // that the dock remains legible while it floats over long scrolling lists.
-  val trackTint = if (isDark) Color(0x663E2C23) else Color(0x443E2C23)
+  // Apple Liquid Glass track material (mirrors the web nav dock):
+  // neutral smoked grey in dark, translucent milk-white in light —
+  // no warm tint, so the blurred page reads as physical glass, not brown plastic.
+  val trackTint = if (isDark) Color(0x732C2C30) else Color(0x75FFFFFF)
   val sideGlowColor = if (isDark) {
-    com.example.ui.theme.CocaNoir.copy(alpha = 0.35f)
+    Color.White.copy(alpha = 0.10f)
   } else {
-    com.example.ui.theme.CocaNoir.copy(alpha = 0.18f)
+    Color.White.copy(alpha = 0.32f)
   }
   val sideGlowBrush = remember(isDark) {
     Brush.horizontalGradient(
@@ -860,7 +861,7 @@ fun LiquidGlassNavigationDock(
       Box(
         Modifier
           .matchParentSize()
-          .background(if (isDark) Color.Black.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.10f))
+          .background(if (isDark) Color.Black.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.10f))
       )
       Box(Modifier.matchParentSize().background(sideGlowBrush))
       Box(Modifier.matchParentSize().liquidGlassRim(trackShape, isDark, 0.75.dp))
