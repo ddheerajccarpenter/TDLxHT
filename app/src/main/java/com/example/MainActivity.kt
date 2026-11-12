@@ -568,6 +568,7 @@ fun MainApp(
                   .hazeSource(hazeState)
                   .background(PaperBackground)
                   .padding(top = innerPadding.calculateTopPadding())
+                  .padding(bottom = innerPadding.calculateBottomPadding())
               ) {
                 HorizontalPager(
                   state = pagerState,

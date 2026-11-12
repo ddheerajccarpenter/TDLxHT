@@ -49,8 +49,18 @@
 
   --accent-color: #2FA4D7;
   --accent-glow: transparent;
-  --nav-glass-tint: rgba(62, 44, 35, 0.08);
-  --nav-glass-shadow: rgba(62, 44, 35, 0.28);
+  --nav-glass-tint: rgba(255, 255, 255, 0.46);
+  --nav-glass-shadow: rgba(62, 44, 35, 0.24);
+  --nav-glass-blur: 28px;
+  --nav-glass-saturate: 190%;
+  --nav-glass-brightness: 1.05;
+  --nav-glass-edge: rgba(0, 0, 0, 0.08);
+  --nav-glass-rim-top: rgba(255, 255, 255, 0.9);
+  --nav-glass-rim-bottom: rgba(0, 0, 0, 0.08);
+  --nav-lens-fill: rgba(255, 255, 255, 0.55);
+  --nav-lens-edge: rgba(45, 48, 53, 0.22);
+  --nav-lens-rim-top: rgba(255, 255, 255, 0.9);
+  --nav-lens-rim-bottom: rgba(45, 48, 53, 0.08);
   --radius-card: 24px;
   --radius-pill: 9999px;
   --container-max: 1140px;
@@ -73,8 +83,18 @@
 
   --accent-color: #2FA4D7;
   --accent-glow: transparent;
-  --nav-glass-tint: rgba(18, 18, 20, 0.78);
-  --nav-glass-shadow: rgba(0, 0, 0, 0.85);
+  --nav-glass-tint: rgba(44, 44, 48, 0.45);
+  --nav-glass-shadow: rgba(0, 0, 0, 0.55);
+  --nav-glass-blur: 28px;
+  --nav-glass-saturate: 170%;
+  --nav-glass-brightness: 0.97;
+  --nav-glass-edge: rgba(255, 255, 255, 0.1);
+  --nav-glass-rim-top: rgba(255, 255, 255, 0.16);
+  --nav-glass-rim-bottom: rgba(0, 0, 0, 0.45);
+  --nav-lens-fill: rgba(255, 255, 255, 0.1);
+  --nav-lens-edge: rgba(255, 255, 255, 0.22);
+  --nav-lens-rim-top: rgba(255, 255, 255, 0.14);
+  --nav-lens-rim-bottom: rgba(0, 0, 0, 0.2);
 }
 
 /* Base Reset & Core Typography */
@@ -901,10 +921,13 @@ button {
   padding: 0 5px;
   border-radius: 24px;
   background: var(--nav-glass-tint);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-bevel), 0 16px 40px -8px var(--nav-glass-shadow);
+  backdrop-filter: blur(var(--nav-glass-blur)) saturate(var(--nav-glass-saturate)) brightness(var(--nav-glass-brightness));
+  -webkit-backdrop-filter: blur(var(--nav-glass-blur)) saturate(var(--nav-glass-saturate)) brightness(var(--nav-glass-brightness));
+  box-shadow:
+    inset 0 0 0 0.5px var(--nav-glass-edge),
+    inset 0 1px 1px 0 var(--nav-glass-rim-top),
+    inset 0 -1px 1px 0 var(--nav-glass-rim-bottom),
+    0 16px 40px -8px var(--nav-glass-shadow);
   transform: translateZ(0);
   user-select: none;
   touch-action: pan-y;
@@ -940,61 +963,37 @@ button {
   color: #8E8E93;
 }
 
-/* Sliding Glass Lens (iOS 26 Liquid Glass: Normal size & un-filled at rest, 1.2px Pop-Out & Frosted Fill in Action) */
+/* Sliding Glass Lens (iOS 26 Liquid Glass: frosted selection pill at rest, lifts & pops while pressing/dragging) */
 .lg-track__lens {
   position: absolute;
   top: 4px;
   bottom: 4px;
   width: 52px;
   border-radius: 20px;
-  opacity: 0;
-  background: transparent;
-  border: 1px solid transparent;
-  box-shadow: none;
+  background: var(--nav-lens-fill);
+  box-shadow:
+    inset 0 0 0 0.5px var(--nav-lens-edge),
+    inset 0 1px 1px 0 var(--nav-lens-rim-top),
+    inset 0 -1px 1px 0 var(--nav-lens-rim-bottom);
   pointer-events: none;
   z-index: 1;
   transform: translateX(calc(var(--lg-index, 0) * 52px + var(--lg-drag-x, 0px))) scale(var(--lg-lens-scale, 1)) translateZ(0);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.22s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.20s ease, background 0.22s ease, box-shadow 0.22s ease;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease, box-shadow 0.22s ease;
 }
 
-[data-theme="dark"] .lg-track__lens {
-  background: rgba(255, 255, 255, 0.0);
-  border: 1px solid transparent;
-  box-shadow: none;
-}
-
-[data-theme="light"] .lg-track__lens {
-  background: rgba(255, 255, 255, 0.0);
-  border: 1px solid transparent;
-  box-shadow: none;
-}
-
-/* Active / Drag Action State: Pops out by 1.2px, scales to 1.22x, fills with frosted white glass and drop shadow */
+/* Press / Drag Action State: the lens lifts toward the viewer with a soft drop shadow */
 .bottom-dock.active-pop .lg-track__lens,
 .bottom-dock.dragging .lg-track__lens {
-  opacity: 1;
-  top: -1.2px;
-  bottom: -1.2px;
-  border-radius: 25.2px;
-  --lg-lens-scale: 1.22;
+  --lg-lens-scale: 1.1;
+  box-shadow:
+    inset 0 0 0 0.5px var(--nav-lens-edge),
+    inset 0 1px 1px 0 var(--nav-lens-rim-top),
+    inset 0 -1px 1px 0 var(--nav-lens-rim-bottom),
+    0 10px 28px -6px var(--nav-glass-shadow);
 }
 
 .bottom-dock.dragging .lg-track__lens {
-  transition: transform 0.05s linear, top 0.15s ease, bottom 0.15s ease;
-}
-
-[data-theme="dark"] .bottom-dock.active-pop .lg-track__lens,
-[data-theme="dark"] .bottom-dock.dragging .lg-track__lens {
-  background: rgba(255, 255, 255, 0.20);
-  border: 1px solid rgba(255, 255, 255, 0.36);
-  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.55), 0 6px 18px rgba(0, 0, 0, 0.40);
-}
-
-[data-theme="light"] .bottom-dock.active-pop .lg-track__lens,
-[data-theme="light"] .bottom-dock.dragging .lg-track__lens {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10), inset 0 1px 1.5px #FFFFFF;
+  transition: transform 0.05s linear, box-shadow 0.15s ease;
 }
 
 /* Dock Divider */
