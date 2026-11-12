@@ -63,6 +63,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.rounded.Handyman
 import com.example.util.DashboardLayoutManager
 import com.example.util.DashboardSection
 import com.example.ui.theme.OuterCornerRadius
@@ -160,6 +161,7 @@ fun HomeScreen(
   onHabitClick: (Habit) -> Unit,
   onNavigateToSettings: (() -> Unit)? = null,
   onNavigateToSearch: (() -> Unit)? = null,
+  onNavigateToTools: (() -> Unit)? = null,
   onOpenFocusTimer: (() -> Unit)? = null,
   onQuickAdd: (() -> Unit)? = null,
   modifier: Modifier = Modifier

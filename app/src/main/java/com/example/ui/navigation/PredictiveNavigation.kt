@@ -69,6 +69,7 @@ sealed interface AppNavDestination {
   data object Settings : AppNavDestination
   data object Diagnostics : AppNavDestination
   data object Search : AppNavDestination
+  data object Tools : AppNavDestination
   data class ToolRunner(val tool: ToolDefinition) : AppNavDestination
 
   // 3. Modal Surfaces & Overlays (Mapped to AppNavOverlay)
