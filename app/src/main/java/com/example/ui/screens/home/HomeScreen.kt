@@ -120,6 +120,7 @@ import com.example.ui.components.LiquidGlassProgressIndicator
 import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.StreakFlameBadge
 import com.example.ui.components.fluidLensedGlass
+import com.example.ui.components.AppleCircularCheckbox
 import com.example.ui.components.SketchCheckbox
 import com.example.ui.components.SketchProgressBar
 import com.example.ui.components.paperDotBackground
@@ -320,6 +321,22 @@ fun HomeScreen(
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+              if (onNavigateToTools != null) {
+                LiquidGlassIconButton(
+                  onClick = { onNavigateToTools() },
+                  contentDescription = "Productivity Calculators & Utilities",
+                  size = 40.dp,
+                  modifier = Modifier.testTag("home_tools_button")
+                ) {
+                  Icon(
+                    imageVector = Icons.Rounded.Handyman,
+                    contentDescription = null,
+                    tint = InkPrimary,
+                    modifier = Modifier.size(18.dp)
+                  )
+                }
+              }
+
               if (onNavigateToSearch != null) {
                 LiquidGlassIconButton(
                   onClick = { onNavigateToSearch() },
@@ -1171,7 +1188,7 @@ fun TaskItemCard(
     label = "taskTextCol"
   )
   val cardAlpha by animateFloatAsState(
-    targetValue = if (task.isCompleted) 0.92f else 1.0f,
+    targetValue = if (task.isCompleted) 0.88f else 1.0f,
     animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
     label = "taskAlpha"
   )
@@ -1181,18 +1198,27 @@ fun TaskItemCard(
       .fillMaxWidth()
       .alpha(cardAlpha)
       .animateContentSize(animationSpec = spring(dampingRatio = 0.75f, stiffness = 420f))
-      .bounceClick(scaleDown = 0.98f, onLongClick = onLongClick) { onClick() }
+      .bounceClick(scaleDown = 0.985f, onLongClick = onLongClick) { onClick() }
       .testTag("task_card_${task.id}"),
-    cornerRadius = 14.dp,
+    cornerRadius = 16.dp,
     borderWidth = 0.75.dp
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 14.dp, vertical = 12.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically
     ) {
+      // 1. Left: Apple Circular Checkbox (iOS Reminders placement)
+      if (!isEditMode) {
+        AppleCircularCheckbox(
+          checked = task.isCompleted,
+          onCheckedChange = { onToggle() },
+          modifier = Modifier.padding(end = 12.dp)
+        )
+      }
+
+      // 2. Center: Task Title & Metadata
       Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           if (task.colorTag != null) {
@@ -1201,7 +1227,7 @@ fun TaskItemCard(
               Box(
                 modifier = Modifier
                   .padding(end = 6.dp)
-                  .size(10.dp)
+                  .size(8.dp)
                   .clip(CircleShape)
                   .background(tag.color)
               )
@@ -1210,7 +1236,7 @@ fun TaskItemCard(
           Text(
             text = task.title,
             style = TextStyle(
-              fontSize = 16.sp,
+              fontSize = 15.sp,
               fontWeight = FontWeight.SemiBold,
               color = textColor,
               textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
@@ -1218,7 +1244,7 @@ fun TaskItemCard(
           )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(3.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
           val formattedTime = if (task.dueTime.isNotBlank()) formatTimeDisplay(task.dueTime, is24Hour) else ""
@@ -1226,7 +1252,7 @@ fun TaskItemCard(
           Text(
             text = categoryAndTime,
             style = TextStyle(
-              fontSize = 13.sp,
+              fontSize = 12.sp,
               color = InkSecondary
             )
           )
@@ -1235,8 +1261,9 @@ fun TaskItemCard(
             Spacer(modifier = Modifier.width(8.dp))
             Box(
               modifier = Modifier
-                .border(1.dp, CardBorder, RoundedCornerShape(8.dp))
-                .padding(horizontal = 6.dp, vertical = 2.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(InkSecondary.copy(alpha = 0.12f))
+                .padding(horizontal = 5.dp, vertical = 1.5.dp)
             ) {
               Text(
                 text = "$subtasksDone/$subtasksCount",
@@ -1247,18 +1274,14 @@ fun TaskItemCard(
 
           if (task.priority == TaskPriority.HIGH) {
             Spacer(modifier = Modifier.width(6.dp))
-            Box(
-              modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(AccentRed.copy(alpha = 0.15f))
-                .border(0.8.dp, AccentRed.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                .padding(horizontal = 6.dp, vertical = 1.dp)
-            ) {
-              Text(
-                text = "High",
-                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AccentRed)
+            Text(
+              text = "!",
+              style = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Black,
+                color = AccentRed
               )
-            }
+            )
           }
 
           if (task.isShortTerm) {
@@ -1266,25 +1289,25 @@ fun TaskItemCard(
             Box(
               modifier = Modifier
                 .clip(RoundedCornerShape(4.dp))
-                .background(PrimaryAccentLime.copy(alpha = 0.15f))
-                .border(0.8.dp, PrimaryAccentLime.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                .padding(horizontal = 6.dp, vertical = 1.dp)
+                .background(InkSecondary.copy(alpha = 0.10f))
+                .padding(horizontal = 5.dp, vertical = 1.dp)
             ) {
               Text(
-                text = "Short-term",
-                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = PrimaryAccentLime)
+                text = "Scratch",
+                style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Medium, color = InkSecondary)
               )
             }
           }
         }
       }
 
+      // 3. Right: Edit Mode Actions
       if (isEditMode) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Box(
             modifier = Modifier
-              .size(48.dp)
-              .border(1.2.dp, CardBorder, CircleShape)
+              .size(40.dp)
+              .border(1.dp, CardBorder, CircleShape)
               .clip(CircleShape)
               .bounceClick { onClick() },
             contentAlignment = Alignment.Center
@@ -1293,15 +1316,15 @@ fun TaskItemCard(
               imageVector = Icons.Default.Edit,
               contentDescription = "Edit Task",
               tint = InkPrimary,
-              modifier = Modifier.size(16.dp)
+              modifier = Modifier.size(15.dp)
             )
           }
           if (onDelete != null) {
             Spacer(modifier = Modifier.width(8.dp))
             Box(
               modifier = Modifier
-                .size(48.dp)
-                .background(AccentTerracotta.copy(alpha = 0.15f), CircleShape)
+                .size(40.dp)
+                .background(AccentRed.copy(alpha = 0.12f), CircleShape)
                 .clip(CircleShape)
                 .bounceClick { onDelete() },
               contentAlignment = Alignment.Center
@@ -1309,17 +1332,12 @@ fun TaskItemCard(
               Icon(
                 imageVector = Icons.Outlined.DeleteOutline,
                 contentDescription = "Delete Task",
-                tint = AccentTerracotta,
-                modifier = Modifier.size(18.dp)
+                tint = AccentRed,
+                modifier = Modifier.size(16.dp)
               )
             }
           }
         }
-      } else {
-        SketchCheckbox(
-          checked = task.isCompleted,
-          onCheckedChange = { onToggle() }
-        )
       }
     }
   }

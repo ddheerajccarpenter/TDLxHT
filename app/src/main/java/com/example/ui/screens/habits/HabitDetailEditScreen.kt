@@ -1,9 +1,15 @@
 package com.example.ui.screens.habits
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.window.Dialog
 import com.example.ui.theme.StrongFontFamily
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -174,9 +180,28 @@ fun HabitDetailEditScreen(
   }
 
   var showDiscardDialog by remember { mutableStateOf(false) }
+  val dirtyAnimProgress = remember { Animatable(0f) }
 
-  BackHandler(enabled = isDirty) {
-    showDiscardDialog = true
+  PredictiveBackHandler(enabled = isDirty) { progressFlow ->
+    try {
+      progressFlow.collect { backEvent ->
+        dirtyAnimProgress.snapTo(backEvent.progress)
+      }
+      withContext(NonCancellable) {
+        dirtyAnimProgress.animateTo(
+          targetValue = 0f,
+          animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)
+        )
+      }
+      showDiscardDialog = true
+    } catch (_: CancellationException) {
+      withContext(NonCancellable) {
+        dirtyAnimProgress.animateTo(
+          targetValue = 0f,
+          animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f)
+        )
+      }
+    }
   }
 
   val frequencies = listOf(
@@ -192,9 +217,19 @@ fun HabitDetailEditScreen(
     if (existingHabit != null) viewModel.getHabitStreak(existingHabit) else null
   }
 
+  val dirtyProgress = dirtyAnimProgress.value
+  val dirtyScale = 1f - (dirtyProgress * 0.06f)
+  val dirtyCorner = (dirtyProgress * 16).dp
+
   Box(
     modifier = modifier
       .fillMaxSize()
+      .graphicsLayer {
+        scaleX = dirtyScale
+        scaleY = dirtyScale
+        shape = RoundedCornerShape(dirtyCorner)
+        clip = dirtyCorner > 0.dp
+      }
       .paperDotBackground()
   ) {
     LazyColumn(

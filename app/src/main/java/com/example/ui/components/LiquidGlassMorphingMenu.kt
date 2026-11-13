@@ -33,13 +33,29 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Checklist
+import androidx.compose.material.icons.rounded.Handyman
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import com.example.data.model.Task
+import com.example.util.NaturalLanguageTaskParser
+import java.time.format.DateTimeFormatter
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,6 +93,8 @@ fun LiquidGlassQuickCreateMenu(
   onNewTask: () -> Unit,
   onNewHabit: () -> Unit,
   onShortTermTask: () -> Unit,
+  onOpenTools: (() -> Unit)? = null,
+  onQuickCaptureTask: ((Task) -> Unit)? = null,
   modifier: Modifier = Modifier,
   gestureState: PredictiveBackGestureState? = null,
   hazeState: dev.chrisbanes.haze.HazeState? = null
@@ -90,11 +108,19 @@ fun LiquidGlassQuickCreateMenu(
   val isPredictingBack = gestureState?.isPredictingBack == true && gestureState.targetKind == PredictiveBackTarget.OVERLAY
   val gestureProgress = gestureState?.animProgress?.value ?: 0f
 
-  val scrimAlpha by animateFloatAsState(
-    targetValue = if (visible && !isPredictingBack) 0.38f else if (isPredictingBack) (0.38f * (1f - gestureProgress)).coerceIn(0f, 0.38f) else 0f,
+  val animatedScrimAlpha by animateFloatAsState(
+    targetValue = if (visible) 0.38f else 0f,
     animationSpec = tween(180),
     label = "scrimAlpha"
   )
+  val scrimAlpha = if (isPredictingBack) {
+    (0.38f * (1f - gestureProgress)).coerceIn(0f, 0.38f)
+  } else {
+    animatedScrimAlpha
+  }
+
+  var quickText by remember { mutableStateOf("") }
+  val parsedTask = remember(quickText) { NaturalLanguageTaskParser.parse(quickText) }
 
   if (visible || isPredictingBack || scrimAlpha > 0.01f) {
     Box(
@@ -205,7 +231,157 @@ fun LiquidGlassQuickCreateMenu(
               )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Smart Natural Language Quick Capture Box
+            Box(
+              modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                  if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.85f),
+                  RoundedCornerShape(16.dp)
+                )
+                .liquidGlassRim(RoundedCornerShape(16.dp), isDark, 0.75.dp)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+            ) {
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth()
+              ) {
+                Icon(
+                  imageVector = Icons.Rounded.AutoAwesome,
+                  contentDescription = null,
+                  tint = if (isDark) Color(0xFF64D2FF) else Color(0xFF007AFF),
+                  modifier = Modifier.size(20.dp)
+                )
+
+                Box(modifier = Modifier.weight(1f)) {
+                  if (quickText.isEmpty()) {
+                    Text(
+                      text = "Try 'Gym tomorrow 7am !high'...",
+                      style = TextStyle(
+                        fontSize = 14.sp,
+                        color = if (isDark) Color.White.copy(alpha = 0.38f) else Color.Black.copy(alpha = 0.38f)
+                      )
+                    )
+                  }
+                  BasicTextField(
+                    value = quickText,
+                    onValueChange = { quickText = it },
+                    singleLine = true,
+                    textStyle = TextStyle(
+                      fontSize = 14.sp,
+                      fontWeight = FontWeight.Medium,
+                      color = if (isDark) Color.White else Color(0xFF1C1C1E)
+                    ),
+                    cursorBrush = SolidColor(if (isDark) Color.White else Color.Black),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                      onDone = {
+                        if (quickText.isNotBlank() && onQuickCaptureTask != null) {
+                          VibrationHelper.tick(context)
+                          val task = parsedTask.toTask()
+                          onQuickCaptureTask(task)
+                          quickText = ""
+                        }
+                      }
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                  )
+                }
+
+                if (quickText.isNotBlank()) {
+                  Box(
+                    modifier = Modifier
+                      .size(32.dp)
+                      .clip(CircleShape)
+                      .background(if (isDark) Color(0xFF0A84FF) else Color(0xFF007AFF))
+                      .clickable {
+                        if (onQuickCaptureTask != null) {
+                          VibrationHelper.tick(context)
+                          val task = parsedTask.toTask()
+                          onQuickCaptureTask(task)
+                          quickText = ""
+                        }
+                      },
+                    contentAlignment = Alignment.Center
+                  ) {
+                    Icon(
+                      imageVector = Icons.Default.ArrowUpward,
+                      contentDescription = "Create Task",
+                      tint = Color.White,
+                      modifier = Modifier.size(16.dp)
+                    )
+                  }
+                }
+              }
+            }
+
+            // Live parsed token pills
+            if (quickText.isNotBlank()) {
+              Spacer(modifier = Modifier.height(8.dp))
+              Row(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+              ) {
+                if (parsedTask.hasExplicitDate) {
+                  QuickTokenPill(
+                    text = "📅 " + parsedTask.dueDate.format(DateTimeFormatter.ofPattern("EEE, MMM d")),
+                    isDark = isDark
+                  )
+                }
+                if (parsedTask.hasExplicitTime) {
+                  QuickTokenPill(
+                    text = "⏰ " + (parsedTask.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a")) ?: ""),
+                    isDark = isDark
+                  )
+                }
+                if (parsedTask.hasExplicitCategory) {
+                  QuickTokenPill(
+                    text = "🏷️ " + parsedTask.category,
+                    isDark = isDark
+                  )
+                }
+                if (parsedTask.hasExplicitPriority) {
+                  QuickTokenPill(
+                    text = "🚩 " + parsedTask.priority.displayName,
+                    isDark = isDark
+                  )
+                }
+                if (parsedTask.isShortTerm) {
+                  QuickTokenPill(
+                    text = "⚡ Scratch",
+                    isDark = isDark
+                  )
+                }
+              }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Subtle divider
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+              Box(modifier = Modifier.weight(1f).height(0.5.dp).background(if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)))
+              Text(
+                text = "OR CHOOSE FORM",
+                style = TextStyle(
+                  fontSize = 10.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = if (isDark) Color.White.copy(alpha = 0.35f) else Color.Black.copy(alpha = 0.35f),
+                  letterSpacing = 0.8.sp
+                )
+              )
+              Box(modifier = Modifier.weight(1f).height(0.5.dp).background(if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)))
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Action 1: New Task
             LiquidGlassMenuItem(
@@ -246,6 +422,22 @@ fun LiquidGlassQuickCreateMenu(
                 onShortTermTask()
               }
             )
+
+            if (onOpenTools != null) {
+              Spacer(modifier = Modifier.height(10.dp))
+
+              // Action 4: Productivity Utilities
+              LiquidGlassMenuItem(
+                icon = Icons.Rounded.Handyman,
+                title = "Productivity Calculators",
+                subtitle = "15 practical offline tools & finance helpers",
+                isDark = isDark,
+                onClick = {
+                  VibrationHelper.tick(context)
+                  onOpenTools()
+                }
+              )
+            }
           }
         }
       }
@@ -323,5 +515,30 @@ private fun LiquidGlassMenuItem(
         modifier = Modifier.size(18.dp)
       )
     }
+  }
+}
+
+@Composable
+private fun QuickTokenPill(
+  text: String,
+  isDark: Boolean,
+  modifier: Modifier = Modifier
+) {
+  Box(
+    modifier = modifier
+      .background(
+        if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.07f),
+        RoundedCornerShape(8.dp)
+      )
+      .padding(horizontal = 8.dp, vertical = 4.dp)
+  ) {
+    Text(
+      text = text,
+      style = TextStyle(
+        fontSize = 11.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = if (isDark) Color(0xFF64D2FF) else Color(0xFF007AFF)
+      )
+    )
   }
 }

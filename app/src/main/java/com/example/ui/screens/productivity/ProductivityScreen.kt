@@ -1,8 +1,10 @@
 package com.example.ui.screens.productivity
 
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -30,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +47,9 @@ import com.example.ui.navigation.horizontalSwipeNavigation
 import com.example.ui.screens.calendar.CalendarScreen
 import com.example.ui.screens.habits.HabitListScreen
 import com.example.ui.screens.tasks.TaskListScreen
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import com.example.ui.viewmodel.MainViewModel
 
 @Composable
@@ -66,13 +73,42 @@ fun ProductivityScreen(
   val isHabits = selectedTab == 1
   val currentSearchQuery = if (isHabits) habitSearchQuery else taskSearchQuery
 
-  BackHandler(enabled = selectedTab > 0) {
-    selectedTab = 0
+  val subTabAnimProgress = remember { Animatable(0f) }
+  PredictiveBackHandler(enabled = selectedTab > 0) { progressFlow ->
+    try {
+      progressFlow.collect { backEvent ->
+        subTabAnimProgress.snapTo(backEvent.progress)
+      }
+      withContext(NonCancellable) {
+        subTabAnimProgress.animateTo(
+          targetValue = 0f,
+          animationSpec = spring(dampingRatio = 0.85f, stiffness = 400f)
+        )
+      }
+      selectedTab = 0
+    } catch (_: CancellationException) {
+      withContext(NonCancellable) {
+        subTabAnimProgress.animateTo(
+          targetValue = 0f,
+          animationSpec = spring(dampingRatio = 0.85f, stiffness = 400f)
+        )
+      }
+    }
   }
+
+  val subTabProgress = subTabAnimProgress.value
+  val subTabScale = 1f - (subTabProgress * 0.05f)
+  val subTabCorner = (subTabProgress * 16).dp
 
   Column(
     modifier = modifier
       .fillMaxSize()
+      .graphicsLayer {
+        scaleX = subTabScale
+        scaleY = subTabScale
+        shape = RoundedCornerShape(subTabCorner)
+        clip = subTabCorner > 0.dp
+      }
       .paperDotBackground()
       .windowInsetsPadding(WindowInsets.statusBars)
       .padding(top = 10.dp)

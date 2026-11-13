@@ -42,7 +42,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.alpha
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
+import kotlinx.coroutines.CancellationException
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -136,6 +137,7 @@ fun SettingsScreen(
   authViewModel: AuthViewModel,
   onBack: () -> Unit,
   onNavigateToDiagnostics: (() -> Unit)? = null,
+  onNavigateToTools: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -159,7 +161,12 @@ fun SettingsScreen(
   }
 
   if (isDiagnosticsOpen) {
-    BackHandler { isDiagnosticsOpen = false }
+    PredictiveBackHandler { progressFlow ->
+      try {
+        progressFlow.collect { }
+        isDiagnosticsOpen = false
+      } catch (_: CancellationException) { }
+    }
     DiagnosticsScreen(
       taskRepository = HabitTaskApplication.instance.taskRepository,
       habitRepository = HabitTaskApplication.instance.habitRepository,
@@ -1010,6 +1017,37 @@ fun SettingsScreen(
                   )
                 }
               }
+            }
+          }
+
+          if (onNavigateToTools != null) {
+            GroupedDivider()
+
+            // Productivity Calculators & Utilities Row
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .bounceClick { onNavigateToTools() }
+                .padding(16.dp),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(
+                  text = "Productivity Calculators & Utilities",
+                  style = TextStyle(fontFamily = StrongFontFamily, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = InkPrimary)
+                )
+                Text(
+                  text = "15 practical offline tools (Loan EMI, Tip Splitter, CGPA, GST, etc.)",
+                  style = TextStyle(fontSize = 12.sp, color = InkSecondary)
+                )
+              }
+              Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Open Utilities",
+                tint = InkSecondary,
+                modifier = Modifier.size(18.dp)
+              )
             }
           }
 

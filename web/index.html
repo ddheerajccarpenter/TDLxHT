@@ -1,353 +1,2585 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TDLxHT — Native Offline Productivity for Android</title>
-  <meta name="description" content="Offline-first task management, habit tracking, and 14 built-in calculators for Android. 100% private with no ads or subscriptions.">
-  <meta name="theme-color" content="#000000">
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/app-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <script>
-    // Proactively terminate any legacy background service workers
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var i = 0; i < regs.length; i++) { regs[i].unregister(); }
-      });
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#EDE5D7" id="metaThemeColor" />
+  <meta
+    name="description"
+    content="TDlxHT v2.5.54 (Build 91) — 100% offline-first Android productivity app combining Tasks, Habits, Interactive Calendar, 15 Utility Calculators, and Apple iOS 26 Liquid Glass physics."
+  />
+  <title>TDlxHT v2.5.54 — Offline-First Liquid Glass Productivity for Android</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+      --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, SFMono-Regular, monospace;
+
+      --lg-blur: 24px;
+      --lg-saturate: 185%;
+      --lg-fill: rgba(255, 255, 255, 0.56);
+      --lg-fill-clear: rgba(255, 255, 255, 0.34);
+      --lg-fill-elevated: rgba(255, 255, 255, 0.78);
+      --lg-rim: rgba(255, 255, 255, 0.8);
+      --lg-specular: rgba(255, 255, 255, 0.94);
+      --lg-shadow: 0 16px 40px rgba(27, 25, 23, 0.09), 0 2px 8px rgba(27, 25, 23, 0.05);
+      --lg-shadow-lift: 0 22px 48px rgba(27, 25, 23, 0.14), 0 4px 12px rgba(27, 25, 23, 0.07);
+
+      --ink: #1b1917;
+      --ink-secondary: #534e46;
+      --ink-muted: #787166;
+      --rule: rgba(27, 25, 23, 0.13);
+
+      --lg-accent: #b84a27;
+      --lg-accent-soft: rgba(184, 74, 39, 0.15);
+      --lg-accent-ink: #ffffff;
+      --danger: #c93b2b;
+      --danger-soft: rgba(201, 59, 43, 0.15);
+
+      --ease-spring: cubic-bezier(0.22, 1.12, 0.36, 1);
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     }
-    if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('type=recovery') || window.location.hash.includes('error='))) {
-      window.location.replace('/auth/callback' + window.location.hash);
+
+    html[data-theme="dark"] {
+      --lg-fill: rgba(28, 26, 24, 0.58);
+      --lg-fill-clear: rgba(28, 26, 24, 0.36);
+      --lg-fill-elevated: rgba(38, 35, 32, 0.82);
+      --lg-rim: rgba(255, 255, 255, 0.22);
+      --lg-specular: rgba(255, 255, 255, 0.36);
+      --lg-shadow: 0 20px 48px rgba(0, 0, 0, 0.44), 0 2px 10px rgba(0, 0, 0, 0.28);
+      --lg-shadow-lift: 0 26px 58px rgba(0, 0, 0, 0.56);
+
+      --ink: #f2ece1;
+      --ink-secondary: #b5ada0;
+      --ink-muted: #847c70;
+      --rule: rgba(242, 236, 225, 0.13);
+
+      --lg-accent: #d9724e;
+      --lg-accent-soft: rgba(217, 114, 78, 0.2);
+      --lg-accent-ink: #141210;
+      --danger: #ef6456;
+      --danger-soft: rgba(239, 100, 86, 0.2);
     }
-  </script>
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      color: var(--ink);
+      line-height: 1.56;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(1100px 640px at 12% 10%, rgba(184, 74, 39, 0.2), transparent 62%),
+        radial-gradient(960px 600px at 88% 16%, rgba(45, 90, 67, 0.22), transparent 60%),
+        radial-gradient(980px 680px at 52% 84%, rgba(164, 124, 56, 0.18), transparent 64%),
+        linear-gradient(180deg, #ede5d7 0%, #e1d6c3 50%, #eae0cf 100%);
+      background-attachment: fixed;
+      transition: color 260ms ease, background 300ms ease;
+    }
+
+    html[data-theme="dark"] body {
+      background:
+        radial-gradient(1100px 620px at 14% 10%, rgba(217, 114, 78, 0.2), transparent 60%),
+        radial-gradient(940px 580px at 86% 20%, rgba(88, 180, 232, 0.16), transparent 58%),
+        radial-gradient(980px 660px at 48% 86%, rgba(92, 164, 126, 0.15), transparent 62%),
+        linear-gradient(180deg, #13110f 0%, #191613 52%, #111317 100%);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.024;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .serif { font-family: var(--font-serif); }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.86em;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: var(--lg-accent-soft);
+      color: var(--lg-accent);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--lg-accent); outline-offset: 2px; }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: min(1150px, calc(100% - 32px));
+      margin-inline: auto;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes sheetSlideUp {
+      from { opacity: 0; transform: translateY(28px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes taskPulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+    @keyframes navBeamSweep {
+      from { transform: translateX(-120%); }
+      to { transform: translateX(280%); }
+    }
+
+    .hero-anim { opacity: 0; animation: fadeUp 600ms var(--ease-out) forwards; }
+    .hero-anim--1 { animation-delay: 40ms; }
+    .hero-anim--2 { animation-delay: 110ms; }
+    .hero-anim--3 { animation-delay: 180ms; }
+    .hero-anim--4 { animation-delay: 250ms; }
+
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 540ms var(--ease-out), transform 540ms var(--ease-out);
+    }
+    [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+
+    /* 1. GlassCard */
+    .lg-card {
+      position: relative;
+      background: var(--lg-fill);
+      backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      border-radius: 24px;
+      border: 1px solid var(--lg-rim);
+      box-shadow: var(--lg-shadow), inset 0 1px 0 var(--lg-specular);
+      transition: transform 220ms var(--ease-out), box-shadow 220ms ease, background-color 220ms ease;
+    }
+    .lg-card--clear { background: var(--lg-fill-clear); }
+    .lg-card--interactive:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--lg-shadow-lift), inset 0 1px 0 var(--lg-specular);
+    }
+
+    /* 2. GlassButton (>= 48px touch targets) */
+    .lg-btn {
+      position: relative;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid var(--lg-rim);
+      background: var(--lg-fill);
+      backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08), inset 0 1px 0 var(--lg-specular);
+      transition: transform 160ms var(--ease-spring), background-color 180ms ease, box-shadow 180ms ease;
+    }
+    .lg-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .lg-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 var(--lg-specular); }
+    .lg-btn:active { transform: scale(0.97); }
+    .lg-btn--filled {
+      background: var(--lg-accent);
+      color: var(--lg-accent-ink);
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 10px 24px rgba(184, 74, 39, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    .lg-btn--tinted { background: var(--lg-accent-soft); color: var(--lg-accent); border-color: rgba(184, 74, 39, 0.28); }
+    .lg-btn--clear { background: transparent; border-color: transparent; box-shadow: none; backdrop-filter: none; }
+    .lg-btn--clear:hover { background: var(--lg-fill-clear); box-shadow: none; }
+    .lg-btn--destructive { background: var(--danger-soft); color: var(--danger); border-color: rgba(201, 59, 43, 0.3); }
+    .lg-btn--icon { width: 48px; height: 48px; padding: 0; border-radius: 50%; }
+    .lg-btn--sm { min-height: 48px; padding: 0 14px; font-size: 0.85rem; }
+
+    /* 3. GlassSwitch */
+    .lg-switch-wrap {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+    .lg-switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid var(--lg-rim);
+      background: var(--lg-fill-clear);
+      backdrop-filter: blur(16px);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16);
+      padding: 2px;
+      cursor: pointer;
+      transition: background-color 220ms ease, border-color 220ms ease;
+    }
+    .lg-switch[aria-checked="true"] { background: var(--lg-accent); border-color: rgba(255, 255, 255, 0.4); }
+    .lg-switch-thumb {
+      display: block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffffff, #f2efe9);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.26), inset 0 1px 0 #ffffff;
+      transition: transform 240ms var(--ease-spring);
+    }
+    .lg-switch[aria-checked="true"] .lg-switch-thumb { transform: translateX(22px); }
+
+    /* 4. GlassSegmented */
+    .lg-segmented {
+      position: relative;
+      display: inline-grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--lg-fill-clear);
+      backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      border: 1px solid var(--lg-rim);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+      user-select: none;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    .lg-seg-pill {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      width: calc((100% - 8px) / var(--seg-count, 2));
+      border-radius: 999px;
+      background: var(--lg-fill-elevated);
+      border: 0.75px solid var(--lg-rim);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 var(--lg-specular);
+      transform: translate3d(calc(var(--seg-index, 0) * 100%), 0, 0);
+      transition: transform 280ms var(--ease-spring);
+      pointer-events: none;
+    }
+    .lg-seg-btn {
+      position: relative;
+      z-index: 1;
+      min-height: 40px;
+      padding: 0 16px;
+      border: 0;
+      background: transparent;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 180ms ease;
+    }
+    .lg-seg-btn.is-active { color: var(--ink); }
+
+    /* 5. GlassSlider (Control Center Block + Standard Range) */
+    .lg-cc-slider {
+      position: relative;
+      height: 52px;
+      border-radius: 18px;
+      background: var(--lg-fill-clear);
+      border: 1px solid var(--lg-rim);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      cursor: ew-resize;
+      user-select: none;
+    }
+    .lg-cc-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--cc-pct, 60%);
+      background: var(--lg-accent-soft);
+      border-right: 1px solid var(--lg-rim);
+      pointer-events: none;
+      transition: width 80ms linear;
+    }
+    .lg-cc-label {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      pointer-events: none;
+    }
+    .lg-cc-label svg { width: 18px; height: 18px; color: var(--lg-accent); }
+    .lg-cc-val { position: relative; z-index: 1; font-size: 0.85rem; font-weight: 600; pointer-events: none; }
+
+    .lg-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 48px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .lg-range::-webkit-slider-runnable-track {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--lg-fill-clear);
+      border: 1px solid var(--lg-rim);
+    }
+    .lg-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 28px;
+      height: 22px;
+      margin-top: -7px;
+      border-radius: 999px;
+      background: var(--lg-fill-elevated);
+      border: 1px solid var(--lg-rim);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22), inset 0 1px 0 #ffffff;
+    }
+
+    /* 6. GlassInput */
+    .lg-input-group { display: flex; flex-direction: column; gap: 6px; }
+    .lg-input-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-secondary); }
+    .lg-input-shell {
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 16px;
+      background: var(--lg-fill);
+      backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      border: 1px solid var(--lg-rim);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .lg-input-shell:focus-within { border-color: var(--lg-accent); box-shadow: 0 0 0 3px var(--lg-accent-soft); }
+    .lg-input-shell svg { width: 17px; height: 17px; color: var(--ink-muted); flex-shrink: 0; }
+    .lg-input { width: 100%; min-height: 46px; border: 0; background: transparent; outline: none; font-size: 0.92rem; }
+    .lg-input-clear {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--lg-fill-clear);
+      color: var(--ink-secondary);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 0.85rem;
+    }
+    .lg-input-clear[hidden] { display: none; }
+
+    /* 7. GlassNav (48dp Floating Dock in 56dp Container) */
+    .dock-wrap {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+    .lg-nav {
+      position: relative;
+      width: 100%;
+      height: 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(18, 20, 26, 0.42);
+      backdrop-filter: blur(26px) saturate(190%);
+      -webkit-backdrop-filter: blur(26px) saturate(190%);
+      border: 0.75px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38), inset 0 0.75px 0 rgba(255, 255, 255, 0.42);
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+    .lg-nav-pill {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: calc((100% - 6px) / 4);
+      height: calc(100% - 6px);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.1));
+      border: 0.75px solid rgba(255, 255, 255, 0.46);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      pointer-events: none;
+      will-change: transform;
+    }
+    .lg-nav-beam {
+      position: absolute;
+      inset: 0;
+      width: 42%;
+      background: linear-gradient(108deg, transparent, rgba(255, 255, 255, 0.36), transparent);
+      transform: translateX(-140%);
+      pointer-events: none;
+    }
+    .lg-nav-beam.is-sweeping { animation: navBeamSweep 440ms cubic-bezier(0.4, 0, 0.2, 1); }
+    .lg-nav-item {
+      position: relative;
+      z-index: 2;
+      min-height: 42px;
+      border: 0;
+      background: transparent;
+      color: rgba(243, 244, 246, 0.62);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 0.62rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+    .lg-nav-item svg { width: 17px; height: 17px; transition: transform 200ms var(--ease-spring); }
+    .lg-nav-item.is-active { color: #ffffff; }
+    .lg-nav-item.is-active svg { transform: scale(1.1); }
+
+    /* 8. GlassSheet */
+    .lg-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      padding: 16px;
+      background: rgba(12, 11, 10, 0.52);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    @media (min-width: 720px) { .lg-sheet-backdrop { align-items: center; } }
+    .lg-sheet-backdrop[hidden] { display: none; }
+    .lg-sheet {
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 14px 24px 24px;
+      border-radius: 28px;
+      background: var(--lg-fill-elevated);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid var(--lg-rim);
+      box-shadow: var(--lg-shadow-lift), inset 0 1px 0 var(--lg-specular);
+      animation: sheetSlideUp 280ms var(--ease-spring);
+    }
+    .lg-sheet-grabber { width: 40px; height: 5px; border-radius: 999px; background: var(--rule); margin: 0 auto 14px; }
+
+    /* Layout & Phone Frame */
+    .site-header { position: sticky; top: 12px; z-index: 50; padding-top: 12px; }
+    .header-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 8px 12px 8px 18px; border-radius: 999px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; }
+    .brand-seal {
+      width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--ink);
+      display: grid; place-items: center; font-family: var(--font-serif); font-weight: 600; font-size: 1.08rem; background: var(--lg-fill-clear);
+    }
+    .brand-title strong { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .mobile-menu-btn { display: none; }
+    .mobile-drawer { margin-top: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .mobile-drawer[hidden] { display: none; }
+
+    .hero { padding: 48px 0 68px; }
+    .hero-grid { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: 48px; align-items: center; }
+    .hero h1 {
+      margin: 16px 0 18px; font-family: var(--font-serif); font-weight: 500;
+      font-size: clamp(2.35rem, 4.6vw, 3.65rem); line-height: 1.06; letter-spacing: -0.025em;
+    }
+    .hero h1 em { font-style: italic; color: var(--lg-accent); }
+    .hero-lead { margin: 0 0 24px; font-size: 1.04rem; color: var(--ink-secondary); max-width: 54ch; }
+    .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .hero-metrics { margin-top: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .phone-hardware {
+      width: min(368px, 100%); margin-inline: auto; padding: 11px; border-radius: 40px;
+      background: linear-gradient(155deg, #322f2b, #171614); border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 28px 64px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    }
+    .phone-screen {
+      position: relative; height: 652px; border-radius: 30px; overflow: hidden; display: flex; flex-direction: column; color: #f3f4f6;
+      background:
+        radial-gradient(circle at 82% 12%, rgba(88, 180, 232, 0.22), transparent 45%),
+        radial-gradient(circle at 18% 84%, rgba(217, 114, 78, 0.18), transparent 46%),
+        linear-gradient(180deg, #13161d 0%, #0d0f14 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .phone-statusbar { display: flex; justify-content: space-between; padding: 11px 18px 4px; font-size: 0.71rem; color: #9ca3af; }
+    .phone-topbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 14px 10px; }
+    .phone-eyebrow { margin: 0; font-size: 0.62rem; letter-spacing: 0.09em; color: #58b4e8; }
+    .phone-topbar h2 { margin: 0; font-size: 1.18rem; font-weight: 600; }
+    .phone-icon-btn {
+      width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08); color: #f3f4f6; display: inline-grid; place-items: center; cursor: pointer;
+    }
+    .phone-icon-btn svg { width: 17px; height: 17px; }
+    .phone-glass-menu {
+      position: absolute; top: 48px; right: 0; width: 220px; z-index: 60; border-radius: 18px; padding: 6px;
+      background: rgba(28, 31, 38, 0.88); border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform-origin: top right; animation: glassMenuBloom 220ms cubic-bezier(0.22, 1.15, 0.36, 1);
+    }
+    .phone-glass-menu[hidden] { display: none; }
+    @keyframes glassMenuBloom {
+      from { transform: scale(0.85) translateY(-6px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .phone-glass-menu__items { display: flex; flex-direction: column; gap: 2px; }
+    .phone-glass-menu__item {
+      display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 12px;
+      border: 0; background: transparent; color: #f3f4f6; font-size: 0.8rem; font-weight: 500; text-align: left; cursor: pointer;
+      transition: background 160ms ease, color 160ms ease;
+    }
+    .phone-glass-menu__item:hover, .phone-glass-menu__item:focus-visible { background: rgba(255, 255, 255, 0.12); color: #ffffff; outline: none; }
+    .phone-glass-menu__item.is-checked { color: #58b4e8; background: rgba(88, 180, 232, 0.12); }
+    .phone-glass-menu__icon { width: 16px; height: 16px; display: grid; place-items: center; flex-shrink: 0; opacity: 0.85; }
+    .phone-glass-menu__icon svg { width: 15px; height: 15px; }
+    .phone-glass-menu__label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .phone-glass-menu__check { font-size: 0.82rem; font-weight: 700; color: #58b4e8; opacity: 0; transition: opacity 160ms ease; }
+    .phone-glass-menu__item.is-checked .phone-glass-menu__check { opacity: 1; }
+    .pager-viewport { flex: 1; overflow: hidden; }
+    .pager-track { display: flex; height: 100%; transition: transform 360ms var(--ease-out); will-change: transform; }
+    .phone-page { flex: 0 0 100%; width: 100%; height: 100%; overflow-y: auto; padding: 4px 14px 80px; scrollbar-width: none; }
+    .phone-page::-webkit-scrollbar { display: none; }
+    .phone-glass-card {
+      padding: 13px; border-radius: 16px; background: rgba(28, 31, 38, 0.64);
+      border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(18px); margin-bottom: 10px;
+    }
+    .momentum-row { display: flex; align-items: center; gap: 14px; }
+    .ring-box { position: relative; width: 66px; height: 66px; flex-shrink: 0; }
+    .ring-box svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 7; }
+    .ring-fill { fill: none; stroke: #58b4e8; stroke-width: 7; stroke-linecap: round; stroke-dasharray: 226.2; stroke-dashoffset: 75; transition: stroke-dashoffset 420ms var(--ease-out); }
+    .ring-label { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.84rem; font-weight: 700; }
+    .phone-label { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 600; color: #9ca3af; margin: 10px 2px 6px; }
+    .task-list { display: flex; flex-direction: column; gap: 6px; }
+    .task-row {
+      width: 100%; min-height: 48px; padding: 9px 11px; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(28, 31, 38, 0.62); color: #f3f4f6; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer;
+    }
+    .task-row.is-popping { animation: taskPulse 240ms var(--ease-out); }
+    .task-left { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .task-box {
+      width: 19px; height: 19px; border-radius: 6px; border: 1.8px solid #58b4e8;
+      display: grid; place-items: center; flex-shrink: 0; font-size: 0.72rem; color: #0b1018; font-weight: 700;
+    }
+    .task-row.is-done .task-box { background: #58b4e8; }
+    .task-row.is-done .task-name { text-decoration: line-through; opacity: 0.55; }
+    .task-info { display: flex; flex-direction: column; min-width: 0; }
+    .task-name { font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-sub { font-size: 0.67rem; color: #9ca3af; }
+    .prio { font-size: 0.62rem; font-weight: 600; color: #9ca3af; flex-shrink: 0; }
+    .prio--urgent { color: #f87171; }
+    .prio--high { color: #fbbf24; }
+    .habit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .habit-btn {
+      min-height: 48px; padding: 10px; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(28, 31, 38, 0.62); color: #f3f4f6; text-align: left; cursor: pointer;
+    }
+    .habit-btn strong { display: block; font-size: 0.77rem; }
+    .habit-btn span { font-size: 0.67rem; color: #58b4e8; }
+    .cal-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal-day {
+      min-height: 48px; border-radius: 10px; border: 0; background: transparent; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.66rem; color: #9ca3af;
+    }
+    .cal-day strong { font-size: 0.78rem; color: #f3f4f6; }
+    .cal-day.is-selected { background: rgba(88, 180, 232, 0.2); color: #58b4e8; }
+    .cal-day.is-selected strong { color: #58b4e8; }
+    .mini-tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mini-tool-btn {
+      min-height: 48px; padding: 10px; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(28, 31, 38, 0.62); color: #f3f4f6; text-align: left; cursor: pointer; font-size: 0.76rem; font-weight: 600;
+    }
+    .bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 88px; align-items: end; margin-top: 10px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 4px; }
+    .bar-col i { width: 100%; height: var(--h); border-radius: 6px; background: #58b4e8; transform-origin: bottom; transform: scaleY(0.15); transition: transform 520ms var(--ease-out); }
+    .bars.is-animated .bar-col i { transform: scaleY(1); }
+    .bar-col span { font-size: 0.65rem; color: #9ca3af; }
+
+    .section { padding: 64px 0; border-top: 1px solid var(--rule); }
+    .section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 32px; }
+    .section-num { display: block; font-size: 0.76rem; color: var(--lg-accent); margin-bottom: 6px; letter-spacing: 0.06em; }
+    .section-head h2 { margin: 0; font-family: var(--font-serif); font-weight: 500; font-size: clamp(1.75rem, 3.2vw, 2.45rem); line-height: 1.12; letter-spacing: -0.02em; }
+    .section-head p { margin: 0; max-width: 44ch; color: var(--ink-secondary); font-size: 0.95rem; }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+    .feature-panel { transition: opacity 220ms ease, transform 220ms var(--ease-out); }
+    .feature-panel.is-fading { opacity: 0.35; transform: translateY(4px); }
+    .feature-bullets { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .feature-bullets li { display: flex; gap: 10px; font-size: 0.93rem; }
+    .feature-bullets li::before { content: "—"; color: var(--lg-accent); font-weight: 700; }
+    .spec-row { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); font-size: 0.86rem; }
+    .spec-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .tools-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 22px; }
+
+    .optics-stage {
+      position: relative; height: 148px; border-radius: 18px; overflow: hidden; display: grid; place-items: center;
+      background: linear-gradient(135deg, #27323f, #1a212b); border: 1px solid var(--lg-rim); margin-top: 14px;
+    }
+    .optics-pattern { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-around; font-size: 1.15rem; letter-spacing: 0.1em; color: rgba(244, 239, 230, 0.36); }
+    .optics-sample {
+      position: relative; padding: 16px 26px; border-radius: 20px; text-align: center; color: #f8f5ef;
+      background: rgba(20, 22, 26, 0.38); backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate));
+      -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-saturate)); border: 0.75px solid rgba(255, 255, 255, 0.48);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35), inset 0 0.75px 0 rgba(255, 255, 255, 0.65); transition: all 240ms var(--ease-out);
+    }
+    .optics-sample.no-backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(20, 22, 26, 0.86); }
+    .optics-sample.no-rim { border-color: transparent; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25); }
+    .optics-sample.no-lens { transform: scale(0.95); }
+    .optics-sample:not(.no-lens) { transform: scale(1.04); }
+
+    .predictive-stage { position: relative; height: 148px; border-radius: 18px; overflow: hidden; background: var(--lg-fill-clear); border: 1px solid var(--lg-rim); margin-top: 10px; }
+    .back-under, .back-top { position: absolute; inset: 12px; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .back-under { border: 1px dashed var(--rule); }
+    .back-top { will-change: transform, opacity; }
+
+    .timer-face { margin: 16px 0; padding: 20px; border-radius: 18px; background: var(--lg-fill-clear); border: 1px solid var(--lg-rim); display: flex; align-items: center; justify-content: center; gap: 18px; }
+    .timer-svg { width: 68px; height: 68px; transform: rotate(-90deg); }
+    .timer-svg circle { fill: none; stroke-width: 6; }
+    .timer-track { stroke: var(--rule); }
+    .timer-arc { stroke: var(--lg-accent); stroke-linecap: round; stroke-dasharray: 188.5; stroke-dashoffset: 0; transition: stroke-dashoffset 400ms linear; }
+
+    .site-footer { padding: 28px 0 44px; border-top: 1px solid var(--rule); font-size: 0.88rem; color: var(--ink-secondary); }
+    .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+    .toast-float { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 120; }
+    .toast-float[hidden] { display: none; }
+
+    @media (max-width: 1020px) {
+      .hero-grid, .grid-4, .grid-2 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 740px) {
+      .header-nav, .header-cta { display: none; }
+      .mobile-menu-btn { display: inline-flex; }
+      .hero-metrics, .grid-3 { grid-template-columns: 1fr; }
+      .section { padding: 48px 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+      .hero-anim, [data-reveal] { opacity: 1 !important; transform: none !important; }
+    }
+  </style>
 </head>
 <body>
+  <header class="site-header">
+    <div class="container">
+      <div class="lg-card header-bar">
+        <a href="#top" class="brand">
+          <span class="brand-seal" aria-hidden="true">T</span>
+          <span class="brand-title">
+            <strong>TDlxHT</strong>
+            <span class="mono" style="font-size:0.76rem;color:var(--ink-muted);margin-left:6px" id="headerVersionLabel">v2.5.54</span>
+          </span>
+        </a>
 
-  <!-- Cold Launch Classic 12-Blade Loader Overlay -->
-  <div id="cold-launch-loader" class="cold-launch-loader" aria-hidden="true">
-    <div class="loader-content">
-      <img src="/app-icon.png" alt="TDLxHT Logo" class="loader-logo" width="80" height="80">
-      <div class="classic-spinner" role="status" aria-label="Loading">
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
-        <div class="spinner-blade"></div>
+        <nav class="header-nav" aria-label="Primary Navigation">
+          <a href="#architecture" class="lg-btn lg-btn--clear lg-btn--sm">Architecture</a>
+          <a href="#features" class="lg-btn lg-btn--clear lg-btn--sm">Features</a>
+          <a href="#tools" class="lg-btn lg-btn--clear lg-btn--sm">15 Calculators</a>
+          <a href="#physics" class="lg-btn lg-btn--clear lg-btn--sm">Liquid Glass</a>
+          <a href="#release" class="lg-btn lg-btn--clear lg-btn--sm">Download</a>
+        </nav>
+
+        <div class="header-actions">
+          <label class="lg-switch-wrap" for="themeSwitchBtn">
+            <span>Dark</span>
+            <button type="button" role="switch" aria-checked="false" aria-label="Toggle dark theme" class="lg-switch" id="themeSwitchBtn">
+              <span class="lg-switch-thumb"></span>
+            </button>
+          </label>
+
+          <a href="./TDLxHT.2.5.54.apk" download="TDLxHT.2.5.54.apk" class="lg-btn lg-btn--filled header-cta" id="headerDownloadLink">
+            <span>Download APK</span>
+          </a>
+
+          <button type="button" class="lg-btn lg-btn--icon mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <nav class="lg-card mobile-drawer" id="mobileDrawer" aria-label="Mobile Navigation" hidden>
+        <a href="#architecture" class="lg-btn lg-btn--clear" style="justify-content:flex-start">Architecture</a>
+        <a href="#features" class="lg-btn lg-btn--clear" style="justify-content:flex-start">Features</a>
+        <a href="#tools" class="lg-btn lg-btn--clear" style="justify-content:flex-start">15 Calculators</a>
+        <a href="#physics" class="lg-btn lg-btn--clear" style="justify-content:flex-start">Liquid Glass &amp; Back</a>
+        <a href="#release" class="lg-btn lg-btn--filled">Download APK</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero + Interactive Android Preview -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="lg-card lg-card--clear hero-anim hero-anim--1" style="display:inline-block;padding:6px 14px;border-radius:999px">
+            <span class="mono" style="font-size:0.77rem" id="heroBuildBadge">
+              RELEASE v2.5.54 · Build 91 · Android 8.0+ (API 26–36)
+            </span>
+          </div>
+
+          <h1 class="hero-anim hero-anim--2">
+            Tasks, habits, calendar &amp; 15 calculators, <em>entirely offline</em>.
+          </h1>
+
+          <p class="hero-lead hero-anim hero-anim--3">
+            <strong>TDlxHT</strong> is a native Kotlin &amp; Jetpack Compose productivity application backed by local
+            Room SQLite persistence, exact Android reminders, predictive back navigation, and Apple iOS 26 Liquid Glass optics.
+          </p>
+
+          <div class="cta-row hero-anim hero-anim--4">
+            <a href="./TDLxHT.2.5.54.apk" download="TDLxHT.2.5.54.apk" class="lg-btn lg-btn--filled" id="heroDownloadBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4"></path>
+                <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+              </svg>
+              <span id="heroDownloadLabel">Download APK · v2.5.54</span>
+            </a>
+
+            <button type="button" class="lg-btn" id="openInstallGuideBtn">Install Guide</button>
+            <a href="./TDLxHT.apk" download="TDLxHT.apk" class="lg-btn lg-btn--tinted mono">TDLxHT.apk</a>
+          </div>
+
+          <div class="hero-metrics hero-anim hero-anim--4">
+            <div class="lg-card" style="padding:14px 16px;border-radius:18px">
+              <strong class="mono" style="display:block;font-size:1.05rem">100% Offline</strong>
+              <span style="font-size:0.78rem;color:var(--ink-muted)">Room 2.6.1 SQLite</span>
+            </div>
+            <div class="lg-card" style="padding:14px 16px;border-radius:18px">
+              <strong class="mono" style="display:block;font-size:1.05rem">15 Tools</strong>
+              <span style="font-size:0.78rem;color:var(--ink-muted)">1-Tap Task Creation</span>
+            </div>
+            <div class="lg-card" style="padding:14px 16px;border-radius:18px">
+              <strong class="mono" style="display:block;font-size:1.05rem">120fps</strong>
+              <span style="font-size:0.78rem;color:var(--ink-muted)">AGSL &amp; Haze Glass</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-anim hero-anim--3">
+          <div class="phone-hardware" aria-label="Interactive TDlxHT Android Preview">
+            <div class="phone-screen">
+              <div class="phone-statusbar mono">
+                <span>09:41</span>
+                <span>Offline · 96%</span>
+              </div>
+
+              <div class="phone-topbar">
+                <div>
+                  <p class="phone-eyebrow mono" id="phoneScreenEyebrow">TODAY DASHBOARD</p>
+                  <h2 id="phoneScreenTitle">Momentum</h2>
+                </div>
+                <div style="display:flex;gap:6px;position:relative">
+                  <button type="button" class="phone-icon-btn" id="phoneTimerBtn" aria-label="Open Focus Timer" title="Focus Timer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                      <circle cx="12" cy="13" r="8"></circle>
+                      <path d="M12 9v4l2.5 2.5M9 2h6"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="phone-icon-btn" id="phoneAddTaskBtn" aria-label="Quick add task" title="Quick Create Task">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+                      <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="phone-icon-btn phone-menu-trigger" id="phoneMenuBtn" aria-label="Note options" aria-haspopup="menu" aria-expanded="false" title="Note Options">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <circle cx="12" cy="12" r="1.5"></circle>
+                      <circle cx="19" cy="12" r="1.5"></circle>
+                      <circle cx="5" cy="12" r="1.5"></circle>
+                    </svg>
+                  </button>
+
+                  <!-- Authentic Liquid Glass Menu Dropdown -->
+                  <div class="phone-glass-menu" id="phoneGlassMenu" role="menu" aria-label="Note options" hidden>
+                    <div class="phone-glass-menu__items">
+                      <button type="button" class="phone-glass-menu__item is-checked" role="menuitemradio" data-label="View as Gallery" aria-checked="true">
+                        <span class="phone-glass-menu__icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        </span>
+                        <span class="phone-glass-menu__label">View as Gallery</span>
+                        <span class="phone-glass-menu__check" aria-hidden="true">✓</span>
+                      </button>
+                      <button type="button" class="phone-glass-menu__item" role="menuitemradio" data-label="Select Notes" aria-checked="false">
+                        <span class="phone-glass-menu__icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        </span>
+                        <span class="phone-glass-menu__label">Select Notes</span>
+                        <span class="phone-glass-menu__check" aria-hidden="true">✓</span>
+                      </button>
+                      <button type="button" class="phone-glass-menu__item" role="menuitemradio" data-label="Pin Note" aria-checked="false">
+                        <span class="phone-glass-menu__icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
+                        </span>
+                        <span class="phone-glass-menu__label">Pin Note</span>
+                        <span class="phone-glass-menu__check" aria-hidden="true">✓</span>
+                      </button>
+                      <button type="button" class="phone-glass-menu__item" role="menuitemradio" data-label="Favourite" aria-checked="false">
+                        <span class="phone-glass-menu__icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        </span>
+                        <span class="phone-glass-menu__label">Favourite</span>
+                        <span class="phone-glass-menu__check" aria-hidden="true">✓</span>
+                      </button>
+                      <button type="button" class="phone-glass-menu__item" role="menuitemradio" data-label="Share" aria-checked="false">
+                        <span class="phone-glass-menu__icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        </span>
+                        <span class="phone-glass-menu__label">Share</span>
+                        <span class="phone-glass-menu__check" aria-hidden="true">✓</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pager-viewport">
+                <div class="pager-track" id="phonePagerTrack">
+                  <!-- Tab 0: Today -->
+                  <section class="phone-page" aria-label="Today Dashboard">
+                    <div class="phone-glass-card momentum-row">
+                      <div class="ring-box">
+                        <svg viewBox="0 0 84 84" aria-hidden="true">
+                          <circle class="ring-track" cx="42" cy="42" r="36"></circle>
+                          <circle class="ring-fill" id="momentumCircle" cx="42" cy="42" r="36"></circle>
+                        </svg>
+                        <span class="ring-label mono" id="momentumPercent">67%</span>
+                      </div>
+                      <div>
+                        <strong style="display:block;font-size:0.88rem">Daily Momentum</strong>
+                        <span style="font-size:0.75rem;color:#9ca3af" id="momentumSummary">2 of 3 tasks · 2 habit streaks active</span>
+                      </div>
+                    </div>
+
+                    <div class="phone-label">
+                      <span>Today's Tasks</span>
+                      <span class="mono" id="phoneTaskCount">3</span>
+                    </div>
+                    <div class="task-list" id="phoneTaskList"></div>
+
+                    <div class="phone-label">
+                      <span>Habit Streaks Strip</span>
+                      <span>Tap to check in</span>
+                    </div>
+                    <div class="habit-row" id="phoneHabitStrip"></div>
+                  </section>
+
+                  <!-- Tab 1: Plan -->
+                  <section class="phone-page" aria-label="Productivity and Calendar">
+                    <div class="lg-segmented" style="--seg-count:2;--seg-index:0;width:100%;margin-bottom:10px" id="phonePlanSeg">
+                      <div class="lg-seg-pill"></div>
+                      <button type="button" class="lg-seg-btn is-active" style="color:#fff" data-subtab="calendar" data-idx="0">Calendar</button>
+                      <button type="button" class="lg-seg-btn" style="color:#9ca3af" data-subtab="priorities" data-idx="1">Priorities</button>
+                    </div>
+
+                    <div id="subtabCalendar">
+                      <div class="phone-glass-card">
+                        <div class="phone-label" style="margin-top:0">
+                          <span>November 2026</span>
+                          <span class="mono">Mon Start</span>
+                        </div>
+                        <div class="cal-strip" id="phoneCalendarDays"></div>
+                      </div>
+                      <div class="task-list" id="phoneCalendarAgenda"></div>
+                    </div>
+
+                    <div id="subtabPriorities" hidden>
+                      <div class="task-list">
+                        <div class="phone-glass-card">
+                          <strong style="font-size:0.82rem">Submit Capstone Milestone</strong>
+                          <div class="task-sub">Study · Due 18:00 · Alarm 15m · URGENT</div>
+                        </div>
+                        <div class="phone-glass-card">
+                          <strong style="font-size:0.82rem">Review Room Migration Schema</strong>
+                          <div class="task-sub">Work · 3/4 subtasks auto-complete · HIGH</div>
+                        </div>
+                        <div class="phone-glass-card">
+                          <strong style="font-size:0.82rem">Lab Equipment Checklist</strong>
+                          <div class="task-sub">College · Repeats Weekly · MEDIUM</div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <!-- Tab 2: Tools -->
+                  <section class="phone-page" aria-label="Utility Calculators">
+                    <div class="phone-glass-card">
+                      <strong style="font-size:0.84rem">15 Utility Calculators</strong>
+                      <div class="task-sub">Tap any tool to open the GlassSheet &amp; convert to a task.</div>
+                    </div>
+                    <div class="mini-tools-grid" id="phoneToolsGrid"></div>
+                  </section>
+
+                  <!-- Tab 3: Insights -->
+                  <section class="phone-page" aria-label="Productivity Insights">
+                    <div class="phone-glass-card">
+                      <span class="task-sub">Productivity Score</span>
+                      <div class="mono" id="insightsScoreValue" style="font-size:1.75rem;font-weight:700">91/100</div>
+                    </div>
+                    <div class="phone-glass-card">
+                      <strong style="font-size:0.82rem">7-Day Completion Trend</strong>
+                      <div class="bars" id="insightsBars" aria-hidden="true">
+                        <div class="bar-col"><i style="--h:64%"></i><span>M</span></div>
+                        <div class="bar-col"><i style="--h:82%"></i><span>T</span></div>
+                        <div class="bar-col"><i style="--h:74%"></i><span>W</span></div>
+                        <div class="bar-col"><i style="--h:92%"></i><span>T</span></div>
+                        <div class="bar-col"><i style="--h:88%"></i><span>F</span></div>
+                        <div class="bar-col"><i style="--h:70%"></i><span>S</span></div>
+                        <div class="bar-col"><i style="--h:95%"></i><span>S</span></div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <!-- GlassNav -->
+              <div class="dock-wrap">
+                <nav class="lg-nav" id="phoneDock" aria-label="TDlxHT App Navigation">
+                  <div class="lg-nav-beam" id="dockBeam" aria-hidden="true"></div>
+                  <div class="lg-nav-pill" id="dockLensPill" aria-hidden="true"></div>
+
+                  <button type="button" class="lg-nav-item is-active" data-page="0" aria-current="page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path>
+                    </svg>
+                    <span>Today</span>
+                  </button>
+                  <button type="button" class="lg-nav-item" data-page="1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="17" rx="3"></rect>
+                      <path d="M8 2v4M16 2v4M3 10h18"></path>
+                    </svg>
+                    <span>Plan</span>
+                  </button>
+                  <button type="button" class="lg-nav-item" data-page="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="4" y="3" width="16" height="18" rx="3"></rect>
+                      <path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"></path>
+                    </svg>
+                    <span>Tools</span>
+                  </button>
+                  <button type="button" class="lg-nav-item" data-page="3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+                    </svg>
+                    <span>Insights</span>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 01: Core Architecture -->
+    <section class="section" id="architecture">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="section-num mono">01 · ARCHITECTURE</span>
+            <h2>Built on local sovereignty.</h2>
+          </div>
+          <p>
+            Room SQLite serves as the single source of truth via reactive Kotlin Flows. Network sync, alarms, and
+            sensors operate asynchronously without blocking user input.
+          </p>
+        </div>
+
+        <div class="grid-4" data-reveal>
+          <article class="lg-card lg-card--interactive" style="padding:22px">
+            <span class="mono" style="font-size:0.75rem;color:var(--lg-accent)">I.</span>
+            <h3 class="serif" style="margin:8px 0;font-size:1.22rem">100% Offline-First Room DB</h3>
+            <p style="margin:0 0 12px;font-size:0.9rem;color:var(--ink-secondary)">
+              Tasks, habit logs, calendars, search, focus timers, and all 15 calculators function with zero internet
+              connectivity via Room 2.6.1 SQLite.
+            </p>
+            <span class="mono" style="font-size:0.72rem;color:var(--ink-muted)">AppDatabase · StateFlow UDF</span>
+          </article>
+
+          <article class="lg-card lg-card--interactive" style="padding:22px">
+            <span class="mono" style="font-size:0.75rem;color:var(--lg-accent)">II.</span>
+            <h3 class="serif" style="margin:8px 0;font-size:1.22rem">Zero Trackers, Optional Sync</h3>
+            <p style="margin:0 0 12px;font-size:0.9rem;color:var(--ink-secondary)">
+              No third-party analytics or ads. Optional Supabase Auth &amp; PostgREST sync resolves conflicts by
+              ISO-8601 <code>updatedAt</code> timestamps and supports full account deletion.
+            </p>
+            <span class="mono" style="font-size:0.72rem;color:var(--ink-muted)">SyncService · JSON Backup</span>
+          </article>
+
+          <article class="lg-card lg-card--interactive" style="padding:22px">
+            <span class="mono" style="font-size:0.75rem;color:var(--lg-accent)">III.</span>
+            <h3 class="serif" style="margin:8px 0;font-size:1.22rem">Apple iOS 26 Liquid Glass</h3>
+            <p style="margin:0 0 12px;font-size:0.9rem;color:var(--ink-secondary)">
+              Haze 1.7.2 live backdrop blur paired with AGSL Signed Distance Field refraction, spectral chromatic
+              dispersion, and <code>0.75dp</code> specular bevels.
+            </p>
+            <span class="mono" style="font-size:0.72rem;color:var(--ink-muted)">AGSL API 33+ · Fallback Ready</span>
+          </article>
+
+          <article class="lg-card lg-card--interactive" style="padding:22px">
+            <span class="mono" style="font-size:0.75rem;color:var(--lg-accent)">IV.</span>
+            <h3 class="serif" style="margin:8px 0;font-size:1.22rem">Exact Alarms &amp; Sensors</h3>
+            <p style="margin:0 0 12px;font-size:0.9rem;color:var(--ink-secondary)">
+              Uses <code>setExactAndAllowWhileIdle()</code> to fire reminders accurately in Doze mode, plus low-pass
+              filtered accelerometer shake gestures.
+            </p>
+            <span class="mono" style="font-size:0.72rem;color:var(--ink-muted)">AlarmManager · SensorManager</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 02: Feature Manual -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="section-num mono">02 · CAPABILITIES</span>
+            <h2>Every workflow in one calm system.</h2>
+          </div>
+          <p>
+            Explore each core module of TDlxHT—from hierarchical subtasks and flexible habit streaks to sound profiles
+            and automated OTA updates.
+          </p>
+        </div>
+
+        <div style="margin-bottom:18px" data-reveal>
+          <div class="lg-segmented" style="--seg-count:4;--seg-index:0" id="featureSegmented" role="tablist" aria-label="TDlxHT Feature Modules">
+            <div class="lg-seg-pill"></div>
+            <button type="button" class="lg-seg-btn is-active" role="tab" aria-selected="true" data-feature="tasks" data-idx="0">Tasks &amp; Subtasks</button>
+            <button type="button" class="lg-seg-btn" role="tab" aria-selected="false" data-feature="habits" data-idx="1">Habit Engine</button>
+            <button type="button" class="lg-seg-btn" role="tab" aria-selected="false" data-feature="calendar" data-idx="2">Unified Calendar</button>
+            <button type="button" class="lg-seg-btn" role="tab" aria-selected="false" data-feature="system" data-idx="3">Audio, Backup &amp; OTA</button>
+          </div>
+        </div>
+
+        <div class="lg-card feature-panel" style="padding:28px" id="featureShowcasePanel" data-reveal>
+          <div class="grid-2" style="align-items:start">
+            <div>
+              <span class="mono" style="font-size:0.76rem;color:var(--lg-accent)" id="featureBadge">TaskListScreen &amp; TaskDetailEditScreen</span>
+              <h3 class="serif" style="margin:8px 0 10px;font-size:1.6rem;font-weight:500" id="featureTitle">Priority Triage, Subtask Auto-Completion &amp; Back-Guards</h3>
+              <p style="margin:0 0 16px;color:var(--ink-secondary)" id="featureDesc"></p>
+              <ul class="feature-bullets" id="featureBullets"></ul>
+            </div>
+            <div class="lg-card lg-card--clear" style="padding:20px;border-radius:18px;display:grid;gap:11px" id="featureSpecCard"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 03: 15 Utility Calculators -->
+    <section class="section" id="tools">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="section-num mono">03 · UTILITY SUITE</span>
+            <h2>15 Built-in Calculators.</h2>
+          </div>
+          <p>
+            Select any calculator below to open a live <code>GlassSheet</code> modal and convert the output into a task
+            with one click.
+          </p>
+        </div>
+
+        <div class="tools-toolbar" data-reveal>
+          <div class="lg-segmented" style="--seg-count:5;--seg-index:0" id="calcFilterSegmented" role="tablist" aria-label="Calculator categories">
+            <div class="lg-seg-pill"></div>
+            <button type="button" class="lg-seg-btn is-active" data-filter="all" data-idx="0">All 15</button>
+            <button type="button" class="lg-seg-btn" data-filter="finance" data-idx="1">Finance</button>
+            <button type="button" class="lg-seg-btn" data-filter="academic" data-idx="2">Academic</button>
+            <button type="button" class="lg-seg-btn" data-filter="productivity" data-idx="3">Productivity</button>
+            <button type="button" class="lg-seg-btn" data-filter="utility" data-idx="4">Utilities</button>
+          </div>
+
+          <div style="width:min(340px, 100%)">
+            <div class="lg-input-shell">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+              </svg>
+              <input type="search" class="lg-input" id="toolsSearchInput" placeholder="Search 15 calculators..." aria-label="Search calculators" />
+              <button type="button" class="lg-input-clear" id="clearSearchBtn" aria-label="Clear search" hidden>×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3" id="toolsGrid" data-reveal></div>
+      </div>
+    </section>
+
+    <!-- Section 04: Liquid Glass & Predictive Back -->
+    <section class="section" id="physics">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="section-num mono">04 · ENGINEERING OPTICS</span>
+            <h2>Liquid Glass &amp; Predictive Back.</h2>
+          </div>
+          <p>
+            Adjust live refraction intensity using the Control Center block slider, toggle individual optical layers, or
+            test Android Predictive Back stack translation.
+          </p>
+        </div>
+
+        <div class="grid-2" data-reveal>
+          <div class="lg-card" style="padding:26px">
+            <span class="mono" style="font-size:0.74rem;color:var(--lg-accent)">THREE-LAYER OPTICAL MODEL</span>
+            <h3 class="serif" style="margin:6px 0 12px;font-size:1.4rem;font-weight:500">Backdrop, Specular Rim &amp; Content Lens</h3>
+
+            <div
+              class="lg-cc-slider"
+              id="intensityBlockSlider"
+              role="slider"
+              tabindex="0"
+              aria-label="Liquid Glass Intensity"
+              aria-valuemin="1"
+              aria-valuemax="10"
+              aria-valuenow="6"
+              style="--cc-pct:60%;margin-bottom:14px"
+            >
+              <div class="lg-cc-fill" id="intensityBlockFill"></div>
+              <span class="lg-cc-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                  <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path>
+                </svg>
+                <span>Glass Intensity (Drag)</span>
+              </span>
+              <span class="lg-cc-val mono" id="intensityValueLabel">6 / 10</span>
+            </div>
+
+            <div style="display:grid;gap:4px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.88rem"><strong>1. Glass Backdrop</strong> — Haze blur + refraction</span>
+                <button type="button" role="switch" aria-checked="true" aria-label="Toggle Glass Backdrop" class="lg-switch" id="layerBackdropSwitch">
+                  <span class="lg-switch-thumb"></span>
+                </button>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.88rem"><strong>2. Specular Rim</strong> — 0.75dp top bevel</span>
+                <button type="button" role="switch" aria-checked="true" aria-label="Toggle Specular Rim" class="lg-switch" id="layerRimSwitch">
+                  <span class="lg-switch-thumb"></span>
+                </button>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.88rem"><strong>3. Content Lens</strong> — Active magnification</span>
+                <button type="button" role="switch" aria-checked="true" aria-label="Toggle Content Lens" class="lg-switch" id="layerLensSwitch">
+                  <span class="lg-switch-thumb"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="optics-stage">
+              <div class="optics-pattern mono" aria-hidden="true">
+                <span>AGSL</span><span>1.48</span><span>120HZ</span>
+              </div>
+              <div class="optics-sample" id="opticsDemoPill">
+                <strong style="display:block;font-size:0.96rem">LiquidGlassSurface</strong>
+                <small class="mono" style="font-size:0.72rem;opacity:0.82">edgeAA · chromaticDispersion</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg-card" style="padding:26px">
+            <span class="mono" style="font-size:0.74rem;color:var(--lg-accent)">ANDROID PREDICTIVE BACK (API 33+)</span>
+            <h3 class="serif" style="margin:6px 0 8px;font-size:1.4rem;font-weight:500">Zero-Flash Stack Translation</h3>
+            <p style="margin:0 0 14px;font-size:0.9rem;color:var(--ink-secondary)">
+              <code>PredictiveNavigationHost</code> drives horizontal translation from live <code>BackEventCompat</code>
+              progress, while <code>isDirty</code> forms prompt before discarding edits.
+            </p>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.86rem">
+                <label for="predictiveBackSlider">Swipe-Back Progress</label>
+                <strong class="mono" id="backProgressLabel">0%</strong>
+              </div>
+              <input type="range" class="lg-range" id="predictiveBackSlider" min="0" max="100" value="0" />
+            </div>
+
+            <div class="predictive-stage">
+              <div class="back-under">
+                <span class="mono" style="font-size:0.7rem;color:var(--lg-accent)">UNDERLYING STACK</span>
+                <strong>Today Dashboard</strong>
+                <small style="color:var(--ink-secondary)">Live Compose state preserved underneath</small>
+              </div>
+              <div class="lg-card back-top" id="predictiveTopCard">
+                <span class="mono" style="font-size:0.7rem;color:var(--lg-accent)">ACTIVE SCREEN</span>
+                <strong>Settings &amp; Diagnostics</strong>
+                <small style="color:var(--ink-secondary)">Translates 1:1 with swipe gesture</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 05: Official Release -->
+    <section class="section" id="release">
+      <div class="container">
+        <div class="lg-card" style="padding:32px" data-reveal>
+          <div class="grid-2" style="align-items:start">
+            <div>
+              <span class="section-num mono">05 · OFFICIAL RELEASE</span>
+              <h2 class="serif" style="margin:6px 0 12px;font-size:2.1rem;font-weight:500">
+                Install TDlxHT <span class="mono" id="releaseTitleVersion">v2.5.54</span>
+              </h2>
+              <p style="margin:0 0 20px;color:var(--ink-secondary)">
+                Signed Android release APK compiled from Kotlin 2.2.10 and Jetpack Compose with zero trackers or ads.
+                Supports Android 8.0 Oreo through Android 16 (API 26–36).
+              </p>
+
+              <div class="cta-row" style="margin-bottom:24px">
+                <a href="./TDLxHT.2.5.54.apk" download="TDLxHT.2.5.54.apk" class="lg-btn lg-btn--filled" id="releaseDownloadPrimary">
+                  Download TDLxHT.2.5.54.apk
+                </a>
+                <a href="./TDLxHT.apk" download="TDLxHT.apk" class="lg-btn" id="releaseDownloadAlias">
+                  Download Latest (TDLxHT.apk)
+                </a>
+                <a href="./version.json" target="_blank" rel="noopener" class="lg-btn lg-btn--clear">
+                  Inspect version.json
+                </a>
+              </div>
+
+              <div class="grid-3">
+                <div class="lg-card lg-card--clear" style="padding:14px;border-radius:16px">
+                  <span class="mono" style="font-size:0.72rem;color:var(--lg-accent);display:block">STEP 01</span>
+                  <strong>Download APK</strong>
+                  <p style="margin:4px 0 0;font-size:0.82rem;color:var(--ink-secondary)">Save <code>TDLxHT.2.5.54.apk</code> to your Android device.</p>
+                </div>
+                <div class="lg-card lg-card--clear" style="padding:14px;border-radius:16px">
+                  <span class="mono" style="font-size:0.72rem;color:var(--lg-accent);display:block">STEP 02</span>
+                  <strong>Allow Install Once</strong>
+                  <p style="margin:4px 0 0;font-size:0.82rem;color:var(--ink-secondary)">Grant <em>Install unknown apps</em> permission if prompted.</p>
+                </div>
+                <div class="lg-card lg-card--clear" style="padding:14px;border-radius:16px">
+                  <span class="mono" style="font-size:0.72rem;color:var(--lg-accent);display:block">STEP 03</span>
+                  <strong>Launch Offline</strong>
+                  <p style="margin:4px 0 0;font-size:0.82rem;color:var(--ink-secondary)">Start using tasks, habits &amp; tools with no login required.</p>
+                </div>
+              </div>
+            </div>
+
+            <aside class="lg-card lg-card--clear" style="padding:22px;border-radius:20px" aria-label="Technical Release Specifications">
+              <h3 class="serif" style="margin:0 0 14px;font-size:1.2rem;font-weight:500">Release Specification</h3>
+              <div style="display:grid;gap:10px">
+                <div class="spec-row"><span style="color:var(--ink-muted)">Application</span><strong class="mono">TDlxHT</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Version</span><strong class="mono" id="specVersion">2.5.54</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Build Code</span><strong class="mono" id="specBuild">91</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Platform SDK</span><strong class="mono">API 26 – 36</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Toolchain</span><strong class="mono">Kotlin 2.2 · Java 21</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Persistence</span><strong class="mono">Room 2.6.1 SQLite</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Glass Engine</span><strong class="mono">Haze 1.7.2 + AGSL</strong></div>
+                <div class="spec-row"><span style="color:var(--ink-muted)">Cloud Sync</span><strong class="mono">Optional Supabase</strong></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong class="serif">TDlxHT</strong> · <span class="mono" id="footerVersionLabel">v2.5.54 (Build 91)</span> —
+        100% Offline-First Personal Productivity for Android.
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <a href="#architecture" class="lg-btn lg-btn--clear lg-btn--sm">Architecture</a>
+        <a href="#features" class="lg-btn lg-btn--clear lg-btn--sm">Features</a>
+        <a href="#tools" class="lg-btn lg-btn--clear lg-btn--sm">15 Calculators</a>
+        <a href="./TDLxHT.2.5.54.apk" download="TDLxHT.2.5.54.apk" class="lg-btn lg-btn--tinted lg-btn--sm">Download APK</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GlassSheet 1: Calculator ToolRunnerModal -->
+  <div class="lg-sheet-backdrop" id="toolModal" role="dialog" aria-modal="true" aria-labelledby="toolModalTitle" hidden>
+    <div class="lg-sheet">
+      <div class="lg-sheet-grabber" aria-hidden="true"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">
+        <div>
+          <span class="mono" style="font-size:0.74rem;color:var(--lg-accent)" id="toolModalCategory">FINANCE · #01</span>
+          <h2 class="serif" style="margin:4px 0 0;font-size:1.45rem;font-weight:500" id="toolModalTitle">Loan EMI</h2>
+        </div>
+        <button type="button" class="lg-btn lg-btn--icon" id="closeToolModalBtn" aria-label="Close calculator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <p style="margin:0 0 16px;font-size:0.9rem;color:var(--ink-secondary)" id="toolModalDesc"></p>
+      <div class="grid-2" style="gap:12px;margin-bottom:16px" id="toolModalInputs"></div>
+      <div class="lg-card lg-card--clear grid-2" style="padding:16px;border-radius:18px;gap:12px;margin-bottom:18px" id="toolModalResults"></div>
+
+      <div class="cta-row" style="justify-content:flex-end">
+        <button type="button" class="lg-btn lg-btn--destructive" id="resetToolBtn">Reset</button>
+        <button type="button" class="lg-btn lg-btn--filled" id="createTaskFromToolBtn">+ Create Task from Result</button>
       </div>
     </div>
   </div>
 
-  <main class="page-container">
-
-    <!-- Editorial Brand Header (Clean, unsticky single-header layout) -->
-    <header class="site-brand-header">
-      <a href="/" class="header-brand" aria-label="TDLxHT Home">
-        <div class="header-brand-icon">
-          <img src="/app-icon.png" alt="TDLxHT Logo" width="36" height="36">
+  <!-- GlassSheet 2: Install Guide -->
+  <div class="lg-sheet-backdrop" id="installModal" role="dialog" aria-modal="true" aria-labelledby="installModalTitle" hidden>
+    <div class="lg-sheet">
+      <div class="lg-sheet-grabber" aria-hidden="true"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">
+        <div>
+          <span class="mono" style="font-size:0.74rem;color:var(--lg-accent)">ANDROID INSTALLATION</span>
+          <h2 class="serif" style="margin:4px 0 0;font-size:1.45rem;font-weight:500" id="installModalTitle">Installing TDlxHT v2.5.54</h2>
         </div>
-        <span>TDLxHT</span>
-      </a>
-      <div class="header-version-note">
-        <span>Offline Native Android · v<span class="apk-version-label">2.5.50</span></span>
+        <button type="button" class="lg-btn lg-btn--icon" id="closeInstallModalBtn" aria-label="Close guide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+        </button>
       </div>
-    </header>
+      <p style="margin:0 0 14px;font-size:0.9rem;color:var(--ink-secondary)">Supports Android 8.0 Oreo (API 26) through Android 16 (API 36).</p>
+      <ol style="margin:0 0 20px;padding-left:20px;display:grid;gap:8px;color:var(--ink-secondary);font-size:0.92rem">
+        <li>Download <code>TDLxHT.2.5.54.apk</code> onto your Android device.</li>
+        <li>Open the APK file from Downloads or your Android Files app.</li>
+        <li>Allow <em>Install unknown apps</em> if prompted, then tap <strong>Install</strong>.</li>
+        <li>Future releases sync cleanly via <code>version.json</code> inside <code>AppUpdateManager</code>.</li>
+      </ol>
+      <div class="cta-row" style="justify-content:flex-end">
+        <button type="button" class="lg-btn" id="dismissInstallModalBtn">Close</button>
+        <a href="./TDLxHT.2.5.54.apk" download="TDLxHT.2.5.54.apk" class="lg-btn lg-btn--filled">Download APK</a>
+      </div>
+    </div>
+  </div>
 
-    <section id="dashboard" class="hero-layout">
-      <!-- Left Column: Copy & Actions -->
-      <div class="hero-left">
-        <h1 class="hero-heading">
-          Tasks, habits and<br>
-          calculators.<br>
-          One offline app.
-        </h1>
-        <p class="hero-subtitle">
-          Manage daily tasks, build lifelong habits and use 14 practical calculators without requiring an internet connection or subscriptions.
-        </p>
-        <div class="hero-actions">
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.50/TDLxHT.2.5.50.apk" data-apk-download="true" class="btn-glass btn-glass-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Download APK</span>
-          </a>
-          <a href="#features" class="btn-glass btn-glass-secondary">
-            <span>Explore features</span>
-            <span aria-hidden="true">→</span>
-          </a>
+  <!-- GlassSheet 3: Focus Timer Dialog -->
+  <div class="lg-sheet-backdrop" id="timerModal" role="dialog" aria-modal="true" aria-labelledby="timerModalTitle" hidden>
+    <div class="lg-sheet">
+      <div class="lg-sheet-grabber" aria-hidden="true"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">
+        <div>
+          <span class="mono" style="font-size:0.74rem;color:var(--lg-accent)">FOCUS TIMER DIALOG</span>
+          <h2 class="serif" style="margin:4px 0 0;font-size:1.45rem;font-weight:500" id="timerModalTitle">Deep Focus Session</h2>
         </div>
+        <button type="button" class="lg-btn lg-btn--icon" id="closeTimerModalBtn" aria-label="Close timer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6L6 18M6 6l12 12"></path>
+          </svg>
+        </button>
       </div>
 
-      <!-- Right Column: Interactive Glass Focus Hub Widget -->
-      <div class="focus-hub-card glass-panel" id="focus-hub-widget">
-        <div class="focus-hub-header">
-          <span class="hub-title">Today's Focus</span>
-          <div class="hub-status-live">
-            <span>Interactive Demo</span>
-          </div>
-        </div>
-
-        <!-- Dynamic Circular Progress Ring -->
-        <div class="progress-card-strip">
-          <div class="progress-ring-box">
-            <svg class="progress-ring-svg" width="58" height="58" viewBox="0 0 64 64">
-              <circle class="ring-track" cx="32" cy="32" r="26" stroke-width="5.5"/>
-              <circle class="ring-fill" id="preview-progress-ring" cx="32" cy="32" r="26" stroke-width="5.5" stroke-dasharray="163.36" stroke-dashoffset="81.68"/>
-            </svg>
-            <span class="progress-ring-label" id="preview-progress-percent">50%</span>
-          </div>
-          <div class="progress-details">
-            <span class="progress-heading" id="preview-progress-title">2 of 4 tasks completed</span>
-            <span class="progress-sub">Tap any task below to toggle</span>
-          </div>
-        </div>
-
-        <!-- Interactive Task Checklist -->
-        <div class="task-items-list" role="list">
-          <div class="preview-task-item checked" data-task-id="1" role="checkbox" aria-checked="true" tabindex="0">
-            <span class="preview-task-check">✓</span>
-            <div class="task-copy">
-              <span class="task-name">Offline SQLite Task Sync</span>
-              <span class="task-meta">Instant on-device Room persistence</span>
-            </div>
-          </div>
-          <div class="preview-task-item checked" data-task-id="2" role="checkbox" aria-checked="true" tabindex="0">
-            <span class="preview-task-check">✓</span>
-            <div class="task-copy">
-              <span class="task-name">Dual-Streak Habit Engine</span>
-              <span class="task-meta">Daily routines & momentum tracker</span>
-            </div>
-          </div>
-          <div class="preview-task-item" data-task-id="3" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="preview-task-check"></span>
-            <div class="task-copy">
-              <span class="task-name">25m Deep Focus Block</span>
-              <span class="task-meta">Distraction-free timer</span>
-            </div>
-          </div>
-          <div class="preview-task-item" data-task-id="4" role="checkbox" aria-checked="false" tabindex="0">
-            <span class="preview-task-check"></span>
-            <div class="task-copy">
-              <span class="task-name">14 Native Calculators</span>
-              <span class="task-meta">Finance, academic & conversion tools</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Working Pomodoro Focus Timer -->
-        <div class="focus-timer-strip">
-          <div class="timer-left">
-            <span class="timer-icon" aria-hidden="true">⏱</span>
-            <span class="timer-digits" id="preview-timer-display">25:00</span>
-          </div>
-          <div class="timer-actions">
-            <button class="btn-timer-action" id="preview-timer-btn" type="button" aria-label="Toggle focus session">
-              <span>▶ Start</span>
-            </button>
-            <button class="btn-timer-secondary" id="preview-timer-reset" type="button" aria-label="Reset timer">
-              <span>Reset</span>
-            </button>
-          </div>
+      <div class="timer-face">
+        <svg class="timer-svg" viewBox="0 0 72 72" aria-hidden="true">
+          <circle class="timer-track" cx="36" cy="36" r="30"></circle>
+          <circle class="timer-arc" id="timerRingCircle" cx="36" cy="36" r="30"></circle>
+        </svg>
+        <div>
+          <strong class="mono" style="display:block;font-size:2.4rem;line-height:1" id="timerDisplay">25:00</strong>
+          <span style="font-size:0.84rem;color:var(--ink-secondary)" id="timerStateText">Ready for distraction-free focus</span>
         </div>
       </div>
-    </section>
 
-    <section id="features">
-      <h2 class="section-title">The tools you actually use.</h2>
-      <p class="section-desc">Straightforward by design. Clean navigation, readable content and zero telemetry.</p>
-
-      <div class="features-grid">
-        <!-- Feature 1: Tasks -->
-        <div class="feature-glass-card glass-panel">
-          <div class="feature-icon-box">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <h3 class="feature-title">Task Management</h3>
-          <p class="feature-text">Capture tasks, priorities, categories, and due dates with instant SQLite persistence. Zero cloud latency.</p>
-        </div>
-
-        <!-- Feature 2: Habits -->
-        <div class="feature-glass-card glass-panel">
-          <div class="feature-icon-box">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          </div>
-          <h3 class="feature-title">Habit Tracking</h3>
-          <p class="feature-text">Build resilient daily habits with dual-streak tracking, frequency scheduling, and historical completion charts.</p>
-        </div>
-
-        <!-- Feature 3: Calculators -->
-        <div class="feature-glass-card glass-panel">
-          <div class="feature-icon-box">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
-          </div>
-          <h3 class="feature-title">14 Native Tools</h3>
-          <p class="feature-text">From Loan EMI and GST to CGPA and Fuel Cost: instant offline calculators ready on your device when you need them.</p>
+      <div style="margin-bottom:18px">
+        <div class="lg-segmented" style="--seg-count:3;--seg-index:1;width:100%" id="timerPresetSeg" aria-label="Timer duration presets">
+          <div class="lg-seg-pill"></div>
+          <button type="button" class="lg-seg-btn timer-preset" data-mins="15" data-idx="0">15m Sprint</button>
+          <button type="button" class="lg-seg-btn timer-preset is-active" data-mins="25" data-idx="1">25m Pomodoro</button>
+          <button type="button" class="lg-seg-btn timer-preset" data-mins="45" data-idx="2">45m Deep Work</button>
         </div>
       </div>
-    </section>
 
-    <section id="calculators">
-      <h2 class="section-title">Useful calculations, without the clutter.</h2>
-      <p class="section-desc">Search or filter by category. Instant mathematical feedback on every keystroke.</p>
+      <div class="cta-row" style="justify-content:flex-end">
+        <button type="button" class="lg-btn" id="timerResetBtn">Reset</button>
+        <button type="button" class="lg-btn lg-btn--filled" id="timerToggleBtn">Start Focus</button>
+      </div>
+    </div>
+  </div>
 
-      <div class="calc-workbench-card glass-panel" id="calc-runner">
-        <!-- Category & Search Bar -->
-        <div class="calc-filter-bar">
-          <div class="calc-categories-segmented" role="tablist" aria-label="Calculator categories">
-            <button class="calc-category-btn active" data-calc-category="ALL" role="tab" aria-selected="true">All Tools</button>
-            <button class="calc-category-btn" data-calc-category="FINANCE" role="tab" aria-selected="false">Finance</button>
-            <button class="calc-category-btn" data-calc-category="ACADEMIC" role="tab" aria-selected="false">Academic</button>
-            <button class="calc-category-btn" data-calc-category="BUDGETING" role="tab" aria-selected="false">Budgeting</button>
-            <button class="calc-category-btn" data-calc-category="EVERYDAY" role="tab" aria-selected="false">Everyday</button>
-            <button class="calc-category-btn" data-calc-category="CONVERSION" role="tab" aria-selected="false">Conversion</button>
-          </div>
+  <div class="toast-float" id="toastPill" role="status" aria-live="polite" hidden>
+    <div class="lg-card" style="padding:10px 20px;border-radius:999px">
+      <strong id="toastMessage" style="font-size:0.88rem"></strong>
+    </div>
+  </div>
 
-          <div class="calc-search-box">
-            <span class="calc-search-icon" aria-hidden="true">⌕</span>
-            <input type="search" id="calc-search-input" class="calc-search-input" placeholder="Search calculators..." aria-label="Search calculators">
-          </div>
-        </div>
+  <script>
+    (() => {
+      const DEFAULT_RELEASE = { versionName: "2.5.54", versionCode: 91 };
 
-        <!-- Tool Chips Selector -->
-        <div class="calc-chips-scroll" id="calc-chips-container"></div>
+      const state = {
+        currentPage: 0,
+        pageOffset: 0,
+        targetPageOffset: 0,
+        isDraggingDock: false,
+        selectedCalDay: 13,
+        activeToolId: "emi",
+        activeFilter: "all",
+        searchQuery: "",
+        glassIntensity: 6,
+        tasks: [
+          { id: "t1", title: "Review Q4 Budget & Loan EMI", sub: "Work · Due 14:30 · Alarm 15m", priority: "HIGH", done: true },
+          { id: "t2", title: "Finish Mobile Architecture Notes", sub: "Study · 3/3 subtasks done", priority: "URGENT", done: true },
+          { id: "t3", title: "Evening Grocery Checklist", sub: "Shopping · Offline Ready", priority: "MEDIUM", done: false }
+        ],
+        habits: [
+          { id: "h1", name: "Hydration", current: 2, target: 4, unit: "sessions", streak: 14 },
+          { id: "h2", name: "Deep Reading", current: 20, target: 30, unit: "pages", streak: 9 }
+        ],
+        agendaByDay: {
+          11: [{ title: "Weekly Habit Audit", time: "09:00", tag: "Personal" }],
+          12: [{ title: "Database Migration Check", time: "15:00", tag: "Work" }],
+          13: [
+            { title: "Review Q4 Budget & Loan EMI", time: "14:30", tag: "Work" },
+            { title: "Evening Grocery Checklist", time: "19:00", tag: "Shopping" }
+          ],
+          14: [{ title: "Algorithm Problem Set", time: "10:00", tag: "Study" }],
+          15: [{ title: "Sunday Weekly Reset", time: "18:30", tag: "Personal" }]
+        }
+      };
 
-        <!-- Interactive Workbench Form & Output -->
-        <div class="calc-runner-layout">
-          <div>
-            <div class="calc-runner-header">
-              <span class="calc-runner-title" id="calc-runner-title">Loan EMI</span>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span class="calc-tag" id="calc-category-tag">FINANCE</span>
-                <button class="btn-timer-secondary" id="calc-reset-btn" type="button" aria-label="Reset inputs">Reset</button>
+      const fmt = (n) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+      const fmtDur = (mins) => {
+        const m = Math.max(0, Math.round(mins));
+        const h = Math.floor(m / 60);
+        return h > 0 ? `${h}h ${m % 60}m` : `${m % 60}m`;
+      };
+
+      const CALCULATORS = [
+        {
+          id: "emi", num: "01", name: "Loan EMI", category: "finance",
+          desc: "Principal, annual interest rate, and tenure calculation yielding monthly EMI and total interest.",
+          fields: [
+            { key: "principal", label: "Loan Principal", type: "number", default: 500000, min: 100 },
+            { key: "rate", label: "Annual Interest (%)", type: "number", default: 8.5, step: 0.1, min: 0 },
+            { key: "months", label: "Tenure (Months)", type: "number", default: 36, min: 1 }
+          ],
+          compute(v) {
+            const p = Math.max(0, Number(v.principal) || 0), r = Math.max(0, Number(v.rate) || 0) / 12 / 100, n = Math.max(1, Math.round(Number(v.months) || 1));
+            const emi = r === 0 ? p / n : (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1), total = emi * n;
+            return { results: [{ label: "Monthly EMI", value: fmt(emi) }, { label: "Total Interest", value: fmt(total - p) }, { label: "Total Payment", value: fmt(total) }, { label: "Tenure", value: `${n} months` }], taskTitle: `Pay monthly EMI (${fmt(emi)})` };
+          }
+        },
+        {
+          id: "split-bill", num: "02", name: "Split Bill & Tip", category: "finance",
+          desc: "Total bill, tip percentage, and headcount split with per-person breakdown.",
+          fields: [
+            { key: "bill", label: "Total Bill", type: "number", default: 2400, min: 0 },
+            { key: "tip", label: "Tip (%)", type: "number", default: 10, min: 0 },
+            { key: "people", label: "People", type: "number", default: 4, min: 1 }
+          ],
+          compute(v) {
+            const bill = Math.max(0, Number(v.bill) || 0), tip = bill * (Math.max(0, Number(v.tip) || 0) / 100), people = Math.max(1, Math.round(Number(v.people) || 1)), grand = bill + tip;
+            return { results: [{ label: "Per Person", value: fmt(grand / people) }, { label: "Grand Total", value: fmt(grand) }, { label: "Tip Amount", value: fmt(tip) }, { label: "Group Size", value: `${people} people` }], taskTitle: `Collect split bill (${fmt(grand / people)}/person)` };
+          }
+        },
+        {
+          id: "gst", num: "03", name: "GST Tax", category: "finance",
+          desc: "Price inclusive/exclusive GST calculations with CGST/SGST breakdown.",
+          fields: [
+            { key: "amount", label: "Amount", type: "number", default: 10000, min: 0 },
+            { key: "rate", label: "GST Rate (%)", type: "number", default: 18, min: 0 },
+            { key: "mode", label: "Calculation Mode", type: "segmented", default: 0, options: ["Add GST", "Extract GST"] }
+          ],
+          compute(v) {
+            const amt = Math.max(0, Number(v.amount) || 0), rate = Math.max(0, Number(v.rate) || 0), inc = Number(v.mode) === 1;
+            const net = inc ? amt / (1 + rate / 100) : amt, gst = inc ? amt - net : amt * (rate / 100), total = inc ? amt : amt + gst;
+            return { results: [{ label: "Total Price", value: fmt(total) }, { label: "Net Price", value: fmt(net) }, { label: "CGST + SGST", value: `${fmt(gst / 2)} + ${fmt(gst / 2)}` }, { label: "Total GST", value: fmt(gst) }], taskTitle: `File GST invoice (${fmt(total)})` };
+          }
+        },
+        {
+          id: "margin", num: "04", name: "Margin & Markup", category: "finance",
+          desc: "Cost and revenue analysis yielding profit margin and markup percentages.",
+          fields: [
+            { key: "cost", label: "Unit Cost", type: "number", default: 650, min: 0 },
+            { key: "revenue", label: "Selling Revenue", type: "number", default: 1000, min: 0 }
+          ],
+          compute(v) {
+            const c = Math.max(0, Number(v.cost) || 0), r = Math.max(0, Number(v.revenue) || 0), p = r - c;
+            const margin = r > 0 ? (p / r) * 100 : 0, markup = c > 0 ? (p / c) * 100 : 0;
+            return { results: [{ label: "Profit Margin", value: `${margin.toFixed(2)}%` }, { label: "Markup %", value: `${markup.toFixed(2)}%` }, { label: "Gross Profit", value: fmt(p) }, { label: "Cost Ratio", value: `${r > 0 ? ((c / r) * 100).toFixed(1) : "0.0"}%` }], taskTitle: `Review pricing margin (${margin.toFixed(1)}%)` };
+          }
+        },
+        {
+          id: "attendance", num: "05", name: "Attendance Planner", category: "academic",
+          desc: "Attended vs. total sessions calculator with target percentage attendance forecasts.",
+          fields: [
+            { key: "attended", label: "Classes Attended", type: "number", default: 28, min: 0 },
+            { key: "total", label: "Total Held", type: "number", default: 40, min: 1 },
+            { key: "target", label: "Target (%)", type: "number", default: 75, min: 1, max: 99 }
+          ],
+          compute(v) {
+            const att = Math.max(0, Number(v.attended) || 0), tot = Math.max(att || 1, Number(v.total) || 1), targetPct = Math.min(99, Math.max(1, Number(v.target) || 75)), t = targetPct / 100, cur = (att / tot) * 100;
+            const forecast = cur >= targetPct ? `Can skip ${Math.max(0, Math.floor(att / t - tot))} class(es)` : `Attend next ${Math.max(0, Math.ceil((t * tot - att) / (1 - t)))}`;
+            return { results: [{ label: "Current", value: `${cur.toFixed(1)}%` }, { label: "Target", value: `${targetPct}%` }, { label: "Forecast", value: forecast }, { label: "Sessions", value: `${att}/${tot}` }], taskTitle: `Attendance: ${forecast}` };
+          }
+        },
+        {
+          id: "cgpa", num: "06", name: "CGPA Converter", category: "academic",
+          desc: "Percentage conversion across 10-point and 4-point academic grading scales.",
+          fields: [
+            { key: "cgpa", label: "CGPA Score", type: "number", default: 8.6, step: 0.05, min: 0 },
+            { key: "scale", label: "Grading Scale", type: "segmented", default: 0, options: ["10-Point", "4-Point"] }
+          ],
+          compute(v) {
+            const scale = Number(v.scale) === 1 ? 4 : 10, cgpa = Math.min(scale, Math.max(0, Number(v.cgpa) || 0));
+            const linear = (cgpa / scale) * 100, pct = scale === 10 ? cgpa * 9.5 : linear, alt = scale === 10 ? (cgpa / 10) * 4 : (cgpa / 4) * 10;
+            return { results: [{ label: scale === 10 ? "Percentage (×9.5)" : "Percentage", value: `${pct.toFixed(2)}%` }, { label: "Linear %", value: `${linear.toFixed(2)}%` }, { label: scale === 10 ? "4-Point Equiv." : "10-Point Equiv.", value: alt.toFixed(2) }, { label: "Standing", value: linear >= 80 ? "Distinction" : linear >= 60 ? "First Class" : "Pass" }], taskTitle: `Record CGPA conversion (${pct.toFixed(1)}%)` };
+          }
+        },
+        {
+          id: "discount", num: "07", name: "Discount Savings", category: "finance",
+          desc: "Original price and discount percentage analysis with final price and amount saved.",
+          fields: [
+            { key: "price", label: "Original Price", type: "number", default: 3499, min: 0 },
+            { key: "discount", label: "Discount (%)", type: "number", default: 25, min: 0, max: 100 }
+          ],
+          compute(v) {
+            const price = Math.max(0, Number(v.price) || 0), disc = Math.min(100, Math.max(0, Number(v.discount) || 0)), saved = price * (disc / 100);
+            return { results: [{ label: "Final Price", value: fmt(price - saved) }, { label: "Amount Saved", value: fmt(saved) }, { label: "Discount Rate", value: `${disc}%` }, { label: "Pay Ratio", value: `${(100 - disc).toFixed(1)}%` }], taskTitle: `Purchase discounted item (${fmt(price - saved)})` };
+          }
+        },
+        {
+          id: "breakeven", num: "08", name: "Break-Even", category: "finance",
+          desc: "Fixed costs, price per unit, and variable cost calculations determining required volume.",
+          fields: [
+            { key: "fixed", label: "Fixed Costs", type: "number", default: 50000, min: 0 },
+            { key: "price", label: "Price / Unit", type: "number", default: 400, min: 0 },
+            { key: "variable", label: "Variable Cost / Unit", type: "number", default: 150, min: 0 }
+          ],
+          compute(v) {
+            const fixed = Math.max(0, Number(v.fixed) || 0), price = Math.max(0, Number(v.price) || 0), variable = Math.max(0, Number(v.variable) || 0), contrib = price - variable, units = contrib > 0 ? Math.ceil(fixed / contrib) : 0;
+            return { results: [{ label: "Break-Even Units", value: contrib > 0 ? `${units} units` : "Unprofitable" }, { label: "Break-Even Revenue", value: contrib > 0 ? fmt(units * price) : "N/A" }, { label: "Unit Contribution", value: fmt(contrib) }, { label: "Contrib. Margin", value: price > 0 ? `${((contrib / price) * 100).toFixed(1)}%` : "0%" }], taskTitle: `Hit break-even milestone (${units} units)` };
+          }
+        },
+        {
+          id: "profit-loss", num: "09", name: "Profit & Loss", category: "finance",
+          desc: "Cost price, selling price, and quantity analysis with profit/loss margins.",
+          fields: [
+            { key: "cp", label: "Cost / Unit", type: "number", default: 180, min: 0 },
+            { key: "sp", label: "Selling / Unit", type: "number", default: 250, min: 0 },
+            { key: "qty", label: "Quantity", type: "number", default: 40, min: 1 }
+          ],
+          compute(v) {
+            const cp = Math.max(0, Number(v.cp) || 0), sp = Math.max(0, Number(v.sp) || 0), qty = Math.max(1, Number(v.qty) || 1), tc = cp * qty, tr = sp * qty, net = tr - tc, pct = tc > 0 ? (net / tc) * 100 : 0;
+            return { results: [{ label: net >= 0 ? "Net Profit" : "Net Loss", value: fmt(Math.abs(net)) }, { label: "Return %", value: `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%` }, { label: "Total Revenue", value: fmt(tr) }, { label: "Total Cost", value: fmt(tc) }], taskTitle: `Log P&L summary (${net >= 0 ? "+" : "-"}${fmt(Math.abs(net))})` };
+          }
+        },
+        {
+          id: "pomodoro", num: "10", name: "Pomodoro Planner", category: "productivity",
+          desc: "Study sessions, focus duration, and break time calculator for scheduled study blocks.",
+          fields: [
+            { key: "sessions", label: "Study Sessions", type: "number", default: 4, min: 1 },
+            { key: "focus", label: "Focus (min)", type: "number", default: 25, min: 5 },
+            { key: "rest", label: "Break (min)", type: "number", default: 5, min: 1 }
+          ],
+          compute(v) {
+            const s = Math.max(1, Math.round(Number(v.sessions) || 1)), f = Math.max(1, Number(v.focus) || 25), r = Math.max(0, Number(v.rest) || 5), fm = s * f, bm = Math.max(0, s - 1) * r;
+            return { results: [{ label: "Total Block Time", value: fmtDur(fm + bm) }, { label: "Pure Focus Time", value: fmtDur(fm) }, { label: "Total Break Time", value: fmtDur(bm) }, { label: "Sessions", value: `${s} cycles` }], taskTitle: `Complete ${s}×${f}m Pomodoro block` };
+          }
+        },
+        {
+          id: "reading-time", num: "11", name: "Reading Time Estimator", category: "productivity",
+          desc: "Word count and reading speed (WPM) estimator for books and documents.",
+          fields: [
+            { key: "words", label: "Word Count", type: "number", default: 4500, min: 50 },
+            { key: "wpm", label: "Reading Speed (WPM)", type: "number", default: 220, min: 50 }
+          ],
+          compute(v) {
+            const w = Math.max(1, Number(v.words) || 1), wpm = Math.max(20, Number(v.wpm) || 220), mins = Math.ceil(w / wpm), pages = Math.max(1, Math.round(w / 275));
+            return { results: [{ label: "Estimated Time", value: fmtDur(mins) }, { label: "Approx. Pages", value: `${pages} pages` }, { label: "Pace", value: `${wpm} WPM` }, { label: "Words", value: w.toLocaleString() }], taskTitle: `Read ${pages}-page document (~${fmtDur(mins)})` };
+          }
+        },
+        {
+          id: "date-diff", num: "12", name: "Date Difference", category: "utility",
+          desc: "Working days, calendar days, weeks, and months between two dates.",
+          fields: [
+            { key: "start", label: "Start Date", type: "date", default: "2026-11-13" },
+            { key: "end", label: "End Date", type: "date", default: "2026-12-18" }
+          ],
+          compute(v) {
+            const d1 = new Date(v.start || "2026-11-13"), d2 = new Date(v.end || "2026-12-18"), minD = d1 <= d2 ? d1 : d2, maxD = d1 <= d2 ? d2 : d1, days = Math.round((maxD - minD) / 86400000);
+            let work = 0; const cur = new Date(minD.getTime());
+            while (cur < maxD) { if (cur.getDay() !== 0 && cur.getDay() !== 6) work += 1; cur.setDate(cur.getDate() + 1); }
+            return { results: [{ label: "Calendar Days", value: `${days} days` }, { label: "Working Days", value: `${work} days` }, { label: "Weeks", value: `${(days / 7).toFixed(1)} wks` }, { label: "Est. Months", value: `${(days / 30.44).toFixed(1)} mos` }], taskTitle: `Schedule milestone (${work} working days)` };
+          }
+        },
+        {
+          id: "exam-countdown", num: "13", name: "Exam Countdown", category: "academic",
+          desc: "Days, hours, and study target allocations remaining until scheduled exams.",
+          fields: [
+            { key: "subject", label: "Exam / Subject", type: "text", default: "Operating Systems Final" },
+            { key: "examDate", label: "Exam Date", type: "date", default: "2026-12-10" },
+            { key: "hoursPerDay", label: "Daily Study Hours", type: "number", default: 3.5, step: 0.5, min: 0.5 }
+          ],
+          compute(v) {
+            const today = new Date("2026-11-13"), target = new Date(v.examDate || "2026-12-10"), days = Math.max(0, Math.round((target - today) / 86400000)), daily = Math.max(0, Number(v.hoursPerDay) || 0), subj = (v.subject || "Exam").trim();
+            return { results: [{ label: "Days Remaining", value: `${days} days` }, { label: "Hours Left", value: `${(days * 24).toLocaleString()} hrs` }, { label: "Study Budget", value: `${(days * daily).toFixed(1)} hrs` }, { label: "Daily Target", value: `${daily} hrs/day` }], taskTitle: `Study for ${subj} (${daily}h/day)` };
+          }
+        },
+        {
+          id: "percent-change", num: "14", name: "Percentage Change", category: "utility",
+          desc: "Increase/decrease percentage analysis between initial and final values.",
+          fields: [
+            { key: "initial", label: "Initial Value", type: "number", default: 120 },
+            { key: "final", label: "Final Value", type: "number", default: 156 }
+          ],
+          compute(v) {
+            const a = Number(v.initial) || 0, b = Number(v.final) || 0, diff = b - a, pct = a !== 0 ? (diff / Math.abs(a)) * 100 : 0;
+            return { results: [{ label: "Percentage Change", value: `${pct > 0 ? "+" : ""}${pct.toFixed(2)}%` }, { label: "Direction", value: diff > 0 ? "Increase" : diff < 0 ? "Decrease" : "No Change" }, { label: "Absolute Delta", value: `${diff > 0 ? "+" : ""}${fmt(diff)}` }, { label: "Multiplier", value: a !== 0 ? `${(b / a).toFixed(2)}×` : "N/A" }], taskTitle: `Verify ${pct.toFixed(1)}% metric change` };
+          }
+        },
+        {
+          id: "unit-converter", num: "15", name: "Unit Converter", category: "utility",
+          desc: "Real-time unit conversions across Length, Weight, Temperature, and Data volume.",
+          fields: [
+            { key: "group", label: "Category", type: "segmented", default: 0, options: ["Length", "Weight", "Temp", "Data"] },
+            { key: "value", label: "Input Value", type: "number", default: 10, step: 0.1 }
+          ],
+          compute(v) {
+            const val = Number(v.value) || 0, idx = Number(v.group) || 0;
+            let out1 = `${(val * 0.621371).toFixed(3)} miles`, out2 = `${(val * 1000).toLocaleString()} meters`, cat = "LENGTH";
+            if (idx === 1) { cat = "WEIGHT"; out1 = `${(val * 2.20462).toFixed(3)} lbs`; out2 = `${(val * 1000).toLocaleString()} grams`; }
+            else if (idx === 2) { cat = "TEMP"; out1 = `${((val * 9) / 5 + 32).toFixed(2)} °F`; out2 = `${(val + 273.15).toFixed(2)} K`; }
+            else if (idx === 3) { cat = "DATA"; out1 = `${(val * 1024).toLocaleString()} MB`; out2 = `${(val / 1024).toFixed(4)} TB`; }
+            return { results: [{ label: "Primary Conversion", value: out1 }, { label: "Secondary Scale", value: out2 }, { label: "Input Value", value: String(val) }, { label: "Category", value: cat }], taskTitle: `Conversion note: ${out1}` };
+          }
+        }
+      ];
+
+      const FEATURES = {
+        tasks: {
+          badge: "TaskListScreen & TaskDetailEditScreen",
+          title: "Priority Triage, Subtask Auto-Completion & Back-Guards",
+          desc: "Organize obligations across 4 discrete priority levels with default and custom categories, repeating rules, swipe gestures, and List/Grid layout modes.",
+          bullets: [
+            "4 Priority tiers (LOW, MEDIUM, HIGH, URGENT) with dedicated color accents & sort weights.",
+            "Hierarchical subtask checklist with optional auto-complete parent (autoMarkTaskOnSubtasksDone).",
+            "Configurable reminder lead times (0m, 5m, 15m, 30m, 1h) and 12h/24h time pickers.",
+            "Reactive isDirty telemetry intercepts Back navigation with a Liquid Glass discard confirmation modal."
+          ],
+          specs: [["View Modes", "High-Density List & Grid"], ["Repeat Rules", "NONE, DAILY, WEEKLY, MONTHLY, YEARLY"], ["Swipe Actions", "Swipe-to-Complete & Swipe-to-Delete"], ["Preset Tags", "Work, Personal, Urgent!, Study, Shopping, College"]]
+        },
+        habits: {
+          badge: "HabitListScreen & HabitDetailEditScreen",
+          title: "Streak Math Respecting Custom Rest Schedules",
+          desc: "Build lasting habits with quantifiable multi-session targets, automatically distributed daily alerts, and streak tracking that never breaks on rest days.",
+          bullets: [
+            "Supports EVERY_DAY, WEEKDAYS, WEEKLY, and CUSTOM interval frequencies.",
+            "Quantifiable metrics with custom units (e.g., 4 sessions, 2.5 liters, 30 pages).",
+            "Automatically distributes multiple alert times throughout the day based on session target counts.",
+            "Real-time streak analysis plus matching isDirty unsaved changes guard."
+          ],
+          specs: [["Frequencies", "Every Day, Weekdays, Weekly, Custom"], ["Multi-Session", "Distributed intraday alert scheduling"], ["Home Strip", "Horizontal check-in matrix with counters"], ["Edit Guard", "Discard confirmation on back press"]]
+        },
+        calendar: {
+          badge: "CalendarScreen",
+          title: "Unified Agenda Matrix Across Tasks, Habits & Overdue Items",
+          desc: "Fluidly transition between Month grid, Week carousel strip, and chronological Day agenda with independent visibility preferences.",
+          bullets: [
+            "Month grid, Week carousel strip, and Day agenda views.",
+            "Customizable start of week (MONDAY vs. SUNDAY) preference.",
+            "Independent toggles to show or hide completed tasks, completed habits, and overdue obligations.",
+            "Chronological day-by-day listing driven directly by Room Kotlin Flows."
+          ],
+          specs: [["Calendar Views", "Month · Week · Day"], ["Week Start", "Monday or Sunday"], ["Visibility", "Completed & Overdue toggles"], ["Data Layer", "Reactive SQLite Flows"]]
+        },
+        system: {
+          badge: "SettingsScreen, Diagnostics & Background Services",
+          title: "Exact Alarms, Shake Gestures, Dual Audio & OTA Updates",
+          desc: "Built for real Android dependability: exact Doze-safe reminders, accelerometer shake shortcuts, JSON backups, system diagnostics, and automated updates.",
+          bullets: [
+            "Theme selection (SYSTEM, LIGHT, DARK) and clock format (12h vs. 24h).",
+            "Dual notification chime selector (Sound One vs. Sound Two) + in-app micro UI acoustics & haptics.",
+            "ShakeDetectionService triggers Create Task, Focus Timer, or Quick Chooser via Accelerometer.",
+            "Full schema-validated JSON export/restore + AppUpdateManager remote APK updater via version.json."
+          ],
+          specs: [["Exact Alarms", "AlarmManager.setExactAndAllowWhileIdle()"], ["Sensors", "Accelerometer Low-Pass Peak Detection"], ["Backup", "Atomic JSON Export & Restore"], ["Diagnostics", "Cloud Sync, DB Counts & Sensor Status"]]
+        }
+      };
+
+      const SCREEN_TITLES = [
+        { eyebrow: "TODAY DASHBOARD", title: "Momentum" },
+        { eyebrow: "PRODUCTIVITY", title: "Tasks & Calendar" },
+        { eyebrow: "UTILITIES", title: "15 Calculators" },
+        { eyebrow: "ANALYTICS", title: "Insights" }
+      ];
+
+      let toastTimer = null;
+      function showToast(msg) {
+        const pill = document.getElementById("toastPill");
+        document.getElementById("toastMessage").textContent = msg;
+        pill.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { pill.hidden = true; }, 3000);
+      }
+
+      function initScrollReveal() {
+        const els = document.querySelectorAll("[data-reveal]");
+        if (!("IntersectionObserver" in window)) {
+          els.forEach((el) => el.classList.add("is-visible"));
+          return;
+        }
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              obs.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+        els.forEach((el) => obs.observe(el));
+      }
+
+      function initHeader() {
+        const switchBtn = document.getElementById("themeSwitchBtn");
+        const meta = document.getElementById("metaThemeColor");
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (prefersDark) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          switchBtn.setAttribute("aria-checked", "true");
+          meta.content = "#13110F";
+        }
+
+        switchBtn.addEventListener("click", () => {
+          const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+          const next = isDark ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          switchBtn.setAttribute("aria-checked", String(!isDark));
+          meta.content = next === "light" ? "#EDE5D7" : "#13110F";
+        });
+
+        const menuBtn = document.getElementById("mobileMenuBtn");
+        const drawer = document.getElementById("mobileDrawer");
+        menuBtn.addEventListener("click", () => {
+          const open = drawer.hidden;
+          drawer.hidden = !open;
+          menuBtn.setAttribute("aria-expanded", String(open));
+        });
+        drawer.querySelectorAll("a").forEach((a) => {
+          a.addEventListener("click", () => {
+            drawer.hidden = true;
+            menuBtn.setAttribute("aria-expanded", "false");
+          });
+        });
+      }
+
+      function selectPage(idx, sweep = true) {
+        const next = Math.max(0, Math.min(3, idx));
+        const changed = state.currentPage !== next;
+        state.currentPage = next;
+        state.targetPageOffset = next;
+
+        document.getElementById("phonePagerTrack").style.transform = `translate3d(${-next * 100}%, 0, 0)`;
+        document.getElementById("phoneScreenEyebrow").textContent = SCREEN_TITLES[next].eyebrow;
+        document.getElementById("phoneScreenTitle").textContent = SCREEN_TITLES[next].title;
+
+        document.querySelectorAll(".lg-nav-item").forEach((b, i) => {
+          const active = i === next;
+          b.classList.toggle("is-active", active);
+          if (active) b.setAttribute("aria-current", "page");
+          else b.removeAttribute("aria-current");
+        });
+
+        document.getElementById("insightsBars").classList.toggle("is-animated", next === 3);
+
+        const items = document.querySelectorAll(".lg-nav-item");
+        const dock = document.getElementById("phoneDock");
+        if (items[next] && dock) {
+          const dockRect = dock.getBoundingClientRect();
+          const itemRect = items[next].getBoundingClientRect();
+          const left = itemRect.left - dockRect.left;
+          const pill = document.getElementById("dockLensPill");
+          const beam = document.getElementById("dockBeam");
+          if (pill) {
+            pill.style.transform = `translate3d(${left}px, 0, 0)`;
+            pill.style.width = `${itemRect.width}px`;
+          }
+          if (beam) {
+            beam.style.transform = `translate3d(${left + itemRect.width / 2 - 18}px, 0, 0)`;
+          }
+        }
+      }
+
+      function updateMomentum() {
+        const total = state.tasks.length;
+        const done = state.tasks.filter((t) => t.done).length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const offset = 226.2 - (226.2 * pct) / 100;
+
+        document.getElementById("phoneTaskCount").textContent = String(total);
+        document.getElementById("momentumPercent").textContent = `${pct}%`;
+        document.getElementById("momentumCircle").style.strokeDashoffset = String(offset);
+        document.getElementById("momentumSummary").textContent =
+          `${done} of ${total} tasks · ${state.habits.length} habit streaks active`;
+      }
+
+      function renderTasks() {
+        const list = document.getElementById("phoneTaskList");
+        list.innerHTML = "";
+
+        state.tasks.forEach((t) => {
+          const row = document.createElement("button");
+          row.type = "button";
+          row.className = `task-row ${t.done ? "is-done" : ""}`;
+          row.setAttribute("aria-checked", String(t.done));
+
+          const prioClass = t.priority === "URGENT" ? "prio--urgent" : t.priority === "HIGH" ? "prio--high" : "";
+
+          row.innerHTML = `
+            <div class="task-left">
+              <span class="task-box" aria-hidden="true">${t.done ? "✓" : ""}</span>
+              <div class="task-info">
+                <span class="task-name">${t.title}</span>
+                <span class="task-sub">${t.sub}</span>
               </div>
             </div>
-            <div id="calc-form-container"></div>
-          </div>
+            <span class="prio ${prioClass}">${t.priority}</span>
+          `;
 
-          <div class="calc-output-card">
-            <span class="calc-output-label" id="calc-result-label">Monthly EMI</span>
-            <span class="calc-output-val" id="calc-result-value">$0.00</span>
-            <span class="calc-output-sub" id="calc-result-sub">Calculating...</span>
-          </div>
-        </div>
-      </div>
-    </section>
+          row.addEventListener("click", () => {
+            t.done = !t.done;
+            row.classList.toggle("is-done", t.done);
+            row.setAttribute("aria-checked", String(t.done));
+            row.querySelector(".task-box").textContent = t.done ? "✓" : "";
+            row.classList.add("is-popping");
+            setTimeout(() => row.classList.remove("is-popping"), 240);
+            updateMomentum();
+          });
 
-    <section id="download">
-      <div class="download-hub-card glass-panel">
-        <div class="download-hub-left">
-          <h2 class="download-heading">Get TDLxHT for Android</h2>
-          <p class="download-sub">Offline-first, privacy-focused productivity for Android phones and tablets.</p>
-          <div class="download-meta-strip">
-            <span>Version <span class="apk-version-label">2.5.50</span></span>
-            <span>·</span>
-            <span>16.0 MB</span>
-            <span>·</span>
-            <span>Android 7–15</span>
-          </div>
+          list.appendChild(row);
+        });
 
-          <div class="sha-badge">
-            <span style="font-weight: 700;">SHA-256</span>
-            <span class="sha-text" id="sha-hash-text" title="Calculating checksum...">Calculating checksum...</span>
-            <button class="sha-copy-btn" id="copy-sha-btn" type="button" aria-label="Copy SHA-256 checksum">Copy</button>
-          </div>
-        </div>
+        updateMomentum();
+      }
 
-        <div class="download-hub-actions">
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases/download/v2.5.50/TDLxHT.2.5.50.apk" data-apk-download="true" class="btn-glass btn-glass-primary" style="padding: 14px 28px; font-size: 1.05rem;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Download APK (v<span class="apk-version-label">2.5.50</span>)</span>
-          </a>
-          <a href="https://github.com/ddheerajccarpenter/TDLxHT/releases" target="_blank" rel="noopener" class="btn-glass btn-glass-secondary" style="text-align: center; justify-content: center;">
-            GitHub Releases
-          </a>
-        </div>
-      </div>
-    </section>
+      function renderHabits() {
+        const strip = document.getElementById("phoneHabitStrip");
+        strip.innerHTML = "";
 
-    <!-- Footer -->
-    <footer class="footer-strip">
-      <div class="header-brand" style="font-size: 1rem;">TDLxHT</div>
-      <nav class="footer-nav" aria-label="Footer links">
-        <a href="#features">Features</a>
-        <a href="#calculators">Calculators</a>
-        <a href="/auth">Portal</a>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/delete-account.html">Account Deletion</a>
-        <a href="https://github.com/ddheerajccarpenter/TDLxHT" target="_blank" rel="noopener">GitHub</a>
-      </nav>
-      <div>Author: Dheeraj · © 2026 Dheeraj. All rights reserved.</div>
-    </footer>
+        state.habits.forEach((h) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "habit-btn";
+          btn.innerHTML = `
+            <strong>${h.name}</strong>
+            <span>${h.current}/${h.target} ${h.unit} · ${h.streak}d streak</span>
+          `;
 
-  </main>
+          btn.addEventListener("click", () => {
+            if (h.current < h.target) {
+              h.current += 1;
+              if (h.current === h.target) h.streak += 1;
+              showToast(`Logged +1 ${h.name} (${h.current}/${h.target})`);
+            } else {
+              h.current = 1;
+              showToast(`Reset ${h.name} session counter`);
+            }
+            renderHabits();
+            updateMomentum();
+          });
 
-  <!-- Fixed Floating Liquid Glass Bottom Dock (Single Navigation Bar) -->
-  <aside class="bottom-dock-outer" aria-label="Bottom Navigation Dock">
-    <nav class="bottom-dock" style="--lg-index: 0;">
-      <a href="#dashboard" class="dock-tab active" data-tab="dashboard" aria-selected="true" aria-label="Dashboard" title="Dashboard">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/>
-          <rect x="14" y="14" width="7" height="7" rx="1"/>
-        </svg>
-      </a>
+          strip.appendChild(btn);
+        });
+      }
 
-      <a href="#features" class="dock-tab" data-tab="features" aria-label="Features" title="Features">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-      </a>
+      function renderCalendarAgenda(day) {
+        state.selectedCalDay = day;
+        const agenda = document.getElementById("phoneCalendarAgenda");
+        agenda.innerHTML = "";
+        const items = state.agendaByDay[day] || [];
 
-      <a href="#calculators" class="dock-tab" data-tab="calculators" aria-label="Calculators" title="Calculators">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="2" width="16" height="20" rx="2"/>
-          <line x1="8" y1="6" x2="16" y2="6"/>
-          <line x1="8" y1="10" x2="10" y2="10"/>
-          <line x1="14" y1="10" x2="16" y2="10"/>
-          <line x1="8" y1="14" x2="10" y2="14"/>
-          <line x1="14" y1="14" x2="16" y2="14"/>
-          <line x1="8" y1="18" x2="10" y2="18"/>
-          <line x1="14" y1="18" x2="16" y2="18"/>
-        </svg>
-      </a>
+        if (items.length === 0) {
+          agenda.innerHTML = `<div class="phone-glass-card" style="text-align:center;color:#9ca3af;font-size:0.78rem">No obligations scheduled for Nov ${day}.</div>`;
+          return;
+        }
 
-      <a href="#download" class="dock-tab" data-tab="download" aria-label="Download" title="Download">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      </a>
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "phone-glass-card";
+          card.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <strong style="font-size:0.82rem">${item.title}</strong>
+              <span class="mono" style="font-size:0.72rem;color:#58b4e8">${item.time}</span>
+            </div>
+            <div class="task-sub">${item.tag} · Synchronized to Calendar</div>
+          `;
+          agenda.appendChild(card);
+        });
+      }
 
-      <a href="/auth" class="dock-tab" data-tab="portal" aria-label="Portal" title="Account Portal">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-      </a>
+      function renderCalendarDays() {
+        const strip = document.getElementById("phoneCalendarDays");
+        strip.innerHTML = "";
+        const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
 
-      <!-- Optical Refraction Glass Lens Indicator -->
-      <div class="lg-track__lens" aria-hidden="true"></div>
+        for (let i = 0; i < 7; i++) {
+          const dayNum = 11 + i;
+          const dayBtn = document.createElement("button");
+          dayBtn.type = "button";
+          dayBtn.className = `cal-day ${dayNum === state.selectedCalDay ? "is-selected" : ""}`;
+          dayBtn.innerHTML = `<span>${weekdays[i]}</span><strong>${dayNum}</strong>`;
 
-      <!-- Dock Divider -->
-      <div class="dock-divider" aria-hidden="true"></div>
+          dayBtn.addEventListener("click", () => {
+            document.querySelectorAll(".cal-day").forEach((b) => b.classList.remove("is-selected"));
+            dayBtn.classList.add("is-selected");
+            renderCalendarAgenda(dayNum);
+          });
 
-      <!-- Theme Switcher -->
-      <button type="button" class="dock-tab dock-theme-btn" data-action="toggle-theme" aria-label="Toggle theme" title="Toggle Theme">
-        <span class="theme-icon-indicator" aria-hidden="true">🌓</span>
-      </button>
-    </nav>
-  </aside>
+          strip.appendChild(dayBtn);
+        }
 
-  <!-- Application Logic -->
-  <script type="module" src="/js/app.js"></script>
+        renderCalendarAgenda(state.selectedCalDay);
+      }
+
+      function renderPhoneTools() {
+        const grid = document.getElementById("phoneToolsGrid");
+        grid.innerHTML = "";
+
+        CALCULATORS.slice(0, 6).forEach((c) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "mini-tool-btn";
+          b.innerHTML = `<span style="color:#58b4e8;margin-right:4px">${c.num}</span> ${c.name}`;
+          b.addEventListener("click", () => {
+            openToolModal(c.id);
+          });
+          grid.appendChild(b);
+        });
+      }
+
+      function initGlassMenu() {
+        const trigger = document.getElementById("phoneMenuBtn");
+        const menu = document.getElementById("phoneGlassMenu");
+        if (!trigger || !menu) return;
+
+        trigger.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const open = menu.hidden;
+          menu.hidden = !open;
+          trigger.setAttribute("aria-expanded", String(open));
+        });
+
+        menu.querySelectorAll(".phone-glass-menu__item").forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const label = item.getAttribute("data-label");
+            menu.querySelectorAll(".phone-glass-menu__item").forEach((b) => {
+              const active = b === item;
+              b.classList.toggle("is-checked", active);
+              b.setAttribute("aria-checked", String(active));
+            });
+            showToast(`Note Option: ${label}`);
+            setTimeout(() => {
+              menu.hidden = true;
+              trigger.setAttribute("aria-expanded", "false");
+            }, 180);
+          });
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!menu.hidden && !menu.contains(e.target) && !trigger.contains(e.target)) {
+            menu.hidden = true;
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !menu.hidden) {
+            menu.hidden = true;
+            trigger.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
+
+      function initPhoneDemo() {
+        renderTasks();
+        renderHabits();
+        renderCalendarDays();
+        renderPhoneTools();
+        initGlassMenu();
+
+        document.querySelectorAll(".lg-nav-item").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const page = Number(btn.getAttribute("data-page")) || 0;
+            selectPage(page);
+          });
+        });
+
+        // Touch swipe on phone pager track
+        const track = document.getElementById("phonePagerTrack");
+        let startX = 0;
+        let diffX = 0;
+        let isSwiping = false;
+
+        track.addEventListener("touchstart", (e) => {
+          startX = e.touches[0].clientX;
+          diffX = 0;
+          isSwiping = true;
+        }, { passive: true });
+
+        track.addEventListener("touchmove", (e) => {
+          if (!isSwiping) return;
+          diffX = e.touches[0].clientX - startX;
+        }, { passive: true });
+
+        track.addEventListener("touchend", () => {
+          if (!isSwiping) return;
+          isSwiping = false;
+          if (diffX < -45 && state.currentPage < 3) {
+            selectPage(state.currentPage + 1);
+          } else if (diffX > 45 && state.currentPage > 0) {
+            selectPage(state.currentPage - 1);
+          }
+        });
+
+        // Plan subtab segmented (Calendar vs Priorities)
+        const planSeg = document.getElementById("phonePlanSeg");
+        const subCal = document.getElementById("subtabCalendar");
+        const subPrio = document.getElementById("subtabPriorities");
+
+        planSeg.querySelectorAll(".lg-seg-btn").forEach((b) => {
+          b.addEventListener("click", () => {
+            const idx = Number(b.getAttribute("data-idx")) || 0;
+            const sub = b.getAttribute("data-subtab");
+            planSeg.style.setProperty("--seg-index", String(idx));
+            planSeg.querySelectorAll(".lg-seg-btn").forEach((btn) => {
+              const active = btn === b;
+              btn.classList.toggle("is-active", active);
+              btn.style.color = active ? "#fff" : "#9ca3af";
+            });
+            if (sub === "calendar") {
+              subCal.hidden = false;
+              subPrio.hidden = true;
+            } else {
+              subCal.hidden = true;
+              subPrio.hidden = false;
+            }
+          });
+        });
+
+        // Quick add task in phone
+        const addTaskBtn = document.getElementById("phoneAddTaskBtn");
+        addTaskBtn.addEventListener("click", () => {
+          const title = prompt("Enter quick task title:", "Prepare weekly sprint agenda");
+          if (title && title.trim()) {
+            state.tasks.unshift({
+              id: "t" + Date.now(),
+              title: title.trim(),
+              sub: "Inbox · Offline Task",
+              priority: "MEDIUM",
+              done: false
+            });
+            renderTasks();
+            selectPage(0);
+            showToast("Created task in Today dashboard");
+          }
+        });
+      }
+
+      function initFeatures() {
+        const seg = document.getElementById("featureSegmented");
+        const badge = document.getElementById("featureBadge");
+        const title = document.getElementById("featureTitle");
+        const desc = document.getElementById("featureDesc");
+        const bullets = document.getElementById("featureBullets");
+        const specCard = document.getElementById("featureSpecCard");
+
+        function showFeature(key) {
+          const f = FEATURES[key] || FEATURES.tasks;
+          badge.textContent = f.badge;
+          title.textContent = f.title;
+          desc.textContent = f.desc;
+
+          bullets.innerHTML = f.bullets.map((b) => `<li>${b}</li>`).join("");
+          specCard.innerHTML = f.specs
+            .map(([k, v]) => `<div><span style="font-size:0.72rem;color:var(--ink-muted);display:block">${k}</span><strong style="font-size:0.86rem">${v}</strong></div>`)
+            .join("");
+        }
+
+        seg.querySelectorAll(".lg-seg-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx")) || 0;
+            const feat = btn.getAttribute("data-feature");
+            seg.style.setProperty("--seg-index", String(idx));
+            seg.querySelectorAll(".lg-seg-btn").forEach((b) => {
+              const active = b === btn;
+              b.classList.toggle("is-active", active);
+              b.setAttribute("aria-selected", String(active));
+            });
+            showFeature(feat);
+          });
+        });
+
+        showFeature("tasks");
+      }
+
+      let currentTool = null;
+      let toolValues = {};
+
+      function openToolModal(toolId) {
+        const tool = CALCULATORS.find((c) => c.id === toolId) || CALCULATORS[0];
+        currentTool = tool;
+        state.activeToolId = tool.id;
+
+        document.getElementById("toolModalCategory").textContent = `${tool.category.toUpperCase()} · #${tool.num}`;
+        document.getElementById("toolModalTitle").textContent = tool.name;
+        document.getElementById("toolModalDesc").textContent = tool.desc;
+
+        toolValues = {};
+        const inputsContainer = document.getElementById("toolModalInputs");
+        inputsContainer.innerHTML = "";
+
+        tool.fields.forEach((field) => {
+          toolValues[field.key] = field.default;
+          const wrap = document.createElement("div");
+          wrap.style.display = "flex";
+          wrap.style.flexDirection = "column";
+          wrap.style.gap = "4px";
+
+          const label = document.createElement("label");
+          label.style.fontSize = "0.78rem";
+          label.style.fontWeight = "600";
+          label.textContent = field.label;
+          wrap.appendChild(label);
+
+          if (field.type === "segmented") {
+            const seg = document.createElement("div");
+            seg.className = "lg-segmented";
+            seg.style.setProperty("--seg-count", String(field.options.length));
+            seg.style.setProperty("--seg-index", String(field.default));
+
+            const pill = document.createElement("div");
+            pill.className = "lg-seg-pill";
+            seg.appendChild(pill);
+
+            field.options.forEach((opt, idx) => {
+              const b = document.createElement("button");
+              b.type = "button";
+              b.className = `lg-seg-btn ${idx === field.default ? "is-active" : ""}`;
+              b.textContent = opt;
+              b.addEventListener("click", () => {
+                toolValues[field.key] = idx;
+                seg.style.setProperty("--seg-index", String(idx));
+                seg.querySelectorAll(".lg-seg-btn").forEach((btn, i) => {
+                  btn.classList.toggle("is-active", i === idx);
+                });
+                renderToolOutput();
+              });
+              seg.appendChild(b);
+            });
+
+            wrap.appendChild(seg);
+          } else {
+            const inp = document.createElement("input");
+            inp.className = "lg-input";
+            inp.type = field.type;
+            inp.value = field.default;
+            if (field.step) inp.step = field.step;
+            if (field.min !== undefined) inp.min = field.min;
+            if (field.max !== undefined) inp.max = field.max;
+
+            inp.addEventListener("input", (e) => {
+              toolValues[field.key] = e.target.value;
+              renderToolOutput();
+            });
+
+            wrap.appendChild(inp);
+          }
+
+          inputsContainer.appendChild(wrap);
+        });
+
+        renderToolOutput();
+        document.getElementById("toolModal").hidden = false;
+      }
+
+      function renderToolOutput() {
+        if (!currentTool) return;
+        const resBox = document.getElementById("toolModalResults");
+        resBox.innerHTML = "";
+
+        const computed = currentTool.compute(toolValues);
+        computed.results.forEach((r) => {
+          const item = document.createElement("div");
+          item.innerHTML = `
+            <span style="font-size:0.72rem;color:var(--ink-muted);display:block">${r.label}</span>
+            <strong class="mono" style="font-size:1.02rem;color:var(--ink)">${r.value}</strong>
+          `;
+          resBox.appendChild(item);
+        });
+      }
+
+      function initCalculators() {
+        const grid = document.getElementById("toolsGrid");
+        const seg = document.getElementById("calcFilterSegmented");
+        const searchInput = document.getElementById("toolsSearchInput");
+        const clearBtn = document.getElementById("clearSearchBtn");
+
+        function renderGrid() {
+          grid.innerHTML = "";
+          const q = state.searchQuery.toLowerCase().trim();
+
+          const filtered = CALCULATORS.filter((c) => {
+            const matchFilter = state.activeFilter === "all" || c.category === state.activeFilter;
+            const matchSearch =
+              !q ||
+              c.name.toLowerCase().includes(q) ||
+              c.desc.toLowerCase().includes(q) ||
+              c.category.toLowerCase().includes(q);
+            return matchFilter && matchSearch;
+          });
+
+          if (filtered.length === 0) {
+            grid.innerHTML = `<div class="lg-card" style="grid-column:1/-1;padding:36px;text-align:center;color:var(--ink-secondary)">No calculators found matching your query.</div>`;
+            return;
+          }
+
+          filtered.forEach((c) => {
+            const card = document.createElement("article");
+            card.className = "lg-card lg-card--interactive";
+            card.style.padding = "20px";
+            card.innerHTML = `
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span class="mono" style="font-size:0.72rem;color:var(--lg-accent)">#${c.num} · ${c.category.toUpperCase()}</span>
+                <span style="font-size:0.74rem;color:var(--ink-muted)">1-Tap Sheet</span>
+              </div>
+              <h3 class="serif" style="margin:0 0 6px;font-size:1.15rem">${c.name}</h3>
+              <p style="margin:0 0 14px;font-size:0.86rem;color:var(--ink-secondary);line-height:1.45">${c.desc}</p>
+              <button type="button" class="lg-btn lg-btn--sm" style="width:100%">Open Calculator</button>
+            `;
+
+            card.addEventListener("click", () => openToolModal(c.id));
+            grid.appendChild(card);
+          });
+        }
+
+        seg.querySelectorAll(".lg-seg-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-idx")) || 0;
+            const cat = btn.getAttribute("data-filter");
+            state.activeFilter = cat;
+            seg.style.setProperty("--seg-index", String(idx));
+            seg.querySelectorAll(".lg-seg-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+            renderGrid();
+          });
+        });
+
+        searchInput.addEventListener("input", (e) => {
+          state.searchQuery = e.target.value;
+          clearBtn.hidden = !state.searchQuery;
+          renderGrid();
+        });
+
+        clearBtn.addEventListener("click", () => {
+          searchInput.value = "";
+          state.searchQuery = "";
+          clearBtn.hidden = true;
+          renderGrid();
+        });
+
+        document.getElementById("closeToolModalBtn").addEventListener("click", () => {
+          document.getElementById("toolModal").hidden = true;
+        });
+
+        document.getElementById("resetToolBtn").addEventListener("click", () => {
+          if (currentTool) openToolModal(currentTool.id);
+        });
+
+        document.getElementById("createTaskFromToolBtn").addEventListener("click", () => {
+          if (!currentTool) return;
+          const computed = currentTool.compute(toolValues);
+          state.tasks.unshift({
+            id: "t" + Date.now(),
+            title: computed.taskTitle,
+            sub: `${currentTool.name} Output · Offline Task`,
+            priority: "HIGH",
+            done: false
+          });
+          document.getElementById("toolModal").hidden = true;
+          renderTasks();
+          selectPage(0);
+          showToast(`Task Created: ${computed.taskTitle}`);
+        });
+
+        renderGrid();
+      }
+
+      function initPhysics() {
+        const slider = document.getElementById("intensityBlockSlider");
+        const fill = document.getElementById("intensityBlockFill");
+        const valLabel = document.getElementById("intensityValueLabel");
+        const demoPill = document.getElementById("opticsDemoPill");
+
+        function setIntensity(lvl) {
+          const bounded = Math.max(1, Math.min(10, Math.round(lvl)));
+          state.glassIntensity = bounded;
+          const pct = Math.round((bounded / 10) * 100);
+          slider.style.setProperty("--cc-pct", `${pct}%`);
+          slider.setAttribute("aria-valuenow", String(bounded));
+          valLabel.textContent = `${bounded} / 10`;
+
+          const blurPx = 10 + bounded * 2.4;
+          document.documentElement.style.setProperty("--lg-blur", `${blurPx}px`);
+          if (demoPill) {
+            demoPill.style.backdropFilter = `blur(${blurPx}px) saturate(${130 + bounded * 8}%)`;
+          }
+        }
+
+        let isDragging = false;
+        slider.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          updateFromPointer(e);
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (isDragging) updateFromPointer(e);
+        });
+        window.addEventListener("mouseup", () => {
+          isDragging = false;
+        });
+
+        slider.addEventListener("touchstart", (e) => {
+          isDragging = true;
+          updateFromPointer(e.touches[0]);
+        }, { passive: true });
+        window.addEventListener("touchmove", (e) => {
+          if (isDragging) updateFromPointer(e.touches[0]);
+        }, { passive: true });
+        window.addEventListener("touchend", () => {
+          isDragging = false;
+        });
+
+        function updateFromPointer(e) {
+          const rect = slider.getBoundingClientRect();
+          const clientX = e.clientX || 0;
+          const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          setIntensity(1 + frac * 9);
+        }
+
+        // Layer toggle switches
+        const switchBackdrop = document.getElementById("layerBackdropSwitch");
+        const switchRim = document.getElementById("layerRimSwitch");
+        const switchLens = document.getElementById("layerLensSwitch");
+
+        function setupSwitch(el, callback) {
+          el.addEventListener("click", () => {
+            const checked = el.getAttribute("aria-checked") === "true";
+            const next = !checked;
+            el.setAttribute("aria-checked", String(next));
+            callback(next);
+          });
+        }
+
+        setupSwitch(switchBackdrop, (on) => {
+          demoPill.style.background = on ? "var(--lg-fill)" : "transparent";
+          demoPill.style.backdropFilter = on ? "blur(24px) saturate(185%)" : "none";
+        });
+        setupSwitch(switchRim, (on) => {
+          demoPill.style.border = on ? "1px solid var(--lg-rim)" : "1px solid transparent";
+        });
+        setupSwitch(switchLens, (on) => {
+          demoPill.style.transform = on ? "scale(1.03)" : "scale(1)";
+        });
+
+        // Predictive back slider
+        const backSlider = document.getElementById("predictiveBackSlider");
+        const backLabel = document.getElementById("backProgressLabel");
+        const topCard = document.getElementById("predictiveTopCard");
+
+        backSlider.addEventListener("input", (e) => {
+          const val = Number(e.target.value) || 0;
+          backLabel.textContent = `${val}%`;
+          const frac = val / 100;
+          const tx = frac * 220;
+          const scale = 1 - frac * 0.08;
+          const corner = frac * 28;
+          topCard.style.transform = `translate3d(${tx}px, 0, 0) scale(${scale})`;
+          topCard.style.borderRadius = `${16 + corner}px`;
+        });
+      }
+
+      let timerInterval = null;
+      let timerDuration = 25 * 60;
+      let timerRemaining = 25 * 60;
+      let isTimerRunning = false;
+
+      function updateTimerDisplay() {
+        const m = Math.floor(timerRemaining / 60);
+        const s = timerRemaining % 60;
+        const str = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        document.getElementById("timerDisplay").textContent = str;
+
+        const frac = 1 - timerRemaining / timerDuration;
+        const offset = 188.5 - 188.5 * frac;
+        document.getElementById("timerRingCircle").style.strokeDashoffset = String(offset);
+      }
+
+      function initTimer() {
+        const modal = document.getElementById("timerModal");
+        const toggleBtn = document.getElementById("timerToggleBtn");
+        const resetBtn = document.getElementById("timerResetBtn");
+        const presetSeg = document.getElementById("timerPresetSeg");
+
+        document.getElementById("phoneTimerBtn").addEventListener("click", () => {
+          modal.hidden = false;
+        });
+
+        document.getElementById("closeTimerModalBtn").addEventListener("click", () => {
+          modal.hidden = true;
+        });
+
+        toggleBtn.addEventListener("click", () => {
+          if (isTimerRunning) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            toggleBtn.textContent = "Resume Focus";
+            document.getElementById("timerStateText").textContent = "Focus paused";
+          } else {
+            isTimerRunning = true;
+            toggleBtn.textContent = "Pause Focus";
+            document.getElementById("timerStateText").textContent = "Session active · Zero distractions";
+            timerInterval = setInterval(() => {
+              if (timerRemaining > 0) {
+                timerRemaining -= 1;
+                updateTimerDisplay();
+              } else {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                toggleBtn.textContent = "Start Focus";
+                document.getElementById("timerStateText").textContent = "Pomodoro completed! Take a 5m break.";
+                showToast("Pomodoro completed! +1 Session logged.");
+              }
+            }, 1000);
+          }
+        });
+
+        resetBtn.addEventListener("click", () => {
+          clearInterval(timerInterval);
+          isTimerRunning = false;
+          timerRemaining = timerDuration;
+          toggleBtn.textContent = "Start Focus";
+          document.getElementById("timerStateText").textContent = "Ready for distraction-free focus";
+          updateTimerDisplay();
+        });
+
+        presetSeg.querySelectorAll(".lg-seg-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const mins = Number(btn.getAttribute("data-mins")) || 25;
+            const idx = Number(btn.getAttribute("data-idx")) || 1;
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerDuration = mins * 60;
+            timerRemaining = timerDuration;
+            toggleBtn.textContent = "Start Focus";
+            presetSeg.style.setProperty("--seg-index", String(idx));
+            presetSeg.querySelectorAll(".lg-seg-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+            updateTimerDisplay();
+          });
+        });
+
+        updateTimerDisplay();
+      }
+
+      function initInstallModal() {
+        const modal = document.getElementById("installModal");
+        document.getElementById("openInstallGuideBtn").addEventListener("click", () => {
+          modal.hidden = false;
+        });
+        document.getElementById("closeInstallModalBtn").addEventListener("click", () => {
+          modal.hidden = true;
+        });
+        document.getElementById("dismissInstallModalBtn").addEventListener("click", () => {
+          modal.hidden = true;
+        });
+      }
+
+      async function initVersionSync() {
+        try {
+          const res = await fetch("./version.json?t=" + Date.now());
+          if (!res.ok) return;
+          const data = await res.json();
+          const ver = data.version || "2.5.54";
+          const code = data.versionCode || 91;
+          const apkName = `TDLxHT.${ver}.apk`;
+
+          document.getElementById("headerVersionLabel").textContent = `v${ver}`;
+          document.getElementById("heroBuildBadge").textContent = `Build ${code}`;
+          document.getElementById("heroDownloadLabel").textContent = `Download APK · v${ver}`;
+          document.getElementById("releaseTitleVersion").textContent = `v${ver}`;
+          document.getElementById("specVersion").textContent = ver;
+          document.getElementById("specBuild").textContent = String(code);
+          document.getElementById("footerVersionLabel").textContent = `v${ver} (Build ${code})`;
+          document.getElementById("installModalTitle").textContent = `Installing TDlxHT v${ver}`;
+
+          const primaryDownload = document.getElementById("releaseDownloadPrimary");
+          if (primaryDownload) {
+            primaryDownload.textContent = `Download ${apkName}`;
+            primaryDownload.href = `./${apkName}`;
+            primaryDownload.setAttribute("download", apkName);
+          }
+
+          const heroDownload = document.getElementById("heroDownloadBtn");
+          if (heroDownload) {
+            heroDownload.href = `./${apkName}`;
+            heroDownload.setAttribute("download", apkName);
+          }
+
+          const headerDownload = document.getElementById("headerDownloadLink");
+          if (headerDownload) {
+            headerDownload.href = `./${apkName}`;
+            headerDownload.setAttribute("download", apkName);
+          }
+        } catch (_e) {
+          // Keep graceful local defaults
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        initHeader();
+        initScrollReveal();
+        initPhoneDemo();
+        initFeatures();
+        initCalculators();
+        initPhysics();
+        initTimer();
+        initInstallModal();
+        initVersionSync();
+      });
+    })();
+  </script>
 </body>
 </html>

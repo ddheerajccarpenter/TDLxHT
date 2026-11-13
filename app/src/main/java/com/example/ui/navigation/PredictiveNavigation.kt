@@ -44,8 +44,10 @@ import com.example.data.model.Task
 import com.example.data.tools.ToolDefinition
 import com.example.ui.theme.PaperBackground
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Type-safe representation of every full-screen stack destination across TDlxHT.
@@ -109,6 +111,8 @@ class PredictiveBackGestureState {
   var touchX by mutableFloatStateOf(0f)
   var touchY by mutableFloatStateOf(0f)
   val animProgress = Animatable(0f)
+  var departingDestination by mutableStateOf<AppNavDestination?>(null)
+  var arrivingDestination by mutableStateOf<AppNavDestination?>(null)
 }
 
 /**
@@ -300,6 +304,8 @@ fun PredictiveNavigationHost(
     val target = navController.currentBackTarget
     if (target == PredictiveBackTarget.NONE) return@PredictiveBackHandler
     gestureState.targetKind = target
+    gestureState.departingDestination = navController.currentDestination
+    gestureState.arrivingDestination = navController.previousDestination
     gestureState.isPredictingBack = true
     try {
       progressFlow.collect { backEvent ->
@@ -325,17 +331,21 @@ fun PredictiveNavigationHost(
         PredictiveBackTarget.NONE -> {}
       }
     } catch (_: CancellationException) {
-      // Gesture cancelled: spring active screen smoothly back to rest (0f)
-      gestureState.animProgress.animateTo(
-        targetValue = 0f,
-        animationSpec = spring(
-          dampingRatio = 0.78f,
-          stiffness = 420f
+      // Gesture cancelled: spring active screen smoothly back to rest (0f) in NonCancellable context
+      withContext(NonCancellable) {
+        gestureState.animProgress.animateTo(
+          targetValue = 0f,
+          animationSpec = spring(
+            dampingRatio = 0.82f,
+            stiffness = 420f
+          )
         )
-      )
+      }
     } finally {
       gestureState.isPredictingBack = false
       gestureState.targetKind = PredictiveBackTarget.NONE
+      gestureState.departingDestination = null
+      gestureState.arrivingDestination = null
       gestureState.animProgress.snapTo(0f)
       gestureState.progress = 0f
     }
@@ -348,16 +358,20 @@ fun PredictiveNavigationHost(
   ) {
     val fullWidthPx = with(density) { maxWidth.toPx() }
 
+    val isStackGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.STACK_DESTINATION
+    val isTabGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.TAB_ROOT
+    val isOverlayGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.OVERLAY
+
+    val activeDeparting = gestureState.departingDestination ?: currentDest
+    val activeArriving = gestureState.arrivingDestination ?: previousDest
+
     // -------------------------------------------------------------
     // LAYER 0: PREVIOUS SCREEN (UNDERNEATH PREVIEW DURING GESTURE)
     // -------------------------------------------------------------
-    val isStackGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.STACK_DESTINATION
-    val isTabGesture = gestureState.isPredictingBack && gestureState.targetKind == PredictiveBackTarget.TAB_ROOT
-
-    if (isStackGesture && previousDest != null) {
+    if (isStackGesture && activeArriving != null) {
       val progress = gestureState.animProgress.value
-      // Previous screen rises smoothly from depth: scale 0.95f -> 1.0f
-      val prevScale = 0.95f + (progress * 0.05f)
+      // Previous screen rises smoothly from depth: scale 0.94f -> 1.0f
+      val prevScale = 0.94f + (progress * 0.06f)
       val prevCorner = ((1f - progress) * 16).dp
       val scrimAlpha = ((1f - progress) * 0.18f).coerceIn(0f, 0.18f)
 
@@ -372,30 +386,8 @@ fun PredictiveNavigationHost(
             clip = prevCorner > 0.dp
           }
       ) {
-        content(previousDest)
+        content(activeArriving)
         // Subtle ambient scrim that fades out cleanly as the previous screen arrives
-        if (scrimAlpha > 0f) {
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .background(Color.Black.copy(alpha = scrimAlpha))
-          )
-        }
-      }
-    } else if (isTabGesture) {
-      val progress = gestureState.animProgress.value
-      val prevScale = 0.95f + (progress * 0.05f)
-      val scrimAlpha = ((1f - progress) * 0.15f).coerceIn(0f, 0.15f)
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .background(PaperBackground)
-          .graphicsLayer {
-            scaleX = prevScale
-            scaleY = prevScale
-          }
-      ) {
-        content(AppNavDestination.Main(0))
         if (scrimAlpha > 0f) {
           Box(
             modifier = Modifier
@@ -409,13 +401,17 @@ fun PredictiveNavigationHost(
     // -------------------------------------------------------------
     // LAYER 1: ACTIVE SCREEN (TOP / GESTURE OR ANIMATED CONTENT)
     // -------------------------------------------------------------
-    if (isStackGesture || isTabGesture) {
+    if (isStackGesture) {
       val progress = gestureState.animProgress.value
+      val isEdgeRight = gestureState.swipeEdge == BackEventCompat.EDGE_RIGHT
       val activeScale = 1f - (progress * 0.08f)
       val activeCorner = (progress * 28).dp
-      val direction = if (gestureState.swipeEdge == BackEventCompat.EDGE_RIGHT) -1f else 1f
 
-      val translationPx = fullWidthPx * progress * direction
+      val translationPx = if (isEdgeRight) {
+        - (fullWidthPx * 0.12f * progress)
+      } else {
+        fullWidthPx * progress * 0.82f
+      }
       val shadowElevationPx = with(density) { 20.dp.toPx() }
       val activeAlpha = if (progress > 0.70f) {
         ((1f - progress) / 0.30f).coerceIn(0f, 1f)
@@ -434,6 +430,39 @@ fun PredictiveNavigationHost(
             clip = activeCorner > 0.dp
             shadowElevation = shadowElevationPx
             alpha = activeAlpha
+          }
+          .background(PaperBackground)
+      ) {
+        content(activeDeparting)
+      }
+    } else if (isTabGesture) {
+      val progress = gestureState.animProgress.value
+      val activeScale = 1f - (progress * 0.05f)
+      val activeCorner = (progress * 18).dp
+
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .graphicsLayer {
+            scaleX = activeScale
+            scaleY = activeScale
+            shape = RoundedCornerShape(activeCorner)
+            clip = activeCorner > 0.dp
+          }
+          .background(PaperBackground)
+      ) {
+        content(currentDest)
+      }
+    } else if (isOverlayGesture) {
+      val progress = gestureState.animProgress.value
+      val underlyingScale = 0.96f + (progress * 0.04f)
+
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .graphicsLayer {
+            scaleX = underlyingScale
+            scaleY = underlyingScale
           }
           .background(PaperBackground)
       ) {

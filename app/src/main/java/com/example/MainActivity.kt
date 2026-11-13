@@ -11,7 +11,6 @@ import com.example.data.service.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.handleDeeplinks
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -207,6 +206,8 @@ import com.example.ui.viewmodel.AuthViewModel
 import com.example.ui.viewmodel.MainViewModel
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.rounded.Loop
+import androidx.compose.material.icons.outlined.Loop
 import androidx.annotation.RawRes
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -227,9 +228,9 @@ enum class AppDestination(
   val iconOutlined: ImageVector,
   @param:RawRes val animRes: Int
 ) {
-  TODAY("Home", Icons.Rounded.Today, Icons.Outlined.Today, R.raw.anim_today),
-  PRODUCTIVITY("Productivity", Icons.Rounded.Checklist, Icons.Outlined.Checklist, R.raw.anim_productivity),
-  TOOLS("Tools", Icons.Rounded.Handyman, Icons.Outlined.Handyman, R.raw.anim_tools),
+  TODAY("Today", Icons.Rounded.Today, Icons.Outlined.Today, R.raw.anim_today),
+  PRODUCTIVITY("Tasks", Icons.Rounded.Checklist, Icons.Outlined.Checklist, R.raw.anim_productivity),
+  HABITS("Habits", Icons.Rounded.Loop, Icons.Outlined.Loop, R.raw.anim_tools),
   INSIGHTS("Insights", Icons.Rounded.Insights, Icons.Outlined.Insights, R.raw.anim_insights)
 }
 
@@ -389,7 +390,7 @@ fun MainApp(
     listOf(
       AppDestination.TODAY,
       AppDestination.PRODUCTIVITY,
-      AppDestination.TOOLS,
+      AppDestination.HABITS,
       AppDestination.INSIGHTS
     )
   }
@@ -586,6 +587,7 @@ fun MainApp(
                         onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
                         onNavigateToSettings = { navController.navigate(AppNavDestination.Settings) },
                         onNavigateToSearch = { navController.navigate(AppNavDestination.Search) },
+                        onNavigateToTools = { navController.navigate(AppNavDestination.Tools) },
                         onOpenFocusTimer = { navController.navigate(AppNavDestination.FocusTimer(25)) }
                       )
                     }
@@ -601,13 +603,12 @@ fun MainApp(
                         onSwipeToTools = { navController.switchTab(2) }
                       )
                     }
-                    AppDestination.TOOLS -> {
-                      ToolsScreen(
-                        onBack = { navController.switchTab(0) },
-                        onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
-                        onCreateTaskFromResult = { title, notes ->
-                          navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
-                        }
+                    AppDestination.HABITS -> {
+                      HabitListScreen(
+                        viewModel = viewModel,
+                        onNavigateToAddHabit = { navController.navigate(AppNavDestination.HabitDetail()) },
+                        onHabitClick = { navController.navigate(AppNavDestination.HabitDetail(habit = it)) },
+                        onBack = { navController.switchTab(0) }
                       )
                     }
                     AppDestination.INSIGHTS -> {
@@ -669,7 +670,26 @@ fun MainApp(
               viewModel = viewModel,
               authViewModel = authViewModel,
               onBack = { navController.navigateBack() },
-              onNavigateToDiagnostics = { navController.navigate(AppNavDestination.Diagnostics) }
+              onNavigateToDiagnostics = { navController.navigate(AppNavDestination.Diagnostics) },
+              onNavigateToTools = { navController.navigate(AppNavDestination.Tools) }
+            )
+          }
+        }
+
+        is AppNavDestination.Tools -> {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .hazeSource(hazeState)
+              .windowInsetsPadding(WindowInsets.statusBars)
+              .windowInsetsPadding(WindowInsets.navigationBars)
+          ) {
+            ToolsScreen(
+              onBack = { navController.navigateBack() },
+              onToolClick = { tool -> navController.navigate(AppNavDestination.ToolRunner(tool)) },
+              onCreateTaskFromResult = { title, notes ->
+                navController.navigate(AppNavDestination.TaskDetail(initialTitle = title, initialNotes = notes))
+              }
             )
           }
         }
@@ -737,7 +757,8 @@ fun MainApp(
           onHabitClick = { habit ->
             navController.dismissOverlay()
             navController.navigate(AppNavDestination.HabitDetail(habit = habit))
-          }
+          },
+          gestureState = navController.gestureState
         )
       }
       is AppNavOverlay.QuickCreate -> {
@@ -755,6 +776,14 @@ fun MainApp(
           onShortTermTask = {
             navController.dismissOverlay()
             navController.navigate(AppNavDestination.TaskDetail(initialIsShortTerm = true))
+          },
+          onOpenTools = {
+            navController.dismissOverlay()
+            navController.navigate(AppNavDestination.Tools)
+          },
+          onQuickCaptureTask = { task ->
+            viewModel.insertTask(task)
+            navController.dismissOverlay()
           },
           gestureState = navController.gestureState,
           hazeState = hazeState

@@ -4,7 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
+import kotlinx.coroutines.CancellationException
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -194,8 +195,11 @@ fun ToolsScreen(
     }
   }
 
-  BackHandler(enabled = activeTool != null) {
-    activeToolId = null
+  PredictiveBackHandler(enabled = activeTool != null) { progressFlow ->
+    try {
+      progressFlow.collect { }
+      activeToolId = null
+    } catch (_: CancellationException) { }
   }
 
   Box(

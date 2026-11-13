@@ -1,6 +1,5 @@
 package com.example.ui.screens.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
@@ -57,6 +56,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
@@ -70,6 +71,8 @@ import com.example.data.model.Task
 import com.example.ui.components.LiquidGlassCard
 import com.example.ui.components.LiquidGlassIconButton
 import com.example.ui.glass.LocalHazeState
+import com.example.ui.navigation.PredictiveBackGestureState
+import com.example.ui.navigation.PredictiveBackTarget
 import com.example.ui.theme.InkMuted
 import com.example.ui.theme.InkPrimary
 import com.example.ui.theme.InkSecondary
@@ -86,7 +89,8 @@ fun SearchOverlay(
   onDismiss: () -> Unit,
   onTaskClick: (Task) -> Unit,
   onHabitClick: (Habit) -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  gestureState: PredictiveBackGestureState? = null
 ) {
   val tasks by viewModel.tasks.collectAsStateWithLifecycle()
   val habits by viewModel.habits.collectAsStateWithLifecycle()
@@ -122,7 +126,12 @@ fun SearchOverlay(
     }
   }
 
-  BackHandler(onBack = dismissSearch)
+  val isPredictingBack = gestureState?.isPredictingBack == true && gestureState.targetKind == PredictiveBackTarget.OVERLAY
+  val gestureProgress = gestureState?.animProgress?.value ?: 0f
+  val scrimAlphaMultiplier = if (isPredictingBack) (1f - gestureProgress).coerceIn(0f, 1f) else 1f
+  val translationYPx = with(LocalDensity.current) { (120.dp * gestureProgress).toPx() }
+  val searchScale = if (isPredictingBack) (1f - gestureProgress * 0.10f).coerceIn(0.90f, 1f) else 1f
+  val searchAlpha = if (isPredictingBack) (1f - gestureProgress * 1.25f).coerceIn(0f, 1f) else 1f
 
   LaunchedEffect(Unit) {
     focusRequester.requestFocus()
@@ -137,12 +146,12 @@ fun SearchOverlay(
           if (hazeState != null) {
             Modifier.hazeEffect(state = hazeState) {
               blurRadius = 18.dp
-              tints = listOf(HazeTint(Color.Black.copy(alpha = if (isDark) 0.26f else 0.18f)))
-              fallbackTint = HazeTint(Color.Black.copy(alpha = if (isDark) 0.34f else 0.25f))
+              tints = listOf(HazeTint(Color.Black.copy(alpha = (if (isDark) 0.26f else 0.18f) * scrimAlphaMultiplier)))
+              fallbackTint = HazeTint(Color.Black.copy(alpha = (if (isDark) 0.34f else 0.25f) * scrimAlphaMultiplier))
             }
-          } else Modifier.background(Color.Black.copy(alpha = if (isDark) 0.32f else 0.22f))
+          } else Modifier.background(Color.Black.copy(alpha = (if (isDark) 0.32f else 0.22f) * scrimAlphaMultiplier))
         )
-        .background(Color.Black.copy(alpha = if (isDark) 0.16f else 0.12f))
+        .background(Color.Black.copy(alpha = (if (isDark) 0.16f else 0.12f) * scrimAlphaMultiplier))
         .clickable(
           interactionSource = remember { MutableInteractionSource() },
           indication = null,
@@ -168,6 +177,12 @@ fun SearchOverlay(
           .fillMaxWidth()
           .fillMaxHeight(0.92f)
           .align(Alignment.TopCenter)
+          .graphicsLayer {
+            translationY = translationYPx
+            scaleX = searchScale
+            scaleY = searchScale
+            alpha = searchAlpha
+          }
           .testTag("search_overlay"),
         verticalArrangement = Arrangement.Top
       ) {

@@ -334,6 +334,13 @@ class MainViewModel(
     }
   }
 
+  fun insertTask(task: Task, subtasks: List<Subtask> = emptyList()) {
+    if (task.title.isBlank()) return
+    viewModelScope.launch {
+      taskRepository.insertTask(task, subtasks)
+    }
+  }
+
   fun updateTask(
     task: Task,
     subtasks: List<Subtask>

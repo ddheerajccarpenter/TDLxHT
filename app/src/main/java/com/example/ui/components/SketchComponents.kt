@@ -2041,205 +2041,27 @@ fun SketchCheckbox(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
-  sizeDp: Dp = 26.dp
+  sizeDp: Dp = 24.dp
 ) {
   val context = LocalContext.current
-  val isDark = LocalAppColors.current.isDark
-  val isReduced = remember { isReducedMotionEnabled(context) }
-
-  // Spring pop-and-bounce scale on check toggle
-  val popScale = remember { Animatable(1f) }
-  val squashX = remember { Animatable(1f) }
-  val squashY = remember { Animatable(1f) }
-
-  LaunchedEffect(checked) {
-    if (!isReduced) {
-      if (checked) {
-        launch {
-          popScale.snapTo(0.82f)
-          popScale.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(dampingRatio = 0.48f, stiffness = 400f)
-          )
-        }
-        squashX.snapTo(1.18f)
-        squashY.snapTo(0.82f)
-        launch {
-          squashX.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
-          )
-        }
-        squashY.animateTo(
-          targetValue = 1f,
-          animationSpec = spring(dampingRatio = 0.50f, stiffness = 440f)
-        )
-      } else {
-        launch {
-          popScale.snapTo(0.92f)
-          popScale.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(dampingRatio = 0.60f, stiffness = 500f)
-          )
-        }
-        squashX.snapTo(1f)
-        squashY.snapTo(1f)
-      }
-    } else {
-      popScale.snapTo(1f)
-      squashX.snapTo(1f)
-      squashY.snapTo(1f)
-    }
-  }
-
-  val bgColor by animateColorAsState(
-    targetValue = if (checked) {
-      if (isDark) PrimaryAccentLime else PillBackgroundDark
-    } else Color.Transparent,
-    animationSpec = spring(dampingRatio = 0.65f, stiffness = 500f),
-    label = "chkBg"
-  )
-  val checkProgress by animateFloatAsState(
-    targetValue = if (checked) 1f else 0f,
-    animationSpec = if (isReduced) tween(0) else spring(dampingRatio = 0.65f, stiffness = 450f),
-    label = "chkProgress"
-  )
-  val checkMarkColor = if (checked) {
-    if (isDark) PrimaryDarkCanvas else PillTextDark
-  } else Color.Transparent
-
-  val borderColor by animateColorAsState(
-    targetValue = if (checked) {
-      if (isDark) PrimaryAccentLime else PillBackgroundDark
-    } else CardBorder,
-    animationSpec = spring(dampingRatio = 0.65f, stiffness = 500f),
-    label = "chkBrd"
-  )
-
   Box(
     modifier = modifier
-      .size(size = 48.dp)
-      .elasticStretchPress(
-        horizontalStretch = 1.015f,
-        verticalSquash = 0.99f,
-        shineShape = CircleShape
-      ) {
-        val next = !checked
+      .size(48.dp)
+      .testTag("task_checkbox"),
+    contentAlignment = Alignment.Center
+  ) {
+    AppleCircularCheckbox(
+      checked = checked,
+      onCheckedChange = { next ->
         if (next) {
           VibrationHelper.success(context)
         } else {
           VibrationHelper.click(context)
         }
         onCheckedChange(next)
-      }
-      .testTag("task_checkbox"),
-    contentAlignment = Alignment.Center
-  ) {
-    val ringColor = if (checked) {
-      if (isDark) InkWashIvory else InkWashCharcoal
-    } else {
-      if (isDark) InkWashMist.copy(alpha = 0.5f) else InkWashCharcoal.copy(alpha = 0.35f)
-    }
-
-    Box(
-      modifier = Modifier
-        .size(sizeDp)
-        .graphicsLayer {
-          scaleX = squashX.value * popScale.value
-          scaleY = squashY.value * popScale.value
-        },
-      contentAlignment = Alignment.Center
-    ) {
-      Canvas(modifier = Modifier.matchParentSize()) {
-        val strokeWidth = 2.dp.toPx()
-        val diameter = size.minDimension - strokeWidth
-        val topLeftOffset = Offset(
-          (size.width - diameter) / 2f,
-          (size.height - diameter) / 2f
-        )
-        val arcSize = androidx.compose.ui.geometry.Size(diameter, diameter)
-
-        if (!checked) {
-          // ProgressRingCheck Idle State: Solid refined circular rim
-          drawCircle(
-            color = ringColor,
-            radius = diameter / 2f,
-            center = center,
-            style = Stroke(
-              width = strokeWidth,
-              cap = StrokeCap.Round
-            )
-          )
-        } else {
-          // ProgressRingCheck Done State: Solid ring with animated checkmark
-          drawArc(
-            color = ringColor,
-            startAngle = -90f,
-            sweepAngle = 360f * checkProgress,
-            useCenter = false,
-            topLeft = topLeftOffset,
-            size = arcSize,
-            style = Stroke(
-              width = strokeWidth,
-              cap = StrokeCap.Round
-            )
-          )
-          // Solid subtle fill
-          drawCircle(
-            color = ringColor.copy(alpha = 0.12f),
-            radius = diameter / 2f,
-            center = center
-          )
-        }
-      }
-
-      if (checkProgress > 0.01f) {
-        Canvas(modifier = Modifier.size(sizeDp * 0.58f)) {
-          val strokeWidth = 2.4.dp.toPx()
-          val w = size.width
-          val h = size.height
-
-          val p1 = Offset(w * 0.15f, h * 0.52f)
-          val p2 = Offset(w * 0.42f, h * 0.80f)
-          val p3 = Offset(w * 0.88f, h * 0.22f)
-
-          val segment1Length = (p2 - p1).getDistance()
-          val segment2Length = (p3 - p2).getDistance()
-          val totalLength = segment1Length + segment2Length
-          val currentLength = totalLength * checkProgress
-
-          val path = androidx.compose.ui.graphics.Path()
-          path.moveTo(p1.x, p1.y)
-
-          if (currentLength <= segment1Length) {
-            val frac = (currentLength / segment1Length).coerceIn(0f, 1f)
-            val cur = Offset(
-              p1.x + (p2.x - p1.x) * frac,
-              p1.y + (p2.y - p1.y) * frac
-            )
-            path.lineTo(cur.x, cur.y)
-          } else {
-            path.lineTo(p2.x, p2.y)
-            val frac = ((currentLength - segment1Length) / segment2Length).coerceIn(0f, 1f)
-            val cur = Offset(
-              p2.x + (p3.x - p2.x) * frac,
-              p2.y + (p3.y - p2.y) * frac
-            )
-            path.lineTo(cur.x, cur.y)
-          }
-
-          drawPath(
-            path = path,
-            color = ringColor,
-            style = Stroke(
-              width = strokeWidth,
-              cap = androidx.compose.ui.graphics.StrokeCap.Round,
-              join = androidx.compose.ui.graphics.StrokeJoin.Round
-            )
-          )
-        }
-      }
-    }
+      },
+      size = sizeDp
+    )
   }
 }
 
