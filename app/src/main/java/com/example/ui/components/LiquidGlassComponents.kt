@@ -42,6 +42,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -196,7 +197,7 @@ fun LiquidGlassSurface(
 ) {
   val isDark = LocalAppColors.current.isDark
   val clickModifier = if (onClick != null) {
-    Modifier.bounceClick(shine = false, onClick = onClick)
+    Modifier.bounceClick(shine = false, shape = shape, onClick = onClick)
   } else Modifier
   val resolvedHaze = hazeState ?: LocalHazeState.current
   val fallbackColor = if (isDark) LiquidGlassCardTopDark else LightSurfaceElevated
@@ -514,6 +515,8 @@ fun LiquidGlassSegmentedControl(
       items.forEachIndexed { index, item ->
         val selected = index == selectedIndex
         val interactions = remember { MutableInteractionSource() }
+        val pressed by interactions.collectIsPressedAsState()
+        LaunchedEffect(pressed) { isPressed = pressed }
         Box(
           Modifier
             .weight(1f)
@@ -637,7 +640,7 @@ fun LiquidGlassIconButton(
   Box(
     modifier = modifier
       .size(48.dp)
-      .then(if (enabled) Modifier.bounceClick { onClick() } else Modifier),
+      .then(if (enabled) Modifier.bounceClick(shape = shape) { onClick() } else Modifier),
     contentAlignment = Alignment.Center
   ) {
     LiquidGlassSurface(
@@ -689,6 +692,7 @@ fun LiquidGlassNavigationDock(
   val selectDestination by rememberUpdatedState(onDestinationSelected)
   val dragOffsetCallback by rememberUpdatedState(onDragOffset)
   val dragReleasedCallback by rememberUpdatedState(onDragReleased)
+  val currentSelectedTab by rememberUpdatedState(selectedTab)
   val reduceMotion = remember { isReducedMotionEnabled(context) }
   val coroutineScope = rememberCoroutineScope()
   val activeDestinations = destinations.take(4)
@@ -959,7 +963,7 @@ fun LiquidGlassNavigationDock(
               isPressed = false
               isDragging = false
               // Restore the page if a parent scroll/gesture cancels this drag.
-              dragReleasedCallback?.invoke(selectedTab)
+              dragReleasedCallback?.invoke(currentSelectedTab)
             },
             onDragEnd = {
               isPressed = false
@@ -1000,7 +1004,8 @@ fun LiquidGlassNavigationDock(
               )
             }
           },
-          modifier = Modifier.weight(1f)
+          modifier = Modifier.weight(1f),
+          onPressedChange = { isPressed = it }
         )
       }
     }
@@ -1042,6 +1047,7 @@ fun FloatingLiquidGlassActionButton(
       }
       .bounceClick(
         level = com.example.ui.components.InteractionLevel.MEDIUM,
+        shape = CircleShape,
         shine = false
       ) {
         VibrationHelper.click(context)
@@ -1132,9 +1138,13 @@ fun LiquidGlassNavItem(
   destination: AppDestination,
   isSelected: Boolean,
   onClick: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  onPressedChange: (Boolean) -> Unit = {}
 ) {
   val interactions = remember { MutableInteractionSource() }
+  val pressed by interactions.collectIsPressedAsState()
+  val notifyPressed by rememberUpdatedState(onPressedChange)
+  LaunchedEffect(pressed) { notifyPressed(pressed) }
   val context = LocalContext.current
   val colors = LocalAppColors.current
   val isDark = colors.isDark
