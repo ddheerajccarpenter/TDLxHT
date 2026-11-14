@@ -33,10 +33,12 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.text.style.TextOverflow
-import com.example.ui.theme.StrongFontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -72,9 +74,11 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,6 +93,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -293,7 +299,10 @@ fun LiquidGlassSegmentedControl(
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
-  val isDark = LocalAppColors.current.isDark
+  val colors = LocalAppColors.current
+  val isDark = colors.isDark
+  val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+  val selectItem by rememberUpdatedState(onItemSelected)
   val reduceMotion = remember { isReducedMotionEnabled(context) }
   val coroutineScope = rememberCoroutineScope()
   if (items.isEmpty()) return
@@ -311,7 +320,7 @@ fun LiquidGlassSegmentedControl(
   var lastHapticIndex by remember { mutableIntStateOf(selectedIndex) }
 
   // Sync when selectedIndex changes externally and not dragging
-  LaunchedEffect(selectedIndex) {
+  LaunchedEffect(selectedIndex, isDragging, reduceMotion) {
     if (!isDragging) {
       if (reduceMotion) {
         indicatorPos.snapTo(selectedIndex.toFloat())
@@ -346,7 +355,7 @@ fun LiquidGlassSegmentedControl(
         lastNanos = now
         elapsed += dt
         jiggleOffset = kotlin.math.sin(elapsed * 28f) * 1.5f * actionProgress
-        val factor = 1f - kotlin.math.exp(-dt * 38f)
+        val factor = if (reduceMotion) 1f else 1f - kotlin.math.exp(-dt * 38f)
         nextPos = indicatorPos.value + (dragTargetPos - indicatorPos.value) * factor
       }
       nextPos?.let { indicatorPos.snapTo(it) }
@@ -364,7 +373,7 @@ fun LiquidGlassSegmentedControl(
   } else {
     Color.White.copy(alpha = 0.88f + 0.10f * actionProgress)
   }
-  val dynamicStretch = ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
+  val dynamicStretch = if (reduceMotion) 0f else ((dragTargetPos - indicatorPos.value) * 0.08f).coerceIn(-0.16f, 0.16f)
   val liftScale = 1f + 0.12f * actionProgress
   val verticalScale = 1f + 0.26f * actionProgress
   val basePillHeight = 40.dp
@@ -408,12 +417,12 @@ fun LiquidGlassSegmentedControl(
     // 2. Active Pill Lens Indicator: fixed 40dp layout, GPU vertical scaling for zero-allocation pop-out overhang
     Box(
       Modifier
-        .align(Alignment.CenterStart)
+        .align(AbsoluteAlignment.CenterLeft)
         .padding(horizontal = sideInset)
         .height(basePillHeight)
         .width(indicatorWidth)
         .graphicsLayer {
-          this.translationX = indicatorWidthPx * indicatorPos.value + jiggleOffset
+          this.translationX = indicatorWidthPx * visualTabPosition(indicatorPos.value, totalSlots, isRtl) + jiggleOffset
           this.scaleX = liftScale + dynamicStretch
           this.scaleY = liftScale * verticalScale
           this.shape = controlShape
@@ -451,7 +460,7 @@ fun LiquidGlassSegmentedControl(
     val lensModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && lensShader != null && cachedLensRenderEffect != null) {
       Modifier.graphicsLayer {
         if (size.width <= 0f || size.height <= 0f) return@graphicsLayer
-        val centerPx = sideInsetPx + indicatorWidthPx * indicatorPos.value + indicatorWidthPx / 2f + jiggleOffset
+        val centerPx = sideInsetPx + indicatorWidthPx * visualTabPosition(indicatorPos.value, totalSlots, isRtl) + indicatorWidthPx / 2f + jiggleOffset
         val halfWPx = (indicatorWidthPx / 2f) * (liftScale + dynamicStretch)
         val halfHPx = (basePillHeightPx / 2f) * (liftScale * verticalScale)
         lensShader.setFloatUniform("uCenter", centerPx, size.height / 2f)
@@ -469,92 +478,63 @@ fun LiquidGlassSegmentedControl(
         .align(Alignment.Center)
         .then(lensModifier)
         .padding(horizontal = sideInset)
-        .pointerInput(totalSlots, indicatorWidthPx) {
+        .selectableGroup()
+        .pointerInput(totalSlots, indicatorWidthPx, isRtl) {
           if (indicatorWidthPx <= 0f) return@pointerInput
-          val touchSlop = viewConfiguration.touchSlop
-          awaitEachGesture {
-            val down = awaitFirstDown(requireUnconsumed = false)
-            isPressed = true
-            var dragStarted = false
-            var totalDx = 0f
-            var totalDy = 0f
-
-            do {
-              val event = awaitPointerEvent()
-              val change = event.changes.firstOrNull { it.id == down.id } ?: break
-
-              val dx = change.position.x - change.previousPosition.x
-              val dy = change.position.y - change.previousPosition.y
-              totalDx += dx
-              totalDy += dy
-
-              if (!dragStarted) {
-                if (abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
-                  dragStarted = true
-                  isDragging = true
-                  val slotPos = ((change.position.x - sideInsetPx) / indicatorWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
-                  dragTargetPos = slotPos
-                  change.consume()
-                }
-              }
-
-              if (dragStarted) {
-                change.consume()
-                val slotPos = ((change.position.x - sideInsetPx) / indicatorWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
-                dragTargetPos = slotPos
-
-                val currentSlot = slotPos.roundToInt().coerceIn(0, totalSlots - 1)
-                if (currentSlot != lastHapticIndex) {
-                  lastHapticIndex = currentSlot
-                  VibrationHelper.tick(context)
-                  com.example.util.SoundManager.playSwipeNav(context)
-                }
-              }
-            } while (event.changes.any { it.pressed })
-
-            isPressed = false
-            if (dragStarted) {
+          detectHorizontalDragGestures(
+            onDragStart = { offset ->
+              isPressed = true
+              isDragging = true
+              dragTargetPos = tabPositionAt(offset.x, indicatorWidthPx, totalSlots, isRtl)
+            },
+            onDragCancel = {
+              isPressed = false
               isDragging = false
-              val finalSlot = indicatorPos.value.roundToInt().coerceIn(0, totalSlots - 1)
-              onItemSelected(finalSlot)
+            },
+            onDragEnd = {
+              isPressed = false
+              isDragging = false
+              // Commit the finger's final target, not the lagging spring position.
+              selectItem(dragTargetPos.roundToInt().coerceIn(0, totalSlots - 1))
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
-              coroutineScope.launch {
-                if (reduceMotion) indicatorPos.snapTo(finalSlot.toFloat()) else indicatorPos.animateTo(
-                  finalSlot.toFloat(),
-                  spring(dampingRatio = 0.72f, stiffness = 480f)
-                )
+            },
+            onHorizontalDrag = { change, _ ->
+              change.consume()
+              dragTargetPos = tabPositionAt(change.position.x, indicatorWidthPx, totalSlots, isRtl)
+              val currentSlot = dragTargetPos.roundToInt()
+              if (currentSlot != lastHapticIndex) {
+                lastHapticIndex = currentSlot
+                VibrationHelper.tick(context)
               }
-            } else {
-              // Tap selection
-              val tapSlot = ((down.position.x - sideInsetPx) / indicatorWidthPx).toInt().coerceIn(0, totalSlots - 1)
-              onItemSelected(tapSlot)
-              VibrationHelper.tick(context)
-              com.example.util.SoundManager.playSwipeNav(context)
             }
-          }
+          )
         }
     ) {
       items.forEachIndexed { index, item ->
         val selected = index == selectedIndex
+        val interactions = remember { MutableInteractionSource() }
         Box(
           Modifier
             .weight(1f)
             .fillMaxHeight()
             .clip(controlShape)
-            .semantics {
-              role = Role.Tab
-              this.selected = selected
-              contentDescription = item
-              onClick {
-                onItemSelected(index)
-                true
+            .glassFocusRing(interactions, controlShape)
+            .selectable(
+              selected = selected,
+              role = Role.Tab,
+              interactionSource = interactions,
+              indication = null,
+              onClick = {
+                selectItem(index)
+                VibrationHelper.tick(context)
+                com.example.util.SoundManager.playSwipeNav(context)
               }
-            },
+            ),
           contentAlignment = Alignment.Center
         ) {
-          val activeTextColor = if (isDark) Color.White else Color(0xFF1C1C1E)
-          val inactiveTextColor = if (isDark) Color.White.copy(alpha = 0.50f) else Color(0xFF8E8E93)
+          val activeTextColor = colors.inkPrimary
+          val inactiveTextColor = colors.inkSecondary
           Text(
             text = item,
             color = if (selected) activeTextColor else inactiveTextColor,
@@ -705,6 +685,10 @@ fun LiquidGlassNavigationDock(
   val density = LocalDensity.current
   val colors = LocalAppColors.current
   val isDark = colors.isDark
+  val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+  val selectDestination by rememberUpdatedState(onDestinationSelected)
+  val dragOffsetCallback by rememberUpdatedState(onDragOffset)
+  val dragReleasedCallback by rememberUpdatedState(onDragReleased)
   val reduceMotion = remember { isReducedMotionEnabled(context) }
   val coroutineScope = rememberCoroutineScope()
   val activeDestinations = destinations.take(4)
@@ -828,8 +812,8 @@ fun LiquidGlassNavigationDock(
           val targetLeft = dragCenter - pillWidthPx * 0.5f
           val targetRight = targetLeft + pillWidthPx
           val movingRight = dragCenter > (leftEdge.value + rightEdge.value) * 0.5f
-          val fast = 1f - kotlin.math.exp(-dt * 42f)
-          val slow = 1f - kotlin.math.exp(-dt * 16f)
+          val fast = if (reduceMotion) 1f else 1f - kotlin.math.exp(-dt * 42f)
+          val slow = if (reduceMotion) 1f else 1f - kotlin.math.exp(-dt * 16f)
           nextLeft = leftEdge.value + (targetLeft - leftEdge.value) * (if (movingRight) slow else fast)
           nextRight = rightEdge.value + (targetRight - rightEdge.value) * (if (movingRight) fast else slow)
         }
@@ -894,7 +878,9 @@ fun LiquidGlassNavigationDock(
         val liftValue = if (reduceMotion) 0f else (lift + tapPopAnim.value).coerceIn(0f, 1f)
         val stretch = ((visualRight - visualLeft) / pillWidthPx).coerceIn(0.75f, 1.5f)
         val liftScale = 1f + NAV_PILL_LIFT_SCALE * liftValue
-        lensShader.setFloatUniform("uCenter", (visualLeft + visualRight) * 0.5f, size.height * 0.5f)
+        val logicalCenter = (visualLeft + visualRight) * 0.5f
+        val physicalCenter = if (isRtl) totalSlots * slotWidthPx - logicalCenter else logicalCenter
+        lensShader.setFloatUniform("uCenter", physicalCenter, size.height * 0.5f)
         lensShader.setFloatUniform("uHalf", pillWidthPx * stretch * liftScale * 0.5f, size.height * liftScale * 0.5f)
         lensShader.setFloatUniform("uZoom", 0.08f + 0.18f * liftValue)
         lensShader.setFloatUniform("uChroma", 0.08f * liftValue)
@@ -904,7 +890,7 @@ fun LiquidGlassNavigationDock(
 
     Box(
       modifier = Modifier
-        .align(Alignment.CenterStart)
+        .align(AbsoluteAlignment.CenterLeft)
         .padding(horizontal = sideInset)
         .width(pillWidthDp)
         .height(42.dp)
@@ -931,7 +917,7 @@ fun LiquidGlassNavigationDock(
             val liftValue = if (reduceMotion) 0f else (lift + tapPopAnim.value).coerceIn(0f, 1f)
             val stretch = ((visualRight - visualLeft) / pillWidthPx).coerceIn(0.75f, 1.5f)
             val liftScale = 1f + NAV_PILL_LIFT_SCALE * liftValue
-            translationX = visualLeft
+            translationX = if (isRtl) totalSlots * slotWidthPx - visualRight else visualLeft
             scaleX = stretch * liftScale
             scaleY = liftScale
             shadowElevation = 14.dp.toPx() * liftValue
@@ -960,71 +946,42 @@ fun LiquidGlassNavigationDock(
         .align(Alignment.Center)
         .padding(horizontal = sideInset)
         .then(lensModifier)
-        .pointerInput(totalSlots, slotWidthPx) {
-          val touchSlop = viewConfiguration.touchSlop
-          awaitEachGesture {
-            val down = awaitFirstDown(requireUnconsumed = false)
-            isPressed = true
-            val currentSlot = getSlotPos()
-            val currentCenter = (currentSlot + 0.5f) * slotWidthPx
-            dragCenter = currentCenter
-            dragTargetPos = currentSlot
-            coroutineScope.launch {
-              leftEdge.snapTo(currentCenter - pillWidthPx * 0.5f)
-              rightEdge.snapTo(currentCenter + pillWidthPx * 0.5f)
-            }
-            lastHapticIndex = currentSlot.roundToInt().coerceIn(0, totalSlots - 1)
-
-            var dragStarted = false
-            var totalDx = 0f
-            var totalDy = 0f
-            do {
-              val event = awaitPointerEvent()
-              val change = event.changes.firstOrNull { it.id == down.id } ?: break
-              totalDx += change.position.x - change.previousPosition.x
-              totalDy += change.position.y - change.previousPosition.y
-              if (!dragStarted && abs(totalDx) > touchSlop && abs(totalDx) > abs(totalDy)) {
-                dragStarted = true
-                isDragging = true
-                change.consume()
-              }
-              if (dragStarted) {
-                change.consume()
-                val slotPos = (change.position.x / slotWidthPx - 0.5f).coerceIn(0f, (totalSlots - 1).toFloat())
-                dragTargetPos = slotPos
-                dragCenter = (slotPos + 0.5f) * slotWidthPx
-                onDragOffset?.invoke(slotPos)
-                val currentIndex = slotPos.roundToInt().coerceIn(0, totalSlots - 1)
-                if (currentIndex != lastHapticIndex) {
-                  lastHapticIndex = currentIndex
-                  VibrationHelper.tick(context)
-                  com.example.util.SoundManager.playSwipeNav(context)
-                }
-              }
-            } while (event.changes.any { it.pressed })
-
-            isPressed = false
-            if (dragStarted) {
+        .selectableGroup()
+        .pointerInput(totalSlots, slotWidthPx, isRtl) {
+          detectHorizontalDragGestures(
+            onDragStart = { offset ->
+              isPressed = true
+              isDragging = true
+              dragTargetPos = tabPositionAt(offset.x, slotWidthPx, totalSlots, isRtl)
+              dragCenter = (dragTargetPos + 0.5f) * slotWidthPx
+            },
+            onDragCancel = {
+              isPressed = false
+              isDragging = false
+              // Restore the page if a parent scroll/gesture cancels this drag.
+              dragReleasedCallback?.invoke(selectedTab)
+            },
+            onDragEnd = {
+              isPressed = false
               isDragging = false
               val finalSlot = dragTargetPos.roundToInt().coerceIn(0, totalSlots - 1)
-              onDragReleased?.invoke(finalSlot)
-              onDestinationSelected(activeDestinations[finalSlot])
+              dragReleasedCallback?.invoke(finalSlot)
+              selectDestination(activeDestinations[finalSlot])
               VibrationHelper.tick(context)
               com.example.util.SoundManager.playSwipeNav(context)
-            } else {
-              val tapSlot = (down.position.x / slotWidthPx).toInt().coerceIn(0, totalSlots - 1)
-              onDestinationSelected(activeDestinations[tapSlot])
-              VibrationHelper.tick(context)
-              com.example.util.SoundManager.playSwipeNav(context)
-              coroutineScope.launch {
-                tapPopAnim.snapTo(1f)
-                tapPopAnim.animateTo(
-                  targetValue = 0f,
-                  animationSpec = spring(dampingRatio = 0.68f, stiffness = 320f)
-                )
+            },
+            onHorizontalDrag = { change, _ ->
+              change.consume()
+              dragTargetPos = tabPositionAt(change.position.x, slotWidthPx, totalSlots, isRtl)
+              dragCenter = (dragTargetPos + 0.5f) * slotWidthPx
+              dragOffsetCallback?.invoke(dragTargetPos)
+              val currentIndex = dragTargetPos.roundToInt()
+              if (currentIndex != lastHapticIndex) {
+                lastHapticIndex = currentIndex
+                VibrationHelper.tick(context)
               }
             }
-          }
+          )
         }
     ) {
       activeDestinations.forEachIndexed { index, destination ->
@@ -1032,10 +989,10 @@ fun LiquidGlassNavigationDock(
           destination = destination,
           isSelected = selectedTab == index,
           onClick = {
-            onDestinationSelected(destination)
+            selectDestination(destination)
             com.example.util.SoundManager.playSwipeNav(context)
             VibrationHelper.tick(context)
-            coroutineScope.launch {
+            if (!reduceMotion) coroutineScope.launch {
               tapPopAnim.snapTo(1f)
               tapPopAnim.animateTo(
                 targetValue = 0f,
@@ -1177,12 +1134,13 @@ fun LiquidGlassNavItem(
   onClick: () -> Unit,
   modifier: Modifier = Modifier
 ) {
+  val interactions = remember { MutableInteractionSource() }
   val context = LocalContext.current
   val colors = LocalAppColors.current
   val isDark = colors.isDark
   val reduceMotion = remember { isReducedMotionEnabled(context) }
-  val selectedColor = if (isDark) Color.White else colors.oklchPrimary
-  val unselectedColor = if (isDark) Color.White.copy(alpha = 0.45f) else Color(0xFF8E8E93)
+  val selectedColor = colors.inkPrimary
+  val unselectedColor = colors.inkSecondary
 
   val iconColor by animateColorAsState(
     targetValue = if (isSelected) selectedColor else unselectedColor,
@@ -1204,15 +1162,15 @@ fun LiquidGlassNavItem(
     modifier = modifier
       .fillMaxHeight()
       .testTag("nav_${destination.name.lowercase()}")
-      .semantics(mergeDescendants = true) {
-        role = Role.Tab
-        selected = isSelected
-        contentDescription = destination.label
-        onClick {
-          onClick()
-          true
-        }
-      },
+      .glassFocusRing(interactions, CircleShape)
+      .semantics { contentDescription = destination.label }
+      .selectable(
+        selected = isSelected,
+        role = Role.Tab,
+        interactionSource = interactions,
+        indication = null,
+        onClick = onClick
+      ),
     contentAlignment = Alignment.Center
   ) {
     Box(

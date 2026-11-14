@@ -5,7 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,9 +38,10 @@ fun AppleCircularCheckbox(
   onCheckedChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
   size: Dp = 22.dp,
-  accentColor: Color = Color(0xFF30D158) // Apple System Emerald
+  accentColor: Color = LocalAppColors.current.pillBackgroundDark,
+  contentDescription: String = "Completion"
 ) {
-  val isDark = LocalAppColors.current.isDark
+  val colors = LocalAppColors.current
   val interactionSource = remember { MutableInteractionSource() }
 
   val scale by animateFloatAsState(
@@ -56,37 +57,39 @@ fun AppleCircularCheckbox(
   val borderColor by animateColorAsState(
     targetValue = if (checked) {
       accentColor
-    } else if (isDark) {
-      Color.White.copy(alpha = 0.32f)
     } else {
-      Color.Black.copy(alpha = 0.28f)
+      colors.inkSecondary
     },
     label = "checkBorder"
   )
 
   Box(
     modifier = modifier
-      .size(size)
-      .scale(scale)
-      .clip(CircleShape)
-      .border(1.6.dp, borderColor, CircleShape)
-      .background(bgColor, CircleShape)
-      .semantics { role = Role.Checkbox }
-      .clickable(
+      .size(48.dp)
+      .glassFocusRing(interactionSource, CircleShape)
+      .semantics { this.contentDescription = contentDescription }
+      .toggleable(
+        value = checked,
+        role = Role.Checkbox,
         interactionSource = interactionSource,
-        indication = null
-      ) {
-        onCheckedChange(!checked)
-      },
+        indication = null,
+        onValueChange = onCheckedChange
+      ),
     contentAlignment = Alignment.Center
   ) {
-    if (checked) {
-      Icon(
-        imageVector = Icons.Rounded.Check,
-        contentDescription = "Completed",
-        tint = Color.White,
-        modifier = Modifier.size(size * 0.65f)
-      )
+    Box(
+      modifier = Modifier.size(size).scale(scale).clip(CircleShape)
+        .border(1.6.dp, borderColor, CircleShape).background(bgColor, CircleShape),
+      contentAlignment = Alignment.Center
+    ) {
+      if (checked) {
+        Icon(
+          imageVector = Icons.Rounded.Check,
+          contentDescription = null,
+          tint = colors.pillTextDark,
+          modifier = Modifier.size(size * 0.65f)
+        )
+      }
     }
   }
 }

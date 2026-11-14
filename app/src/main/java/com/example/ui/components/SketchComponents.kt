@@ -593,6 +593,7 @@ fun Modifier.bounceClick(
           }
         }
       }
+      .glassFocusRing(interactionSource, shape ?: RoundedCornerShape(12.dp))
       .combinedClickable(
         interactionSource = interactionSource,
         indication = null,
@@ -659,6 +660,7 @@ fun Modifier.bouncyPress(
       scaleY = scale
       this.alpha = alpha
     }
+    .glassFocusRing(interactionSource)
     .combinedClickable(
       interactionSource = interactionSource,
       indication = null,
@@ -2041,7 +2043,8 @@ fun SketchCheckbox(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
-  sizeDp: Dp = 24.dp
+  sizeDp: Dp = 24.dp,
+  contentDescription: String = "Completion"
 ) {
   val context = LocalContext.current
   Box(
@@ -2060,7 +2063,8 @@ fun SketchCheckbox(
         }
         onCheckedChange(next)
       },
-      size = sizeDp
+      size = sizeDp,
+      contentDescription = contentDescription
     )
   }
 }

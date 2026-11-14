@@ -1214,7 +1214,8 @@ fun TaskItemCard(
         AppleCircularCheckbox(
           checked = task.isCompleted,
           onCheckedChange = { onToggle() },
-          modifier = Modifier.padding(end = 12.dp)
+          modifier = Modifier.padding(end = 12.dp),
+          contentDescription = "Complete ${task.title}"
         )
       }
 
@@ -1415,7 +1416,8 @@ fun TaskGridCard(
           SketchCheckbox(
             checked = task.isCompleted,
             onCheckedChange = { onToggle() },
-            sizeDp = 20.dp
+            sizeDp = 20.dp,
+            contentDescription = "Complete ${task.title}"
           )
         }
       }
@@ -1531,31 +1533,12 @@ fun HabitGridCard(
               )
             }
           } else {
-            Box(
-              modifier = Modifier
-                .size(26.dp)
-                .clip(CircleShape)
-                .border(
-                  width = 1.8.dp,
-                  color = if (isCompleted) PillBackgroundDark else CardBorder,
-                  shape = CircleShape
-                )
-                .background(
-                  color = if (isCompleted) PillBackgroundDark else Color.Transparent,
-                  shape = CircleShape
-                )
-                .bounceClick { onToggle() },
-              contentAlignment = Alignment.Center
-            ) {
-              if (isCompleted) {
-                Icon(
-                  imageVector = Icons.Default.Check,
-                  contentDescription = "Completed",
-                  tint = PillTextDark,
-                  modifier = Modifier.size(14.dp)
-                )
-              }
-            }
+            SketchCheckbox(
+              checked = isCompleted,
+              onCheckedChange = { onToggle() },
+              sizeDp = 26.dp,
+              contentDescription = "Complete ${habit.name}"
+            )
           }
         }
       }
@@ -1757,6 +1740,7 @@ fun HabitItemCard(
         } else {
           SketchCheckbox(
             checked = isCompleted,
+            contentDescription = "Complete ${habit.name}",
             onCheckedChange = { onToggle() }
           )
         }

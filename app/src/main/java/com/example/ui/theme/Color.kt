@@ -183,7 +183,7 @@ val BlueHorizon = Color(0xFF2FA4D7)       // 1. Blue Horizon #2FA4D7: Primary Vi
 val DesertCream = Color(0xFFF5E9D8)       // 2. Desert Cream #F5E9D8: Warm Canvas & Default Background
 val CocaNoir = Color(0xFF3E2C23)          // 3. Coca Noir #3E2C23: Nav Bar Liquid Glass, Shadow & Icon Tint
 val LightTextCocoa = Color(0xFF574E42)    // Light mode text color #574e42
-val LightTextMuted = Color(0xFF7A7268)
+val LightTextMuted = Color(0xFF6E655B)
 
 // Coca Noir Liquid Glass Tints (Translucent, never solid)
 val CocaNoirNavGlassDark = Color(0x333E2C23)   // Translucent deep roasted cocoa tint in dark mode
@@ -239,7 +239,9 @@ data class AppColors(
   val surfaceElevated: Color = if (isDark) Color(0x28FFFFFF) else Color(0xEAFFFFFF),
   val cocaNoirNavGlass: Color = if (isDark) CocaNoirNavGlassDark else CocaNoirNavGlassLight,
   val cocaNoirShadow: Color = if (isDark) CocaNoirShadowDark else CocaNoirShadowLight,
-  val blueHorizonAccent: Color = BlueHorizon
+  val blueHorizonAccent: Color = BlueHorizon,
+  val focusRing: Color = if (isDark) Color.White else CocaNoir,
+  val focusHalo: Color = if (isDark) Color.Black else Color.White
 )
 
 val LightColors = AppColors(
@@ -247,7 +249,7 @@ val LightColors = AppColors(
   paperDotColor = Color.Transparent,
   inkPrimary = LightTextCocoa,
   inkSecondary = LightTextMuted,
-  inkMuted = Color(0xFF9E958A),
+  inkMuted = Color(0xFF756B60),
   cardBackground = Color(0x9EFFFFFF),
   cardBorder = Color(0x1F3E2C23),
   pillBackgroundDark = CocaNoir,
@@ -279,7 +281,7 @@ val DarkColors = AppColors(
   paperDotColor = Color.Transparent,
   inkPrimary = Color(0xFFFFFFFF),
   inkSecondary = Color(0xFF9E9E9E),
-  inkMuted = Color(0xFF71767E),
+  inkMuted = Color(0xFF969BA3),
   cardBackground = Color(0x0EFFFFFF),
   cardBorder = Color(0x14FFFFFF),
   pillBackgroundDark = Color.White,

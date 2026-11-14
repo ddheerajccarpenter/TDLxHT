@@ -8,17 +8,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 // =========================================================================
@@ -36,66 +30,17 @@ fun MyApplicationTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   content: @Composable () -> Unit
 ) {
-  val targetColors = if (darkTheme) DarkColors else LightColors
-  val animSpec = tween<Color>(durationMillis = 200, easing = FastOutSlowInEasing)
-
-  val paperBackground by animateColorAsState(targetColors.paperBackground, animSpec, label = "paperBg")
-  val inkPrimary by animateColorAsState(targetColors.inkPrimary, animSpec, label = "inkPri")
-  val inkSecondary by animateColorAsState(targetColors.inkSecondary, animSpec, label = "inkSec")
-  val inkMuted by animateColorAsState(targetColors.inkMuted, animSpec, label = "inkMut")
-  val cardBackground by animateColorAsState(targetColors.cardBackground, animSpec, label = "cardBg")
-  val cardBorder by animateColorAsState(targetColors.cardBorder, animSpec, label = "cardBrd")
-  val pillBackgroundDark by animateColorAsState(targetColors.pillBackgroundDark, animSpec, label = "pillBg")
-  val pillTextDark by animateColorAsState(targetColors.pillTextDark, animSpec, label = "pillTxt")
-  val progressBarTrack by animateColorAsState(targetColors.progressBarTrack, animSpec, label = "pbTrack")
-  val progressBarFilled by animateColorAsState(targetColors.progressBarFilled, animSpec, label = "pbFill")
-  val accentTerracotta by animateColorAsState(targetColors.accentTerracotta, animSpec, label = "accTerra")
-  val accentOrange by animateColorAsState(targetColors.accentOrange, animSpec, label = "accOrg")
-  val accentYellowHighlight by animateColorAsState(targetColors.accentYellowHighlight, animSpec, label = "accYel")
-  val accentRed by animateColorAsState(targetColors.accentRed, animSpec, label = "accRed")
-  val chipBorder by animateColorAsState(targetColors.chipBorder, animSpec, label = "chipBrd")
-  val chipUnselected by animateColorAsState(targetColors.chipUnselected, animSpec, label = "chipUnsel")
-
-  val appColors = AppColors(
-    paperBackground = paperBackground,
-    paperDotColor = targetColors.paperDotColor,
-    inkPrimary = inkPrimary,
-    inkSecondary = inkSecondary,
-    inkMuted = inkMuted,
-    cardBackground = cardBackground,
-    cardBorder = cardBorder,
-    pillBackgroundDark = pillBackgroundDark,
-    pillTextDark = pillTextDark,
-    progressBarTrack = progressBarTrack,
-    progressBarFilled = progressBarFilled,
-    accentTerracotta = accentTerracotta,
-    accentOrange = accentOrange,
-    accentYellowHighlight = accentYellowHighlight,
-    accentRed = accentRed,
-    chipBorder = chipBorder,
-    chipUnselected = chipUnselected,
-    isDark = darkTheme,
-    oklchPrimary = targetColors.oklchPrimary,
-    oklchSuccess = targetColors.oklchSuccess,
-    oklchWarning = targetColors.oklchWarning,
-    oklchDanger = targetColors.oklchDanger,
-    oklchFocus = targetColors.oklchFocus,
-    oklchPurple = targetColors.oklchPurple,
-    surfaceCard = cardBackground,
-    surfaceElevated = targetColors.surfaceElevated,
-    cocaNoirNavGlass = targetColors.cocaNoirNavGlass,
-    cocaNoirShadow = targetColors.cocaNoirShadow,
-    blueHorizonAccent = targetColors.blueHorizonAccent
-  )
+  // Resolve the entire palette atomically; interpolating colors creates mixed themes.
+  val appColors = if (darkTheme) DarkColors else LightColors
 
   val colorScheme = if (darkTheme) {
     darkColorScheme(
       primary = appColors.inkPrimary,
-      onPrimary = appColors.cardBackground,
+      onPrimary = appColors.pillTextDark,
       primaryContainer = appColors.cardBackground,
       onPrimaryContainer = appColors.inkPrimary,
       secondary = appColors.accentTerracotta,
-      onSecondary = appColors.cardBackground,
+      onSecondary = appColors.pillTextDark,
       tertiary = appColors.accentOrange,
       background = appColors.paperBackground,
       onBackground = appColors.inkPrimary,
@@ -108,11 +53,11 @@ fun MyApplicationTheme(
   } else {
     lightColorScheme(
       primary = appColors.inkPrimary,
-      onPrimary = appColors.cardBackground,
+      onPrimary = appColors.pillTextDark,
       primaryContainer = appColors.cardBackground,
       onPrimaryContainer = appColors.inkPrimary,
       secondary = appColors.accentTerracotta,
-      onSecondary = appColors.cardBackground,
+      onSecondary = appColors.pillTextDark,
       tertiary = appColors.accentOrange,
       background = appColors.paperBackground,
       onBackground = appColors.inkPrimary,

@@ -403,7 +403,7 @@ fun Modifier.liquidGlass(
     onClick: (() -> Unit)? = null
 ): Modifier = composed {
     val hazeState = LocalHazeState.current
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = com.example.ui.theme.LocalAppColors.current.isDark
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
